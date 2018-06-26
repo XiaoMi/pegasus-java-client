@@ -1959,18 +1959,18 @@ public class TestBasic {
         PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
         PegasusTableInterface table = client.openTable("temp");
         byte[] hashKey = "x".getBytes();
+        List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
+        values.add(Pair.of("m_1".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_2".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_3".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_4".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_5".getBytes(), "a".getBytes()));
+        values.add(Pair.of("n_1".getBytes(), "b".getBytes()));
+        values.add(Pair.of("n_2".getBytes(), "b".getBytes()));
+        values.add(Pair.of("n_3".getBytes(), "b".getBytes()));
 
         try {
             // multi set
-            List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
-            values.add(Pair.of("m_1".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_2".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_3".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_4".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_5".getBytes(), "a".getBytes()));
-            values.add(Pair.of("n_1".getBytes(), "b".getBytes()));
-            values.add(Pair.of("n_2".getBytes(), "b".getBytes()));
-            values.add(Pair.of("n_3".getBytes(), "b".getBytes()));
             table.multiSet(hashKey, values, 0);
         }
         catch (PException e) {
@@ -1990,6 +1990,7 @@ public class TestBasic {
             Pair<Pair<byte[], byte[]>, byte[]> item;
             while((item = scanner.next()) != null) {
                 Assert.assertArrayEquals(hashKey, item.getLeft().getLeft());
+                Assert.assertArrayEquals("a".getBytes(), item.getRight());
                 data.put(new String(item.getLeft().getRight()), new String(item.getRight()));
             }
             Assert.assertEquals(5, data.size());
@@ -2016,6 +2017,7 @@ public class TestBasic {
             Pair<Pair<byte[], byte[]>, byte[]> item;
             while((item = scanner.next()) != null) {
                 Assert.assertArrayEquals(hashKey, item.getLeft().getLeft());
+                Assert.assertArrayEquals("a".getBytes(), item.getRight());
                 data.put(new String(item.getLeft().getRight()), new String(item.getRight()));
             }
             Assert.assertEquals(5, data.size());
@@ -2033,14 +2035,9 @@ public class TestBasic {
         try {
             // multi del
             List<byte[]> sortKeys = new ArrayList<byte[]>();
-            sortKeys.add("m_1".getBytes());
-            sortKeys.add("m_2".getBytes());
-            sortKeys.add("m_3".getBytes());
-            sortKeys.add("m_4".getBytes());
-            sortKeys.add("m_5".getBytes());
-            sortKeys.add("n_1".getBytes());
-            sortKeys.add("n_2".getBytes());
-            sortKeys.add("n_3".getBytes());
+            for (int i = 0; i < values.size(); i++) {
+                sortKeys.add(values.get(i).getKey());
+            }
             table.multiDel(hashKey, sortKeys, 0);
         }
         catch (PException e) {
@@ -2056,18 +2053,18 @@ public class TestBasic {
         PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
         PegasusTableInterface table = client.openTable("temp");
         byte[] hashKey = "x".getBytes();
+        List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
+        values.add(Pair.of("m_1".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_2".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_3".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_4".getBytes(), "a".getBytes()));
+        values.add(Pair.of("m_5".getBytes(), "a".getBytes()));
+        values.add(Pair.of("n_1".getBytes(), "b".getBytes()));
+        values.add(Pair.of("n_2".getBytes(), "b".getBytes()));
+        values.add(Pair.of("n_3".getBytes(), "b".getBytes()));
 
         try {
             // multi set
-            List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
-            values.add(Pair.of("m_1".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_2".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_3".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_4".getBytes(), "a".getBytes()));
-            values.add(Pair.of("m_5".getBytes(), "a".getBytes()));
-            values.add(Pair.of("n_1".getBytes(), "b".getBytes()));
-            values.add(Pair.of("n_2".getBytes(), "b".getBytes()));
-            values.add(Pair.of("n_3".getBytes(), "b".getBytes()));
             table.multiSet(hashKey, values, 0);
         }
         catch (PException e) {
@@ -2088,6 +2085,7 @@ public class TestBasic {
             Pair<Pair<byte[], byte[]>, byte[]> item;
             while((item = scanner.next()) != null) {
                 Assert.assertArrayEquals(hashKey, item.getLeft().getLeft());
+                Assert.assertArrayEquals("a".getBytes(), item.getRight());
                 data.put(new String(item.getLeft().getRight()), new String(item.getRight()));
             }
             Assert.assertEquals(5, data.size());
@@ -2115,6 +2113,7 @@ public class TestBasic {
             Pair<Pair<byte[], byte[]>, byte[]> item;
             while((item = scanner.next()) != null) {
                 Assert.assertArrayEquals(hashKey, item.getLeft().getLeft());
+                Assert.assertArrayEquals("a".getBytes(), item.getRight());
                 data.put(new String(item.getLeft().getRight()), new String(item.getRight()));
             }
             Assert.assertEquals(5, data.size());
@@ -2132,14 +2131,9 @@ public class TestBasic {
         try {
             // multi del
             List<byte[]> sortKeys = new ArrayList<byte[]>();
-            sortKeys.add("m_1".getBytes());
-            sortKeys.add("m_2".getBytes());
-            sortKeys.add("m_3".getBytes());
-            sortKeys.add("m_4".getBytes());
-            sortKeys.add("m_5".getBytes());
-            sortKeys.add("n_1".getBytes());
-            sortKeys.add("n_2".getBytes());
-            sortKeys.add("n_3".getBytes());
+            for (int i = 0; i < values.size(); i++) {
+                sortKeys.add(values.get(i).getKey());
+            }
             table.multiDel(hashKey, sortKeys, 0);
         }
         catch (PException e) {
