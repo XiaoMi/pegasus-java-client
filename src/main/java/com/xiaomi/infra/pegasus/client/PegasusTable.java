@@ -488,6 +488,31 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     @Override
+    public Future<Long> asyncIncr(byte[] hashKey, byte[] sortKey, long increment, int timeout) {
+        final DefaultPromise<Long> promise = table.newPromise();
+        incr_request request = new incr_request(new blob(PegasusClient.generateKey(hashKey, sortKey)), increment);
+        gpid gpid = table.getGpid(request.key.data);
+        rrdb_incr_operator op = new rrdb_incr_operator(gpid, table.getTableName(), request);
+
+        table.asyncOperate(op, new Table.ClientOPCallback() {
+            @Override
+            public void onCompletion(client_operator clientOP) {
+                rrdb_incr_operator op2 = (rrdb_incr_operator) clientOP;
+                if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+                    promise.setFailure(new PException(new ReplicationException(op2.rpc_error.errno)));
+                }
+                else if (op2.get_response().error != 0) {
+                    promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+                }
+                else {
+                    promise.setSuccess(op2.get_response().new_value);
+                }
+            }
+        }, timeout);
+        return promise;
+    }
+
+    @Override
     public Future<Integer> asyncTTL(byte[] hashKey, byte[] sortKey, int timeout) {
         final DefaultPromise<Integer> promise = table.newPromise();
         blob request = new blob(PegasusClient.generateKey(hashKey, sortKey));
@@ -506,7 +531,9 @@ public class PegasusTable implements PegasusTableInterface {
                     promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
                 }
                 else {
-                    promise.setSuccess( op2.get_response().error == 1 ? -2 : op2.get_response().ttl_seconds );
+                    // On success: ttl time in seconds; -1 if no ttl set; -2 if not exist.
+                    // If not exist, the error code of rpc response is kNotFound(1).
+                    promise.setSuccess(op2.get_response().error == 1 ? -2 : op2.get_response().ttl_seconds);
                 }
             }
         }, timeout);
@@ -1066,6 +1093,21 @@ public class PegasusTable implements PegasusTableInterface {
             }
         }
         return count;
+    }
+
+    @Override
+    public long incr(byte[] hashKey, byte[] sortKey, long increment, int timeout) throws PException {
+        if (timeout <= 0)
+            timeout = defaultTimeout;
+        try {
+            return asyncIncr(hashKey, sortKey, increment, timeout).get(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+        } catch (TimeoutException e) {
+            throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+        } catch (ExecutionException e) {
+            throw new PException(e);
+        }
     }
 
     @Override

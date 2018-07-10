@@ -406,6 +406,12 @@ public class PegasusClient implements PegasusClientInterface {
     }
 
     @Override
+    public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment) throws PException {
+        PegasusTable tb = getTable(tableName);
+        return tb.incr(hashKey, sortKey, increment, 0);
+    }
+
+    @Override
     public int ttl(String tableName, byte[] hashKey, byte[] sortKey) throws PException {
         PegasusTable tb = getTable(tableName);
         return tb.ttl(hashKey, sortKey, 0);
