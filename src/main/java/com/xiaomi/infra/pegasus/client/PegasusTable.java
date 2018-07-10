@@ -12,7 +12,7 @@ import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
 
 import com.xiaomi.infra.pegasus.operator.*;
-import com.xiaomi.infra.pegasus.tools.tools;
+import com.xiaomi.infra.pegasus.tools.Tools;
 
 import io.netty.util.concurrent.*;
 import org.apache.commons.lang3.Validate;
@@ -137,7 +137,7 @@ public class PegasusTable implements PegasusTableInterface {
 
         blob k = new blob(PegasusClient.generateKey(hashKey, sortKey));
         blob v = new blob(value);
-        int expireSeconds = (ttlSeconds == 0 ? 0 : ttlSeconds + (int) tools.epoch_now());
+        int expireSeconds = (ttlSeconds == 0 ? 0 : ttlSeconds + (int) Tools.epoch_now());
         update_request req = new update_request(k, v, expireSeconds);
 
         gpid gpid = table.getGpid(k.data);
@@ -379,7 +379,7 @@ public class PegasusTable implements PegasusTableInterface {
             }
             values_blob.add(new key_value(new blob(k), new blob(v)));
         }
-        int expireTsSseconds = (ttlSeconds == 0 ? 0 : ttlSeconds + (int)tools.epoch_now());
+        int expireTsSseconds = (ttlSeconds == 0 ? 0 : ttlSeconds + (int) Tools.epoch_now());
         multi_put_request request = new multi_put_request(hash_key_blob, values_blob, expireTsSseconds);
 
         gpid gpid = table.getHashKeyGpid(hashKey);
