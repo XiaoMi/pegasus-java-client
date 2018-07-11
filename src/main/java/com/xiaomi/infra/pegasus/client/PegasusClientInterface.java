@@ -402,6 +402,7 @@ public interface PegasusClientInterface {
      * @param sortKey all the k-v under hashKey will be sorted by sortKey,
      *                if null or length == 0, means no sort key.
      * @param increment the increment to be added to the old value.
+     * @return new value.
      * @throws PException
      */
     public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment) throws PException;

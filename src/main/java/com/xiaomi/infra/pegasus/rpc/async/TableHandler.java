@@ -225,15 +225,14 @@ public class TableHandler extends Table {
 
             // timeout
             case ERR_TIMEOUT: // <- operation timeout
-                logger.error("{}: replica server({}) rpc timeout for gpid({}), operator({}), try({}), error_code({}), not retry",
+                logger.warn("{}: replica server({}) rpc timeout for gpid({}), operator({}), try({}), error_code({}), not retry",
                         tableName_,
-                        cachedHandle.session == null ? "unknown" : cachedHandle.session.name(),
+                        cachedHandle.session.name(),
                         operator.get_gpid().toString(),
                         operator,
                         tryId,
                         operator.rpc_error.errno.toString());
-                round.thisRoundCompletion();
-                return;
+                break;
 
             // under these cases we should query the new config from meta and retry later
             case ERR_SESSION_RESET: // <- connection with the server failed
@@ -241,7 +240,7 @@ public class TableHandler extends Table {
             case ERR_INVALID_STATE: // <- replica server is not primary
                 logger.warn("{}: replica server({}) doesn't serve gpid({}), operator({}), try({}), error_code({}), need query meta",
                         tableName_,
-                        cachedHandle.session == null ? "unknown" : cachedHandle.session.name(),
+                        cachedHandle.session.name(),
                         operator.get_gpid().toString(),
                         operator,
                         tryId,
@@ -254,7 +253,7 @@ public class TableHandler extends Table {
             case ERR_CAPACITY_EXCEEDED:
                 logger.warn("{}: replica server({}) can't serve writing for gpid({}), operator({}), try({}), error_code({}), retry later",
                         tableName_,
-                        cachedHandle.session == null ? "unknown" : cachedHandle.session.name(),
+                        cachedHandle.session.name(),
                         operator.get_gpid().toString(),
                         operator,
                         tryId,
@@ -265,7 +264,7 @@ public class TableHandler extends Table {
             default:
                 logger.error("{}: replica server({}) fails for gpid({}), operator({}), try({}), error_code({}), not retry",
                         tableName_,
-                        cachedHandle.session == null ? "unknown" : cachedHandle.session.name(),
+                        cachedHandle.session.name(),
                         operator.get_gpid().toString(),
                         operator,
                         tryId,
