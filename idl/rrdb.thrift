@@ -142,7 +142,7 @@ struct incr_response
 struct check_and_set_request
 {
     1:base.blob      hash_key;
-    2:dsn.blob       check_sort_key;
+    2:base.blob      check_sort_key;
     3:cas_check_type check_type;
     4:base.blob      check_operand;
     5:bool           set_diff_sort_key; // if set different sort key with check_sort_key
