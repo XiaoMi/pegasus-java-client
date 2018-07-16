@@ -13,6 +13,18 @@ enum filter_type
     FT_MATCH_POSTFIX
 }
 
+enum cas_check_type
+{
+    CT_NO_CHECK,
+    CT_VALUE_NOT_EXIST,
+    CT_VALUE_EXIST,
+    CT_VALUE_NOT_EMPTY,
+    CT_VALUE_EQUAL,
+    CT_VALUE_MATCH_ANYWHERE,
+    CT_VALUE_MATCH_PREFIX,
+    CT_VALUE_MATCH_POSTFIX
+}
+
 struct update_request
 {
     1:base.blob     key;
@@ -125,6 +137,31 @@ struct incr_response
     4:i32           partition_index;
     5:i64           decree;
     6:string        server;
+}
+
+struct check_and_set_request
+{
+    1:base.blob      hash_key;
+    2:dsn.blob       check_sort_key;
+    3:cas_check_type check_type;
+    4:base.blob      check_operand;
+    5:bool           set_diff_sort_key; // if set different sort key with check_sort_key
+    6:base.blob      set_sort_key; // used only if set_diff_sort_key is true
+    7:base.blob      set_value;
+    8:i32            set_expire_ts_seconds;
+    9:bool           return_check_value;
+}
+
+struct check_and_set_response
+{
+    1:i32            error; // return kTryAgain if check not passed
+    2:bool           check_value_returned;
+    3:bool           check_value_exist; // used only if check_value_returned is true
+    4:base.blob      check_value; // used only if check_value_returned and check_value_exist is true
+    5:i32            app_id;
+    6:i32            partition_index;
+    7:i64            decree;
+    8:string         server;
 }
 
 struct get_scanner_request

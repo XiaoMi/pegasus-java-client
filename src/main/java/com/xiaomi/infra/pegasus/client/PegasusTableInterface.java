@@ -503,6 +503,48 @@ public interface PegasusTableInterface {
      */
     public Future<Long> asyncIncr(byte[] hashKey, byte[] sortKey, long increment, int timeout/*ms*/);
 
+    ///< -------- CheckAndSet --------
+
+    public static interface CheckAndSetListener extends GenericFutureListener<Future<CheckAndSetResults>> {
+        /**
+         * This function will be called when listened asyncCheckAndSet future is done.
+         * @param future the listened future
+         * @throws Exception
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
+         */
+        @Override
+        public void operationComplete(Future<CheckAndSetResults> future) throws Exception;
+    }
+
+    /**
+     * increment value a specific (hashKey, sortKey) pair, async version
+     * @param hashKey the hash key to check and set.
+     * @param checkSortKey the sort key to check.
+     * @param checkType the check type.
+     * @param checkOperand the check operand.
+     * @param setSortKey the sort key to set value if check passed.
+     * @param setValue the value to set if check passed.
+     * @param options the check-and-set options.
+     * @param timeout how long will the operation timeout in milliseconds.
+     *                if timeout > 0, it is a timeout value for current op,
+     *                else the timeout value in the configuration file will be used.
+     *
+     * @return the future for current op
+     *
+     * Future return:
+     *      On success: return check-and-set results.
+     *      On failure: a throwable, which is an instance of PException
+     *
+     * Thread safety:
+     *      All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
+     *      listeners for the same future are guaranteed to be executed as the same order as the listeners added.
+     *      But listeners for different tables are not guaranteed to be dispatched in the same thread.
+     */
+    public Future<CheckAndSetResults> asyncCheckAndSet(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
+                                                       byte[] checkOperand, byte[] setSortKey, byte[] setValue,
+                                                       CheckAndSetOptions options, int timeout/*ms*/);
+
     ///< -------- TTL --------
 
     public static interface TTLListener extends GenericFutureListener<Future<Integer>> {

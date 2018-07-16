@@ -513,6 +513,33 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     @Override
+    public Future<CheckAndSetResults> asyncCheckAndSet(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
+                                                       byte[] checkOperand, byte[] setSortKey, byte[] setValue,
+                                                       CheckAndSetOptions options, int timeout/*ms*/) {
+        final DefaultPromise<CheckAndSetResults> promise = table.newPromise();
+        incr_request request = new incr_request(new blob(PegasusClient.generateKey(hashKey, sortKey)), increment);
+        gpid gpid = table.getGpid(request.key.data);
+        rrdb_incr_operator op = new rrdb_incr_operator(gpid, table.getTableName(), request);
+
+        table.asyncOperate(op, new Table.ClientOPCallback() {
+            @Override
+            public void onCompletion(client_operator clientOP) {
+                rrdb_incr_operator op2 = (rrdb_incr_operator) clientOP;
+                if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+                    promise.setFailure(new PException(new ReplicationException(op2.rpc_error.errno)));
+                }
+                else if (op2.get_response().error != 0) {
+                    promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+                }
+                else {
+                    promise.setSuccess(op2.get_response().new_value);
+                }
+            }
+        }, timeout);
+        return promise;
+    }
+
+    @Override
     public Future<Integer> asyncTTL(byte[] hashKey, byte[] sortKey, int timeout) {
         final DefaultPromise<Integer> promise = table.newPromise();
         blob request = new blob(PegasusClient.generateKey(hashKey, sortKey));
