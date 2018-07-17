@@ -414,20 +414,18 @@ public interface PegasusClientInterface {
     /**
      * Atomically increment value.
      *
-     * @param tableName TableHandler name
-     * @param hashKey   used to decide which partition to put this k-v,
-     *                  if null or length == 0, means no hash key.
-     * @param sortKey   all the k-v under hashKey will be sorted by sortKey,
-     *                  if null or length == 0, means no sort key.
+     * @param tableName the table name.
+     * @param hashKey   the hash key to increment.
+     * @param sortKey   the sort key to increment.
      * @param increment the increment to be added to the old value.
-     * @return new value.
+     * @return the new value.
      * @throws PException
      */
     public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment) throws PException;
 
     /**
      * Atomically check and set value by key.
-     * If the check condition is satisfied, then apply set value.
+     * If the check condition is satisfied, then apply to set value.
      *
      * @param tableName    the table name.
      * @param hashKey      the hash key to check and set.
@@ -440,25 +438,33 @@ public interface PegasusClientInterface {
      * @return CheckAndSetResult
      * @throws PException
      */
-    public PegasusTableInterface.CheckAndSetResult checkAndSet(String tableName, byte[] hashKey,
-                                                               byte[] checkSortKey, CheckType checkType, byte[] checkOperand,
+    public PegasusTableInterface.CheckAndSetResult checkAndSet(String tableName, byte[] hashKey, byte[] checkSortKey,
+                                                               CheckType checkType, byte[] checkOperand,
                                                                byte[] setSortKey, byte[] setValue,
                                                                CheckAndSetOptions options) throws PException;
 
     /**
      * Atomically compare and set value by key.
-     * If the original value of specified key is equal to the expect value, then set the new value, and return true.
+     * <p>
+     * - if the original value for the key is equal to the expected value, then update it with the desired value,
+     *   and set CompareExchangeResult.setSucceed to true.
+     * - if the original value for the key is not exist or not equal to the expected value, then set
+     *   CompareExchangeResult.setSucceed to false, and return the actual value in CompareExchangeResult.
+     * <p>
+     * This method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
-     * @param tableName    the table name.
-     * @param sortKey     the sort key to compare and set.
-     * @param expectValue the expect value to compare.
-     * @param newValue    the new value to set if compare passed.
-     * @param ttlSeconds  time to live in seconds of the set value, 0 means no ttl.
-     * @return true if set succeed.
+     * @param tableName     the table name.
+     * @param hashKey       the hash key to compare and set.
+     * @param sortKey       the sort key to compare and set.
+     * @param expectedValue the value expected to be found for the key.
+     * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
+     * @param ttlSeconds    time to live in seconds of the set value, 0 means no ttl.
+     * @return CompareExchangeResult
      * @throws PException
      */
-    public boolean compareAndSet(String tableName, byte[] hashKey, byte[] sortKey,
-                                 byte[] expectValue, byte[] newValue, int ttlSeconds) throws PException;
+    public PegasusTableInterface.CompareExchangeResult compareExchange(String tableName, byte[] hashKey, byte[] sortKey,
+                                                                       byte[] expectedValue, byte[] desiredValue,
+                                                                       int ttlSeconds) throws PException;
 
     /**
      * Get Scanner for {startSortKey, stopSortKey} within hashKey

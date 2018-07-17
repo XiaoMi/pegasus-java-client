@@ -482,10 +482,8 @@ public interface PegasusTableInterface {
     /**
      * atomically increment value by key, async version
      *
-     * @param hashKey   used to decide which partition the key may exist
-     *                  if null or empty, means no hash key.
-     * @param sortKey   all keys under the same hashKey will be sorted by sortKey
-     *                  if null or empty, means no sort key
+     * @param hashKey   the hash key to increment.
+     * @param sortKey   the sort key to increment.
      * @param increment the increment to be added to the old value.
      * @param timeout   how long will the operation timeout in milliseconds.
      *                  if timeout > 0, it is a timeout value for current op,
@@ -533,7 +531,7 @@ public interface PegasusTableInterface {
 
     /**
      * atomically check and set value by key, async version.
-     * if the check condition is satisfied, then apply set value.
+     * if the check condition is satisfied, then apply to set value.
      *
      * @param hashKey      the hash key to check and set.
      * @param checkSortKey the sort key to check.
@@ -548,7 +546,7 @@ public interface PegasusTableInterface {
      * @return the future for current op
      * <p>
      * Future return:
-     * On success: return check-and-set result.
+     * On success: return CheckAndSetResult.
      * On failure: a throwable, which is an instance of PException
      * <p>
      * Thread safety:
@@ -560,22 +558,55 @@ public interface PegasusTableInterface {
                                                       byte[] checkOperand, byte[] setSortKey, byte[] setValue,
                                                       CheckAndSetOptions options, int timeout/*ms*/);
 
+
+    ///< -------- CompareExchange --------
+
+    public static class CompareExchangeResult {
+        /**
+         * return value for CompareExchange
+         *
+         * @param setSucceed if set value succeed.
+         * @param actualValueExist if set value failed, then tell user if the actual value is exist.
+         * @param actualValue if set value failed and the actual value is exist, then return the actual value.
+         */
+        boolean setSucceed;
+        boolean actualValueExist;
+        byte[] actualValue;
+    }
+
+    public static interface CompareExchangeListener extends GenericFutureListener<Future<CompareExchangeResult>> {
+        /**
+         * This function will be called when listened asyncCompareExchange future is done.
+         *
+         * @param future the listened future
+         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         */
+        @Override
+        public void operationComplete(Future<CompareExchangeResult> future) throws Exception;
+    }
+
     /**
      * atomically compare and set value by key, async version.
-     * if the original value of specified key is equal to the expect value, then set the new value, and return true.
+     * <p>
+     * - if the original value for the key is equal to the expected value, then update it with the desired value,
+     *   and set CompareExchangeResult.setSucceed to true.
+     * - if the original value for the key is not exist or not equal to the expected value, then set
+     *   CompareExchangeResult.setSucceed to false, and return the actual value in CompareExchangeResult.
+     * <p>
+     * this method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
-     * @param hashKey     the hash key to compare and set.
-     * @param sortKey     the sort key to compare and set.
-     * @param expectValue the expect value to compare.
-     * @param newValue    the new value to set if compare passed.
-     * @param ttlSeconds  time to live in seconds of the set value, 0 means no ttl.
-     * @param timeout     how long will the operation timeout in milliseconds.
-     *                    if timeout > 0, it is a timeout value for current op,
-     *                    else the timeout value in the configuration file will be used.
+     * @param hashKey       the hash key to compare and set.
+     * @param sortKey       the sort key to compare and set.
+     * @param expectedValue the value expected to be found for the key.
+     * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
+     * @param ttlSeconds    time to live in seconds of the set value, 0 means no ttl.
+     * @param timeout       how long will the operation timeout in milliseconds.
+     *                      if timeout > 0, it is a timeout value for current op,
+     *                      else the timeout value in the configuration file will be used.
      * @return the future for current op
      * <p>
      * Future return:
-     * On success: return true if set succeed.
+     * On success: return CompareExchangeResult.
      * On failure: a throwable, which is an instance of PException
      * <p>
      * Thread safety:
@@ -583,8 +614,9 @@ public interface PegasusTableInterface {
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
      * But listeners for different tables are not guaranteed to be dispatched in the same thread.
      */
-    public Future<Boolean> asyncCompareAndSet(byte[] hashKey, byte[] sortKey, byte[] expectValue, byte[] newValue,
-                                              int ttlSeconds, int timeout/*ms*/);
+    public Future<CompareExchangeResult> asyncCompareExchange(byte[] hashKey, byte[] sortKey,
+                                                              byte[] expectedValue, byte[] desiredValue,
+                                                              int ttlSeconds, int timeout/*ms*/);
 
     ///< -------- TTL --------
 
@@ -909,11 +941,12 @@ public interface PegasusTableInterface {
                                          CheckAndSetOptions options, int timeout/*ms*/) throws PException;
 
     /**
-     * sync version of CompareAndSet, please refer to the async version
-     * {@link #asyncCompareAndSet(byte[], byte[], byte[], byte[], int, int)}
+     * sync version of CompareExchange, please refer to the async version
+     * {@link #asyncCompareExchange(byte[], byte[], byte[], byte[], int, int)}
      */
-    public boolean compareAndSet(byte[] hashKey, byte[] sortKey, byte[] expectValue, byte[] newValue,
-                                 int ttlSeconds, int timeout/*ms*/) throws PException;
+    public CompareExchangeResult compareExchange(byte[] hashKey, byte[] sortKey,
+                                                 byte[] expectedValue, byte[] desiredValue,
+                                                 int ttlSeconds, int timeout/*ms*/) throws PException;
 
     /**
      * sync version of TTL, please refer to the async version {@link #asyncTTL(byte[], byte[], int)}

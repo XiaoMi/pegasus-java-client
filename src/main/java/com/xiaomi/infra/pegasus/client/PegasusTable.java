@@ -544,6 +544,7 @@ public class PegasusTable implements PegasusTableInterface {
                             result.checkValue = op2.get_response().check_value.data;
                         } else {
                             result.checkValueExist = false;
+                            result.checkValue = null;
                         }
                     } else {
                         result.checkValueReturned = false;
@@ -556,9 +557,11 @@ public class PegasusTable implements PegasusTableInterface {
         return promise;
     }
 
-    public Future<Boolean> asyncCompareAndSet(byte[] hashKey, byte[] sortKey, byte[] expectValue, byte[] newValue,
-                                              int ttlSeconds, int timeout/*ms*/) {
-        final DefaultPromise<Boolean> promise = table.newPromise();
+    @Override
+    public Future<CompareExchangeResult> asyncCompareExchange(byte[] hashKey, byte[] sortKey,
+                                                              byte[] expectedValue, byte[] desiredValue,
+                                                              int ttlSeconds, int timeout) {
+        final DefaultPromise<CompareExchangeResult> promise = table.newPromise();
         if (hashKey == null || hashKey.length == 0) {
             promise.setFailure(new PException("Invalid parameter: hashKey should not be null or empty"));
             return promise;
@@ -570,13 +573,13 @@ public class PegasusTable implements PegasusTableInterface {
 
         blob hashKeyBlob = new blob(hashKey);
         blob sortKeyBlob = (sortKey == null ? null : new blob(sortKey));
-        blob checkOperandBlob = (expectValue == null ? null : new blob(expectValue));
-        blob setValueBlob = (newValue == null ? null : new blob(newValue));
+        blob checkOperandBlob = (expectedValue == null ? null : new blob(expectedValue));
+        blob setValueBlob = (desiredValue == null ? null : new blob(desiredValue));
         int expireSeconds = (ttlSeconds == 0 ? 0 : ttlSeconds + (int) Tools.epoch_now());
 
         check_and_set_request request = new check_and_set_request(
                 hashKeyBlob, sortKeyBlob, cas_check_type.CT_VALUE_BYTES_EQUAL, checkOperandBlob,
-                false, null, setValueBlob, expireSeconds, false);
+                false, null, setValueBlob, expireSeconds, true);
 
         gpid gpid = table.getHashKeyGpid(hashKey);
         rrdb_check_and_set_operator op = new rrdb_check_and_set_operator(gpid, table.getTableName(), request);
@@ -590,7 +593,21 @@ public class PegasusTable implements PegasusTableInterface {
                 } else if (op2.get_response().error != 0 && op2.get_response().error != 13) { // 13 : kTryAgain
                     promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
                 } else {
-                    promise.setSuccess(op2.get_response().error == 0);
+                    CompareExchangeResult result = new CompareExchangeResult();
+                    if (op2.get_response().error == 0) {
+                        result.setSucceed = true;
+                        result.actualValue = null;
+                    } else {
+                        result.setSucceed = false;
+                        if (op2.get_response().check_value_exist) {
+                            result.actualValueExist = true;
+                            result.actualValue = op2.get_response().check_value.data;
+                        } else {
+                            result.actualValueExist = false;
+                            result.actualValue = null;
+                        }
+                    }
+                    promise.setSuccess(result);
                 }
             }
         }, timeout);
@@ -1212,12 +1229,13 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     @Override
-    public boolean compareAndSet(byte[] hashKey, byte[] sortKey, byte[] expectValue, byte[] newValue,
-                                 int ttlSeconds, int timeout) throws PException {
+    public CompareExchangeResult compareExchange(byte[] hashKey, byte[] sortKey,
+                                                 byte[] expectedValue, byte[] desiredValue,
+                                                 int ttlSeconds, int timeout) throws PException {
         if (timeout <= 0)
             timeout = defaultTimeout;
         try {
-            return asyncCompareAndSet(hashKey, sortKey, expectValue, newValue,
+            return asyncCompareExchange(hashKey, sortKey, expectedValue, desiredValue,
                     ttlSeconds, timeout).get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
