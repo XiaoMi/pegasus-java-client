@@ -9,8 +9,8 @@ package com.xiaomi.infra.pegasus.client;
  * Check-and-set options.
  */
 public class CheckAndSetOptions {
-    int setValueTTLSeconds = 0; // time to live in seconds of the set value, 0 means no ttl.
-    boolean returnCheckValue = false; // if return the check value in results.
+    public int setValueTTLSeconds = 0; // time to live in seconds of the set value, 0 means no ttl.
+    public boolean returnCheckValue = false; // if return the check value in results.
 
     public CheckAndSetOptions() {}
 

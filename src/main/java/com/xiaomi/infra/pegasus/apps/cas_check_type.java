@@ -13,12 +13,22 @@ package com.xiaomi.infra.pegasus.apps;
 public enum cas_check_type implements com.xiaomi.infra.pegasus.thrift.TEnum {
   CT_NO_CHECK(0),
   CT_VALUE_NOT_EXIST(1),
-  CT_VALUE_EXIST(2),
-  CT_VALUE_NOT_EMPTY(3),
-  CT_VALUE_EQUAL(4),
+  CT_VALUE_NOT_EXIST_OR_EMPTY(2),
+  CT_VALUE_EXIST(3),
+  CT_VALUE_NOT_EMPTY(4),
   CT_VALUE_MATCH_ANYWHERE(5),
   CT_VALUE_MATCH_PREFIX(6),
-  CT_VALUE_MATCH_POSTFIX(7);
+  CT_VALUE_MATCH_POSTFIX(7),
+  CT_VALUE_BYTES_LESS(8),
+  CT_VALUE_BYTES_LESS_OR_EQUAL(9),
+  CT_VALUE_BYTES_EQUAL(10),
+  CT_VALUE_BYTES_GREATER_OR_EQUAL(11),
+  CT_VALUE_BYTES_GREATER(12),
+  CT_VALUE_INT_LESS(13),
+  CT_VALUE_INT_LESS_OR_EQUAL(14),
+  CT_VALUE_INT_EQUAL(15),
+  CT_VALUE_INT_GREATER_OR_EQUAL(16),
+  CT_VALUE_INT_GREATER(17);
 
   private final int value;
 
@@ -44,17 +54,37 @@ public enum cas_check_type implements com.xiaomi.infra.pegasus.thrift.TEnum {
       case 1:
         return CT_VALUE_NOT_EXIST;
       case 2:
-        return CT_VALUE_EXIST;
+        return CT_VALUE_NOT_EXIST_OR_EMPTY;
       case 3:
-        return CT_VALUE_NOT_EMPTY;
+        return CT_VALUE_EXIST;
       case 4:
-        return CT_VALUE_EQUAL;
+        return CT_VALUE_NOT_EMPTY;
       case 5:
         return CT_VALUE_MATCH_ANYWHERE;
       case 6:
         return CT_VALUE_MATCH_PREFIX;
       case 7:
         return CT_VALUE_MATCH_POSTFIX;
+      case 8:
+        return CT_VALUE_BYTES_LESS;
+      case 9:
+        return CT_VALUE_BYTES_LESS_OR_EQUAL;
+      case 10:
+        return CT_VALUE_BYTES_EQUAL;
+      case 11:
+        return CT_VALUE_BYTES_GREATER_OR_EQUAL;
+      case 12:
+        return CT_VALUE_BYTES_GREATER;
+      case 13:
+        return CT_VALUE_INT_LESS;
+      case 14:
+        return CT_VALUE_INT_LESS_OR_EQUAL;
+      case 15:
+        return CT_VALUE_INT_EQUAL;
+      case 16:
+        return CT_VALUE_INT_GREATER_OR_EQUAL;
+      case 17:
+        return CT_VALUE_INT_GREATER;
       default:
         return null;
     }

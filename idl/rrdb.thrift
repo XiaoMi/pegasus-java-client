@@ -16,13 +16,31 @@ enum filter_type
 enum cas_check_type
 {
     CT_NO_CHECK,
-    CT_VALUE_NOT_EXIST,
-    CT_VALUE_EXIST,
-    CT_VALUE_NOT_EMPTY,
-    CT_VALUE_EQUAL,
-    CT_VALUE_MATCH_ANYWHERE,
-    CT_VALUE_MATCH_PREFIX,
-    CT_VALUE_MATCH_POSTFIX
+
+    // (1~4) appearance
+    CT_VALUE_NOT_EXIST,               // value is not exist
+    CT_VALUE_NOT_EXIST_OR_EMPTY,      // value is not exist or value is empty
+    CT_VALUE_EXIST,                   // value is exist
+    CT_VALUE_NOT_EMPTY,               // value is exist and not empty
+
+    // (5~7) match
+    CT_VALUE_MATCH_ANYWHERE,          // operand matches anywhere in value
+    CT_VALUE_MATCH_PREFIX,            // operand matches prefix in value
+    CT_VALUE_MATCH_POSTFIX,           // operand matches postfix in value
+
+    // (8~12) bytes compare
+    CT_VALUE_BYTES_LESS,              // bytes compare: value < operand
+    CT_VALUE_BYTES_LESS_OR_EQUAL,     // bytes compare: value <= operand
+    CT_VALUE_BYTES_EQUAL,             // bytes compare: value == operand
+    CT_VALUE_BYTES_GREATER_OR_EQUAL,  // bytes compare: value >= operand
+    CT_VALUE_BYTES_GREATER,           // bytes compare: value > operand
+
+    // (13~17) int compare: first transfer bytes to int64 by atoi(); then compare by int value
+    CT_VALUE_INT_LESS,                // int compare: value < operand
+    CT_VALUE_INT_LESS_OR_EQUAL,       // int compare: value <= operand
+    CT_VALUE_INT_EQUAL,               // int compare: value == operand
+    CT_VALUE_INT_GREATER_OR_EQUAL,    // int compare: value >= operand
+    CT_VALUE_INT_GREATER              // int compare: value > operand
 }
 
 struct update_request
@@ -200,6 +218,7 @@ service rrdb
     update_response remove(1:base.blob key);
     multi_remove_response multi_remove(1:multi_remove_request request);
     incr_response incr(1:incr_request request);
+    check_and_set_response check_and_set(1:check_and_set_request request);
     read_response get(1:base.blob key);
     multi_get_response multi_get(1:multi_get_request request);
     count_response sortkey_count(1:base.blob hash_key);
