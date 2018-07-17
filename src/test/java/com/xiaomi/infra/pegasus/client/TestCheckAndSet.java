@@ -36,7 +36,7 @@ public class TestCheckAndSet {
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
             Assert.assertArrayEquals("v1".getBytes(), value);
-            
+
             client.del(tableName, hashKey, "k1".getBytes());
         }
         catch (PException e) {
