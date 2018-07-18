@@ -524,7 +524,7 @@ public interface PegasusTableInterface {
         /**
          * return value for checkAndSet
          *
-         * @param setSucceed if set value succeed.
+         * @param setSucceed true if set value succeed.
          * @param checkValueReturned if the check value is returned.
          * @param checkValueExist if the check value is exist; can be used only when checkValueReturned is true.
          * @param checkValue the check value; can be used only when checkValueExist is true.
@@ -584,7 +584,7 @@ public interface PegasusTableInterface {
         /**
          * return value for CompareExchange
          *
-         * @param setSucceed if set value succeed.
+         * @param setSucceed true if set value succeed.
          * @param actualValue if set value failed, return the actual value; null means the actual value is not exist.
          */
         boolean setSucceed;
