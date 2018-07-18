@@ -566,11 +566,9 @@ public interface PegasusTableInterface {
          * return value for CompareExchange
          *
          * @param setSucceed if set value succeed.
-         * @param actualValueExist if set value failed, then tell user if the actual value is exist.
-         * @param actualValue if set value failed and the actual value is exist, then return the actual value.
+         * @param actualValue if set value failed, return the actual value; null means the actual value is not exist.
          */
         boolean setSucceed;
-        boolean actualValueExist;
         byte[] actualValue;
     }
 
@@ -586,12 +584,13 @@ public interface PegasusTableInterface {
     }
 
     /**
-     * atomically compare and set value by key, async version.
+     * atomically compare and exchange value by key, async version.
      * <p>
      * - if the original value for the key is equal to the expected value, then update it with the desired value,
-     *   and set CompareExchangeResult.setSucceed to true.
+     *   set CompareExchangeResult.setSucceed to true, and set CompareExchangeResult.actualValue to null because
+     *   the actual value must be equal to the desired value.
      * - if the original value for the key is not exist or not equal to the expected value, then set
-     *   CompareExchangeResult.setSucceed to false, and return the actual value in CompareExchangeResult.
+     *   CompareExchangeResult.setSucceed to false, and set the actual value in CompareExchangeResult.actualValue.
      * <p>
      * this method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
@@ -599,7 +598,7 @@ public interface PegasusTableInterface {
      * @param sortKey       the sort key to compare and set.
      * @param expectedValue the value expected to be found for the key.
      * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
-     * @param ttlSeconds    time to live in seconds of the set value, 0 means no ttl.
+     * @param ttlSeconds    time to live in seconds of the desired value, 0 means no ttl.
      * @param timeout       how long will the operation timeout in milliseconds.
      *                      if timeout > 0, it is a timeout value for current op,
      *                      else the timeout value in the configuration file will be used.

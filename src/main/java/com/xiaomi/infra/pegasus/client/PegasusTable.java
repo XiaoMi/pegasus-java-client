@@ -549,6 +549,7 @@ public class PegasusTable implements PegasusTableInterface {
                     } else {
                         result.checkValueReturned = false;
                         result.checkValueExist = false;
+                        result.checkValue = null;
                     }
                     promise.setSuccess(result);
                 }
@@ -600,10 +601,8 @@ public class PegasusTable implements PegasusTableInterface {
                     } else {
                         result.setSucceed = false;
                         if (op2.get_response().check_value_exist) {
-                            result.actualValueExist = true;
                             result.actualValue = op2.get_response().check_value.data;
                         } else {
-                            result.actualValueExist = false;
                             result.actualValue = null;
                         }
                     }

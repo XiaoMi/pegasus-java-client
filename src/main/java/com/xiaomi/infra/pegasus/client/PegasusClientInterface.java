@@ -444,12 +444,13 @@ public interface PegasusClientInterface {
                                                                CheckAndSetOptions options) throws PException;
 
     /**
-     * Atomically compare and set value by key.
+     * Atomically compare and exchange value by key.
      * <p>
      * - if the original value for the key is equal to the expected value, then update it with the desired value,
-     *   and set CompareExchangeResult.setSucceed to true.
+     *   set CompareExchangeResult.setSucceed to true, and set CompareExchangeResult.actualValue to null because
+     *   the actual value must be equal to the desired value.
      * - if the original value for the key is not exist or not equal to the expected value, then set
-     *   CompareExchangeResult.setSucceed to false, and return the actual value in CompareExchangeResult.
+     *   CompareExchangeResult.setSucceed to false, and set the actual value in CompareExchangeResult.actualValue.
      * <p>
      * This method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
@@ -458,7 +459,7 @@ public interface PegasusClientInterface {
      * @param sortKey       the sort key to compare and set.
      * @param expectedValue the value expected to be found for the key.
      * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
-     * @param ttlSeconds    time to live in seconds of the set value, 0 means no ttl.
+     * @param ttlSeconds    time to live in seconds of the desired value, 0 means no ttl.
      * @return CompareExchangeResult
      * @throws PException
      */
