@@ -11,49 +11,49 @@ import java.util.List;
 
 /**
  * @author sunweijie
- *         <p>
- *         This class provides sync and async interfaces to access data of a specified table.
- *         <p>
- *         All the async interfaces use Future mode. Notice that it's {@link io.netty.util.concurrent.Future},
- *         but not {@link java.util.concurrent.Future}. You can wait the future to complete in a synchronous
- *         manner, or add completion callback in an asynchronous way.
- *         <p>
- *         A synchronous example:
- *         <code>
- *         PegasusTableInterface table;
- *         ....
- *         Future<Boolean> future = table.asyncExist(hashKey, sortKey, 0);
- *         future.await();
- *         if (future.isSuccess()) {
+ *
+ * This class provides sync and async interfaces to access data of a specified table.
+ *
+ * All the async interfaces use Future mode. Notice that it's {@link io.netty.util.concurrent.Future},
+ * but not {@link java.util.concurrent.Future}. You can wait the future to complete in a synchronous
+ * manner, or add completion callback in an asynchronous way.
+ *
+ * A synchronous example:
+ * <code>
+ *     PegasusTableInterface table;
+ *     ....
+ *     Future<Boolean> future = table.asyncExist(hashKey, sortKey, 0);
+ *     future.await();
+ *     if (future.isSuccess()) {
  *         Boolean result = future.getNow();
- *         }
- *         else {
+ *     }
+ *     else {
  *         future.cause().printStackTrace();
- *         }
- *         </code>
- *         <p>
- *         An asynchronous example:
- *         <code>
- *         PegasusTableInterface table;
- *         ....
- *         table.asyncExist(hashKey, sortKey, 0).addListener(
+ *     }
+ * </code>
+ *
+ * An asynchronous example:
+ * <code>
+ *     PegasusTableInterface table;
+ *     ....
+ *     table.asyncExist(hashKey, sortKey, 0).addListener(
  *         new ExistListener() {
- *         public void operationComplete(Future<Boolean> future) throws Exception {
- *         if (future.isSuccess()) {
- *         Boolean result = future.getNow();
+ *             public void operationComplete(Future<Boolean> future) throws Exception {
+ *                 if (future.isSuccess()) {
+ *                     Boolean result = future.getNow();
+ *                 }
+ *                 else {
+ *                     future.cause().printStackTrace();
+ *                 }
+ *             }
  *         }
- *         else {
- *         future.cause().printStackTrace();
- *         }
- *         }
- *         }
- *         ).await();
- *         </code>
- *         Attention: when the future await() returns, it is guaranteed that the result data is ready and you can
- *         fetch it by getNow(), but it is not guaranteed that the operationComplete() of listener is already executed,
- *         because the callback is dispatched to an internal thread, so it depends on thread scheduling.
- *         <p>
- *         Please refer to the netty document for the usage of Future.
+ *     ).await();
+ * </code>
+ * Attention: when the future await() returns, it is guaranteed that the result data is ready and you can
+ * fetch it by getNow(), but it is not guaranteed that the operationComplete() of listener is already executed,
+ * because the callback is dispatched to an internal thread, so it depends on thread scheduling.
+ *
+ * Please refer to the netty document for the usage of Future.
  */
 public interface PegasusTableInterface {
 
@@ -64,7 +64,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncExist future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Boolean> future) throws Exception;
@@ -101,7 +103,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncSortKeyCount future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Long> future) throws Exception;
@@ -136,7 +140,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncGet future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<byte[]> future) throws Exception;
@@ -185,7 +191,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncMultiGet future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<MultiGetResult> future) throws Exception;
@@ -263,8 +271,7 @@ public interface PegasusTableInterface {
          * return value for multiGetSortkeys
          *
          * @param allFetched true if all data on the server are fetched; false if only partial data are fetched.
-         * @param keys the got keys.
-         * The output keys are in order.
+         * @param keys the got keys. The output keys are in order.
          */
         public boolean allFetched;
         public List<byte[]> keys;
@@ -277,7 +284,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncMultiGetSortKeys future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<MultiGetSortKeysResult> future) throws Exception;
@@ -318,7 +327,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncSet future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Void> future) throws Exception;
@@ -360,7 +371,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncMultiSet future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Void> future) throws Exception;
@@ -401,7 +414,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncDel future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Void> future) throws Exception;
@@ -437,7 +452,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncMultiDel future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Void> future) throws Exception;
@@ -473,7 +490,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncIncr future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Long> future) throws Exception;
@@ -523,7 +542,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncCheckAndSet future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<CheckAndSetResult> future) throws Exception;
@@ -577,7 +598,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncCompareExchange future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<CompareExchangeResult> future) throws Exception;
@@ -624,7 +647,9 @@ public interface PegasusTableInterface {
          * This function will be called when listened asyncTTL future is done.
          *
          * @param future the listened future
-         * @throws Exception Notice: User shouldn't do any operations that may block or time-consuming
+         * @throws Exception throw exception if any error occurs.
+         *
+         * Notice: User shouldn't do any operations that may block or time-consuming
          */
         @Override
         public void operationComplete(Future<Integer> future) throws Exception;
@@ -682,8 +707,8 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchGet(List<Pair<byte[], byte[]>> keys, List<byte[]> values, int timeout/*ms*/) throws PException;
 
@@ -700,7 +725,9 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchGet2(List<Pair<byte[], byte[]>> keys,
                          List<Pair<PException, byte[]>> results, int timeout/*ms*/) throws PException;
@@ -737,8 +764,8 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiGet(List<Pair<byte[], List<byte[]>>> keys,
                               List<HashKeyData> values, int timeout/*ms*/) throws PException;
@@ -754,7 +781,9 @@ public interface PegasusTableInterface {
      *                - if Pair.left != null : means query keys[i] failed, Pair.left is the exception.
      *                - if Pair.left == null : means query keys[i] succeed, Pair.right is the result value.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiGet2(List<Pair<byte[], List<byte[]>>> keys,
                               List<Pair<PException, HashKeyData>> results, int timeout/*ms*/) throws PException;
@@ -785,8 +814,8 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchSet(List<SetItem> items, int timeout/*ms*/) throws PException;
 
@@ -803,7 +832,9 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchSet2(List<SetItem> items, List<PException> results, int timeout/*ms*/) throws PException;
 
@@ -827,8 +858,8 @@ public interface PegasusTableInterface {
      *                    if timeout > 0, it is a timeout value for current op,
      *                    else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiSet(List<HashKeyData> items, int ttl_seconds, int timeout/*ms*/) throws PException;
 
@@ -847,7 +878,9 @@ public interface PegasusTableInterface {
      *                    if timeout > 0, it is a timeout value for current op,
      *                    else the timeout value in the configuration file will be used.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiSet2(List<HashKeyData> items,
                               int ttl_seconds, List<PException> results, int timeout/*ms*/) throws PException;
@@ -866,8 +899,8 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchDel(List<Pair<byte[], byte[]>> keys, int timeout/*ms*/) throws PException;
 
@@ -884,7 +917,9 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchDel2(List<Pair<byte[], byte[]>> keys,
                          List<PException> results, int timeout/*ms*/) throws PException;
@@ -903,8 +938,8 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @throws PException throws exception if any error occurs.
-     *                    <p>
-     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiDel(List<Pair<byte[], List<byte[]>>> keys, int timeout/*ms*/) throws PException;
 
@@ -921,7 +956,9 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return succeed count.
-     * @throws PException Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     * @throws PException throw exception if any error occurs.
+     *
+     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiDel2(List<Pair<byte[], List<byte[]>>> keys,
                               List<PException> results, int timeout/*ms*/) throws PException;
@@ -962,7 +999,7 @@ public interface PegasusTableInterface {
      *                     if null or length == 0, means stop to end
      * @param options      scan options like endpoint inclusive/exclusive
      * @return scanner
-     * @throws PException
+     * @throws PException throw exception if any error occurs.
      */
     public PegasusScannerInterface getScanner(byte[] hashKey, byte[] startSortKey, byte[] stopSortKey,
                                               ScanOptions options) throws PException;
@@ -973,7 +1010,7 @@ public interface PegasusTableInterface {
      * @param maxSplitCount how many scanner expected
      * @param options       scan options like batchSize
      * @return scanners, count of which would be no more than maxSplitCount
-     * @throws PException
+     * @throws PException throw exception if any error occurs.
      */
     public List<PegasusScannerInterface> getUnorderedScanners(int maxSplitCount,
                                                               ScanOptions options) throws PException;
