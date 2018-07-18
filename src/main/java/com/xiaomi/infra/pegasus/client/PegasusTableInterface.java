@@ -277,8 +277,6 @@ public interface PegasusTableInterface {
         public List<byte[]> keys;
     }
 
-    ;
-
     public static interface MultiGetSortKeysListener extends GenericFutureListener<Future<MultiGetSortKeysResult>> {
         /**
          * This function will be called when listened asyncMultiGetSortKeys future is done.

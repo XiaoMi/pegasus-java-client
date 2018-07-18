@@ -376,7 +376,7 @@ public interface PegasusClientInterface {
      *                  should not be null or empty.
      * @param sortKeys  specify sort keys to be deleted.
      *                  should not be empty.
-     * @throws PException
+     * @throws PException throws exception if any error occurs.
      */
     public void multiDel(String tableName, byte[] hashKey, List<byte[]> sortKeys) throws PException;
 

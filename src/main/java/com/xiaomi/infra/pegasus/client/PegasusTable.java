@@ -27,8 +27,8 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author sunweijie
- *         <p>
- *         Implementation of {@link PegasusTableInterface}.
+ *
+ * Implementation of {@link PegasusTableInterface}.
  */
 public class PegasusTable implements PegasusTableInterface {
     private PegasusClient client;
