@@ -444,8 +444,8 @@ public interface PegasusClientInterface {
      * @param checkSortKey the sort key to check.
      * @param checkType    the check type.
      * @param checkOperand the check operand.
-     * @param setSortKey   the sort key to set value if check passed.
-     * @param setValue     the value to set if check passed.
+     * @param setSortKey   the sort key to set value if check condition is satisfied.
+     * @param setValue     the value to set if check condition is satisfied.
      * @param options      the check-and-set options.
      * @return CheckAndSetResult
      * @throws PException throws exception if any error occurs.
@@ -467,8 +467,8 @@ public interface PegasusClientInterface {
      * This method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
      * @param tableName     the table name.
-     * @param hashKey       the hash key to compare and set.
-     * @param sortKey       the sort key to compare and set.
+     * @param hashKey       the hash key to compare and exchange.
+     * @param sortKey       the sort key to compare and exchange.
      * @param expectedValue the value expected to be found for the key.
      * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
      * @param ttlSeconds    time to live in seconds of the desired value, 0 means no ttl.

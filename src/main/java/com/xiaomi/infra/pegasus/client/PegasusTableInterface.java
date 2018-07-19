@@ -525,9 +525,9 @@ public interface PegasusTableInterface {
          * return value for checkAndSet
          *
          * @param setSucceed true if set value succeed.
-         * @param checkValueReturned if the check value is returned.
-         * @param checkValueExist if the check value is exist; can be used only when checkValueReturned is true.
-         * @param checkValue the check value; can be used only when checkValueExist is true.
+         * @param checkValueReturned true if the check value is returned.
+         * @param checkValueExist true if the check value is exist; can be used only when checkValueReturned is true.
+         * @param checkValue return the check value if exist; can be used only when checkValueExist is true.
          */
         boolean setSucceed;
         boolean checkValueReturned;
@@ -556,8 +556,8 @@ public interface PegasusTableInterface {
      * @param checkSortKey the sort key to check.
      * @param checkType    the check type.
      * @param checkOperand the check operand.
-     * @param setSortKey   the sort key to set value if check passed.
-     * @param setValue     the value to set if check passed.
+     * @param setSortKey   the sort key to set value if check condition is satisfied.
+     * @param setValue     the value to set if check condition is satisfied.
      * @param options      the check-and-set options.
      * @param timeout      how long will the operation timeout in milliseconds.
      *                     if timeout > 0, it is a timeout value for current op,
@@ -585,7 +585,7 @@ public interface PegasusTableInterface {
          * return value for CompareExchange
          *
          * @param setSucceed true if set value succeed.
-         * @param actualValue if set value failed, return the actual value; null means the actual value is not exist.
+         * @param actualValue return the actual value if set value failed; null means the actual value is not exist.
          */
         boolean setSucceed;
         byte[] actualValue;
@@ -615,8 +615,8 @@ public interface PegasusTableInterface {
      * <p>
      * this method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
-     * @param hashKey       the hash key to compare and set.
-     * @param sortKey       the sort key to compare and set.
+     * @param hashKey       the hash key to compare and exchange.
+     * @param sortKey       the sort key to compare and exchange.
      * @param expectedValue the value expected to be found for the key.
      * @param desiredValue  the desired value to set if the original value for the key is equal to the expected value.
      * @param ttlSeconds    time to live in seconds of the desired value, 0 means no ttl.
