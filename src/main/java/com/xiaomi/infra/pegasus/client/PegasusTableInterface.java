@@ -9,6 +9,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
+import com.xiaomi.infra.pegasus.apps.mutate_operation;
+
 /**
  * @author sunweijie
  *
@@ -577,6 +579,65 @@ public interface PegasusTableInterface {
                                                       byte[] checkOperand, byte[] setSortKey, byte[] setValue,
                                                       CheckAndSetOptions options, int timeout/*ms*/);
 
+    ///< -------- CheckAndMutate --------
+
+    class CheckAndMutateResult {
+        /**
+         * return value for checkAndMutate
+         *
+         * @param setSucceed true if set value succeed.
+         * @param checkValueReturned true if the check value is returned.
+         * @param checkValueExist true if the check value is exist; can be used only when checkValueReturned is true.
+         * @param checkValue return the check value if exist; can be used only when checkValueExist is true.
+         */
+        public boolean succeed;
+        public boolean checkValueReturned;
+        public boolean checkValueExist;
+        public byte[] checkValue;
+
+    }
+
+    class Mutate {
+        public mutate_operation op;
+        public byte[] sortKey;
+        public byte[] value;
+        public int ttl_seconds;
+
+        public Mutate(mutate_operation mop, byte[] bytes1, byte[] bytes2, int i) {
+            op = mop;
+            sortKey = bytes1;
+            value = bytes2;
+            ttl_seconds = i;
+        }
+    }
+
+    /**
+     * atomically check and set value by key, async version.
+     * if the check condition is satisfied, then apply to set value.
+     *
+     * @param hashKey      the hash key to check and set.
+     * @param checkSortKey the sort key to check.
+     * @param checkType    the check type.
+     * @param checkOperand the check operand.
+     * @param mutateList   the list of mutations to perform if check condition is satisfied.
+     * @param options      the check-and-set options.
+     * @param timeout      how long will the operation timeout in milliseconds.
+     *                     if timeout > 0, it is a timeout value for current op,
+     *                     else the timeout value in the configuration file will be used.
+     * @return the future for current op
+     * <p>
+     * Future return:
+     * On success: return CheckAndSetResult.
+     * On failure: a throwable, which is an instance of PException
+     * <p>
+     * Thread safety:
+     * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
+     * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
+     * But listeners for different tables are not guaranteed to be dispatched in the same thread.
+     */
+    Future<CheckAndMutateResult> asyncCheckAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
+                                                     byte[] checkOperand, List<Mutate> mutateList,
+                                                     CheckAndMutateOptions options, int timeout/*ms*/);
 
     ///< -------- CompareExchange --------
 
@@ -973,6 +1034,13 @@ public interface PegasusTableInterface {
     public CheckAndSetResult checkAndSet(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
                                          byte[] checkOperand, byte[] setSortKey, byte[] setValue,
                                          CheckAndSetOptions options, int timeout/*ms*/) throws PException;
+    /**
+     * sync version of CheckAndMutate, please refer to the async version
+     * {@link #asyncCheckAndMutate(byte[], byte[], CheckType, byte[], List, CheckAndMutateOptions, int)}
+     */
+    public CheckAndMutateResult checkAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
+                                               byte[] checkOperand, List<PegasusTableInterface.Mutate> mutateList,
+                                               CheckAndMutateOptions options, int timeout) throws PException;
 
     /**
      * sync version of CompareExchange, please refer to the async version

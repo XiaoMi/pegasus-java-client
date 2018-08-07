@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author sunweijie
- *
+ * 
  * Implementation of {@link PegasusTableInterface}.
  */
 public class PegasusTable implements PegasusTableInterface {
@@ -556,6 +556,84 @@ public class PegasusTable implements PegasusTableInterface {
             }
         }, timeout);
         return promise;
+    }
+
+    @Override
+    public Future<CheckAndMutateResult> asyncCheckAndMutate(byte[] hashKey, byte[] checkSortKey,
+                                                            CheckType checkType, byte[] checkOperand,
+                                                            List<Mutate> mutateList,
+                                                            CheckAndMutateOptions options, int timeout)
+
+    {
+        final DefaultPromise<CheckAndMutateResult> promise = table.newPromise();
+        if (hashKey == null || hashKey.length == 0) {
+            promise.setFailure(new PException("Invalid parameter: hashKey should not be null or empty"));
+            return promise;
+        }
+        if (hashKey.length >= 0xFFFF) {
+            promise.setFailure(new PException("Invalid parameter: hashKey length should be less than UINT16_MAX"));
+            return promise;
+        }
+
+        blob hashKeyBlob = new blob(hashKey);
+        blob checkSortKeyBlob = (checkSortKey == null ? null : new blob(checkSortKey));
+        cas_check_type type = cas_check_type.findByValue(checkType.getValue()); // TODO HW cas need rename?
+        blob checkOperandBlob = (checkOperand == null ? null : new blob(checkOperand));
+
+        List<mutate> mutates = new ArrayList<mutate>();
+        for (Mutate m : mutateList) {
+            blob sortKeyBlob = (m.sortKey == null ? null : new blob(m.sortKey));
+            blob valueBlob = (m.value == null ? null : new blob(m.value));
+            int expireSeconds = (m.ttl_seconds == 0 ? 0 : m.ttl_seconds + (int) Tools.epoch_now());
+
+            mutate mu = new mutate(m.op, sortKeyBlob, valueBlob, expireSeconds);
+            mutates.add(mu);
+        }
+
+        check_and_mutate_request request = new check_and_mutate_request(
+                hashKeyBlob, checkSortKeyBlob, type, checkOperandBlob,
+                mutates, options.returnCheckValue);
+
+        gpid gpid = table.getHashKeyGpid(hashKey);
+        rrdb_check_and_mutate_operator op = new rrdb_check_and_mutate_operator(gpid, table.getTableName(), request);
+
+        table.asyncOperate(op, new Table.ClientOPCallback() {
+            @Override
+            public void onCompletion(client_operator clientOP) {
+                rrdb_check_and_mutate_operator op2 = (rrdb_check_and_mutate_operator) clientOP;
+                if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+                    promise.setFailure(new PException(new ReplicationException(op2.rpc_error.errno)));
+                } else if (op2.get_response().error != 0 && op2.get_response().error != 13) { // 13 : kTryAgain
+                    promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+                } else {
+                    CheckAndMutateResult result = new CheckAndMutateResult();
+                    if (op2.get_response().error == 0) {
+                        result.succeed = true;
+                    } else {
+                        result.succeed = false;
+                    }
+
+                    if (op2.get_response().check_value_returned) {
+                        result.checkValueReturned = true;
+                        if (op2.get_response().check_value_exist) {
+                            result.checkValueExist = true;
+                            result.checkValue = op2.get_response().check_value.data;
+                        } else {
+                            result.checkValueExist = false;
+                            result.checkValue = null;
+                        }
+                    } else {
+                        result.checkValueReturned = false;
+                        result.checkValueExist = false;
+                        result.checkValue = null;
+                    }
+
+                    promise.setSuccess(result);
+                }
+            }
+        }, timeout);
+        return promise;
+
     }
 
     @Override
@@ -1218,6 +1296,24 @@ public class PegasusTable implements PegasusTableInterface {
         try {
             return asyncCheckAndSet(hashKey, checkSortKey, checkType, checkOperand,
                     setSortKey, setValue, options, timeout).get(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+        } catch (TimeoutException e) {
+            throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+        } catch (ExecutionException e) {
+            throw new PException(e);
+        }
+    }
+
+    @Override
+    public CheckAndMutateResult checkAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
+                                               byte[] checkOperand, List<PegasusTableInterface.Mutate> mutateList,
+                                               CheckAndMutateOptions options, int timeout) throws PException {
+        if (timeout <= 0)
+            timeout = defaultTimeout;
+        try {
+            return asyncCheckAndMutate(hashKey, checkSortKey, checkType, checkOperand,
+                    mutateList, options, timeout).get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
         } catch (TimeoutException e) {

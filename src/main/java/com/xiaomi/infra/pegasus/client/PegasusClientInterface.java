@@ -456,6 +456,25 @@ public interface PegasusClientInterface {
                                                                CheckAndSetOptions options) throws PException;
 
     /**
+     * Atomically check and mutate by key.
+     * If the check condition is satisfied, then apply to mutate.
+     *
+     * @param tableName    the table name.
+     * @param hashKey      the hash key to check and set.
+     * @param checkSortKey the sort key to check.
+     * @param checkType    the check type.
+     * @param checkOperand the check operand.
+     * @param mutateList   the list of mutations to perform if check condition is satisfied.
+     * @param options      the check-and-set options.
+     * @return CheckAndSetResult
+     * @throws PException throws exception if any error occurs.
+     */
+    PegasusTableInterface.CheckAndMutateResult checkAndMutate(String tableName, byte[] hashKey, byte[] checkSortKey,
+                                                              CheckType checkType, byte[] checkOperand,
+                                                              List<PegasusTableInterface.Mutate> mutateList,
+                                                              CheckAndMutateOptions options) throws PException;
+
+    /**
      * Atomically compare and exchange value by key.
      * <p>
      * - if the original value for the key is equal to the expected value, then update it with the desired value,
