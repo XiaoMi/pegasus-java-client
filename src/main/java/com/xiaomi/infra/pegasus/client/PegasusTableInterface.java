@@ -897,7 +897,7 @@ public interface PegasusTableInterface {
      * Will terminate immediately if any error occurs.
      *
      * @param items       list of items.
-     * @param ttl_seconds time to live in seconds, 0 means no ttl.
+     * @param ttlSeconds time to live in seconds, 0 means no ttl.
      * @param timeout     how long will the operation timeout in milliseconds.
      *                    if timeout > 0, it is a timeout value for current op,
      *                    else the timeout value in the configuration file will be used.
@@ -905,14 +905,14 @@ public interface PegasusTableInterface {
      *
      * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
-    public void batchMultiSet(List<HashKeyData> items, int ttl_seconds, int timeout/*ms*/) throws PException;
+    public void batchMultiSet(List<HashKeyData> items, int ttlSeconds, int timeout/*ms*/) throws PException;
 
     /**
      * Batch set multiple value under the same hash key.
      * Will wait for all requests done even if some error occurs.
      *
      * @param items       list of items.
-     * @param ttl_seconds time to live in seconds,
+     * @param ttlSeconds time to live in seconds,
      *                    0 means no ttl. default value is 0.
      * @param results     output results; should be created by caller; after call done, the size of results will
      *                    be same with items; the results[i] is a PException:
@@ -927,7 +927,7 @@ public interface PegasusTableInterface {
      * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiSet2(List<HashKeyData> items,
-                              int ttl_seconds, List<PException> results, int timeout/*ms*/) throws PException;
+                              int ttlSeconds, List<PException> results, int timeout/*ms*/) throws PException;
 
     /**
      * sync version of Del, please refer to the async version {@link #asyncDel(byte[], byte[], int)}
@@ -1019,6 +1019,7 @@ public interface PegasusTableInterface {
     public CheckAndSetResult checkAndSet(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
                                          byte[] checkOperand, byte[] setSortKey, byte[] setValue,
                                          CheckAndSetOptions options, int timeout/*ms*/) throws PException;
+
     /**
      * sync version of CheckAndMutate, please refer to the async version
      *{@link #checkAndMutate(byte[], byte[], CheckType, byte[], Mutations, CheckAndMutateOptions, int)}

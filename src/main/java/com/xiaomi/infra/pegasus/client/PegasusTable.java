@@ -1087,13 +1087,13 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     @Override
-    public void batchMultiSet(List<HashKeyData> items, int ttl_seconds, int timeout) throws PException {
+    public void batchMultiSet(List<HashKeyData> items, int ttlSeconds, int timeout) throws PException {
         if (items == null || items.size() == 0) {
             throw new PException("Invalid parameter: items should not be null or empty");
         }
         List<Future<Void>> futures = new ArrayList<Future<Void>>();
         for (HashKeyData item : items) {
-            futures.add(asyncMultiSet(item.hashKey, item.values, ttl_seconds, timeout));
+            futures.add(asyncMultiSet(item.hashKey, item.values, ttlSeconds, timeout));
         }
         for (int i = 0; i < items.size(); i++) {
             Future<Void> fu = futures.get(i);
@@ -1107,7 +1107,7 @@ public class PegasusTable implements PegasusTableInterface {
 
     @Override
     public int batchMultiSet2(List<HashKeyData> items,
-                              int ttl_seconds, List<PException> results, int timeout) throws PException {
+                              int ttlSeconds, List<PException> results, int timeout) throws PException {
         if (items == null) {
             throw new PException("Invalid parameter: items should not be null");
         }
@@ -1117,7 +1117,7 @@ public class PegasusTable implements PegasusTableInterface {
         results.clear();
         List<Future<Void>> futures = new ArrayList<Future<Void>>();
         for (HashKeyData item : items) {
-            futures.add(asyncMultiSet(item.hashKey, item.values, ttl_seconds, timeout));
+            futures.add(asyncMultiSet(item.hashKey, item.values, ttlSeconds, timeout));
         }
         int count = 0;
         PException nullEx = null;

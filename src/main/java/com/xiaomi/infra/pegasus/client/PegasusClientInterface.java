@@ -277,12 +277,12 @@ public interface PegasusClientInterface {
      *                    should not be null or empty.
      * @param values      all <sortkey,value> pairs to be set,
      *                    should not be null or empty.
-     * @param ttl_seconds time to live in seconds,
+     * @param ttlSeconds time to live in seconds,
      *                    0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
      */
     public void multiSet(String tableName, byte[] hashKey,
-                         List<Pair<byte[], byte[]>> values, int ttl_seconds) throws PException;
+                         List<Pair<byte[], byte[]>> values, int ttlSeconds) throws PException;
 
     public void multiSet(String tableName, byte[] hashKey,
                          List<Pair<byte[], byte[]>> values) throws PException;
@@ -293,13 +293,13 @@ public interface PegasusClientInterface {
      *
      * @param tableName   TableHandler name
      * @param items       list of items.
-     * @param ttl_seconds time to live in seconds,
+     * @param ttlSeconds time to live in seconds,
      *                    0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
      *
      * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
-    public void batchMultiSet(String tableName, List<HashKeyData> items, int ttl_seconds) throws PException;
+    public void batchMultiSet(String tableName, List<HashKeyData> items, int ttlSeconds) throws PException;
 
     public void batchMultiSet(String tableName, List<HashKeyData> items) throws PException;
 
@@ -309,7 +309,7 @@ public interface PegasusClientInterface {
      *
      * @param tableName   table name
      * @param items       list of items.
-     * @param ttl_seconds time to live in seconds,
+     * @param ttlSeconds time to live in seconds,
      *                    0 means no ttl. default value is 0.
      * @param results     output results; should be created by caller; after call done, the size of results will
      *                    be same with items; the results[i] is a PException:
@@ -321,7 +321,7 @@ public interface PegasusClientInterface {
      * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiSet2(String tableName, List<HashKeyData> items,
-                              int ttl_seconds, List<PException> results) throws PException;
+                              int ttlSeconds, List<PException> results) throws PException;
 
     public int batchMultiSet2(String tableName, List<HashKeyData> items,
                               List<PException> results) throws PException;
