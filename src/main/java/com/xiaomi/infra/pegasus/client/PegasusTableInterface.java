@@ -585,7 +585,7 @@ public interface PegasusTableInterface {
         /**
          * return value for checkAndMutate
          *
-         * @param setSucceed true if set value succeed.
+         * @param succeed true if mutate succeed.
          * @param checkValueReturned true if the check value is returned.
          * @param checkValueExist true if the check value is exist; can be used only when checkValueReturned is true.
          * @param checkValue return the check value if exist; can be used only when checkValueExist is true.
@@ -594,33 +594,18 @@ public interface PegasusTableInterface {
         public boolean checkValueReturned;
         public boolean checkValueExist;
         public byte[] checkValue;
-
-    }
-
-    class Mutate {
-        public mutate_operation op;
-        public byte[] sortKey;
-        public byte[] value;
-        public int ttl_seconds;
-
-        public Mutate(mutate_operation mop, byte[] bytes1, byte[] bytes2, int i) {
-            op = mop;
-            sortKey = bytes1;
-            value = bytes2;
-            ttl_seconds = i;
-        }
     }
 
     /**
-     * atomically check and set value by key, async version.
-     * if the check condition is satisfied, then apply to set value.
+     * atomically check and mutate by key, async version.
+     * if the check condition is satisfied, then apply to mutate.
      *
-     * @param hashKey      the hash key to check and set.
+     * @param hashKey      the hash key to check and mutate.
      * @param checkSortKey the sort key to check.
      * @param checkType    the check type.
      * @param checkOperand the check operand.
-     * @param mutateList   the list of mutations to perform if check condition is satisfied.
-     * @param options      the check-and-set options.
+     * @param mutations    the list of mutations to perform if check condition is satisfied.
+     * @param options      the check-and-mutate options.
      * @param timeout      how long will the operation timeout in milliseconds.
      *                     if timeout > 0, it is a timeout value for current op,
      *                     else the timeout value in the configuration file will be used.
@@ -636,7 +621,7 @@ public interface PegasusTableInterface {
      * But listeners for different tables are not guaranteed to be dispatched in the same thread.
      */
     Future<CheckAndMutateResult> asyncCheckAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
-                                                     byte[] checkOperand, List<Mutate> mutateList,
+                                                     byte[] checkOperand, Mutations mutations,
                                                      CheckAndMutateOptions options, int timeout/*ms*/);
 
     ///< -------- CompareExchange --------
@@ -1036,10 +1021,10 @@ public interface PegasusTableInterface {
                                          CheckAndSetOptions options, int timeout/*ms*/) throws PException;
     /**
      * sync version of CheckAndMutate, please refer to the async version
-     * {@link #asyncCheckAndMutate(byte[], byte[], CheckType, byte[], List, CheckAndMutateOptions, int)}
+     *{@link #checkAndMutate(byte[], byte[], CheckType, byte[], Mutations, CheckAndMutateOptions, int)}
      */
     public CheckAndMutateResult checkAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
-                                               byte[] checkOperand, List<PegasusTableInterface.Mutate> mutateList,
+                                               byte[] checkOperand, Mutations mutations,
                                                CheckAndMutateOptions options, int timeout) throws PException;
 
     /**

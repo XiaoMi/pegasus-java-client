@@ -27,7 +27,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author sunweijie
- * 
+ *
  * Implementation of {@link PegasusTableInterface}.
  */
 public class PegasusTable implements PegasusTableInterface {
@@ -561,7 +561,7 @@ public class PegasusTable implements PegasusTableInterface {
     @Override
     public Future<CheckAndMutateResult> asyncCheckAndMutate(byte[] hashKey, byte[] checkSortKey,
                                                             CheckType checkType, byte[] checkOperand,
-                                                            List<Mutate> mutateList,
+                                                            Mutations mutations,
                                                             CheckAndMutateOptions options, int timeout)
 
     {
@@ -574,25 +574,18 @@ public class PegasusTable implements PegasusTableInterface {
             promise.setFailure(new PException("Invalid parameter: hashKey length should be less than UINT16_MAX"));
             return promise;
         }
+        if (mutations == null || mutations.isEmpty()) {
+            promise.setFailure(new PException("Invalid parameter: mutations should not be null or empty"));
+        }
 
         blob hashKeyBlob = new blob(hashKey);
         blob checkSortKeyBlob = (checkSortKey == null ? null : new blob(checkSortKey));
-        cas_check_type type = cas_check_type.findByValue(checkType.getValue()); // TODO HW cas need rename?
+        cas_check_type type = cas_check_type.findByValue(checkType.getValue());
         blob checkOperandBlob = (checkOperand == null ? null : new blob(checkOperand));
-
-        List<mutate> mutates = new ArrayList<mutate>();
-        for (Mutate m : mutateList) {
-            blob sortKeyBlob = (m.sortKey == null ? null : new blob(m.sortKey));
-            blob valueBlob = (m.value == null ? null : new blob(m.value));
-            int expireSeconds = (m.ttl_seconds == 0 ? 0 : m.ttl_seconds + (int) Tools.epoch_now());
-
-            mutate mu = new mutate(m.op, sortKeyBlob, valueBlob, expireSeconds);
-            mutates.add(mu);
-        }
 
         check_and_mutate_request request = new check_and_mutate_request(
                 hashKeyBlob, checkSortKeyBlob, type, checkOperandBlob,
-                mutates, options.returnCheckValue);
+                mutations.getMutations(), options.returnCheckValue);
 
         gpid gpid = table.getHashKeyGpid(hashKey);
         rrdb_check_and_mutate_operator op = new rrdb_check_and_mutate_operator(gpid, table.getTableName(), request);
@@ -633,7 +626,6 @@ public class PegasusTable implements PegasusTableInterface {
             }
         }, timeout);
         return promise;
-
     }
 
     @Override
@@ -1307,13 +1299,13 @@ public class PegasusTable implements PegasusTableInterface {
 
     @Override
     public CheckAndMutateResult checkAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
-                                               byte[] checkOperand, List<PegasusTableInterface.Mutate> mutateList,
+                                               byte[] checkOperand, Mutations mutations,
                                                CheckAndMutateOptions options, int timeout) throws PException {
         if (timeout <= 0)
             timeout = defaultTimeout;
         try {
             return asyncCheckAndMutate(hashKey, checkSortKey, checkType, checkOperand,
-                    mutateList, options, timeout).get(timeout, TimeUnit.MILLISECONDS);
+                    mutations, options, timeout).get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
         } catch (TimeoutException e) {

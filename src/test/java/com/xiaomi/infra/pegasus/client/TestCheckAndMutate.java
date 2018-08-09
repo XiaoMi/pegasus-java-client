@@ -3,16 +3,12 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
-/*
-  @author huangwei
+/**
+ * @author huangwei
  */
 
-import com.xiaomi.infra.pegasus.apps.mutate_operation;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class TestCheckAndMutate {
     @Test
@@ -27,13 +23,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set("k1".getBytes(), "v1".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -41,10 +37,12 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+
+            // add set operations snowballed, in order to test the ability to handle multi mutations
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -53,10 +51,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = false;
-            mutates.get(0).value = "v1".getBytes();
+            mutations.set("k1".getBytes(), "v1".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertFalse(result.checkValueReturned);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -74,13 +72,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k2".getBytes(), "".getBytes(), 0));
+            mutations.set("k2".getBytes(), "".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k2".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -88,10 +86,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set("k2".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k2".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -112,13 +110,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -147,13 +145,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -165,7 +163,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -174,10 +172,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -198,13 +196,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_EXIST, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -234,13 +232,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -252,7 +250,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -263,10 +261,10 @@ public class TestCheckAndMutate {
             client.set(tableName, hashKey, "k1".getBytes(), "v1".getBytes());
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -287,13 +285,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -323,13 +321,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -341,7 +339,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -352,7 +350,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -361,10 +359,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(),"v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -373,10 +371,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v111v".getBytes();
+            mutations.set( "k1".getBytes(),"v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -385,10 +383,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "111".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -397,10 +395,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v3".getBytes();
+            mutations.set( "k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "y".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -411,7 +409,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v2v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -422,7 +420,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -443,13 +441,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set( "k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "333".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -479,13 +477,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -497,7 +495,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -508,7 +506,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -517,10 +515,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -529,10 +527,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v111v".getBytes();
+            mutations.set( "k1".getBytes(),"v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -541,10 +539,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "111".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -553,10 +551,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(),"v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v111".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -565,10 +563,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v3".getBytes();
+            mutations.set( "k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "y".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -579,7 +577,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v2v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -590,7 +588,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -611,13 +609,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            Mutations mutations = new Mutations();
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
 
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v333".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -647,13 +645,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -665,7 +663,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -676,7 +674,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -685,10 +683,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -697,10 +695,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v111v".getBytes();
+            mutations.set( "k1".getBytes(), "v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -709,10 +707,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "111".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -723,7 +721,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "111v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -732,10 +730,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v3".getBytes();
+            mutations.set( "k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "y".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -746,7 +744,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "2v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -757,7 +755,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -778,13 +776,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "333v".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -814,13 +812,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -832,7 +830,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -843,7 +841,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -852,10 +850,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
+            mutations.set( "k1".getBytes(),"v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "v1".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -876,13 +874,13 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "v4".getBytes(), 0));
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "v3".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -903,14 +901,14 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
+            Mutations mutations = new Mutations();
 
             // v1 < v2
             options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k5".getBytes(), "v2".getBytes(), 0));
+            mutations.set( "k5".getBytes(), "v2".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS, "v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -920,10 +918,10 @@ public class TestCheckAndMutate {
 
             // v2 <= v2
             options.returnCheckValue = true;
-            mutates.get(0).value = "v3".getBytes();
+            mutations.set( "k5".getBytes(),"v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS_OR_EQUAL, "v2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -933,10 +931,10 @@ public class TestCheckAndMutate {
 
             // v3 <= v4
             options.returnCheckValue = true;
-            mutates.get(0).value = "v4".getBytes();
+            mutations.set( "k5".getBytes(),"v4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS_OR_EQUAL, "v4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -946,10 +944,10 @@ public class TestCheckAndMutate {
 
             // v4 >= v4
             options.returnCheckValue = true;
-            mutates.get(0).value = "v5".getBytes();
+            mutations.set( "k5".getBytes(),"v5".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER_OR_EQUAL, "v4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -959,10 +957,10 @@ public class TestCheckAndMutate {
 
             // v5 >= v4
             options.returnCheckValue = true;
-            mutates.get(0).value = "v6".getBytes();
+            mutations.set( "k5".getBytes(), "v6".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER_OR_EQUAL, "v4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -972,10 +970,10 @@ public class TestCheckAndMutate {
 
             // v6 > v5
             options.returnCheckValue = true;
-            mutates.get(0).value = "v7".getBytes();
+            mutations.set( "k5".getBytes(), "v7".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER, "v5".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1004,14 +1002,14 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
+            Mutations mutations = new Mutations();
+            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "2".getBytes();
+            mutations.set( "k1".getBytes(), "2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "1".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertFalse(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
@@ -1024,7 +1022,7 @@ public class TestCheckAndMutate {
             try {
                 client.checkAndMutate(tableName, hashKey,
                         "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "1".getBytes(),
-                        mutates, options);
+                        mutations, options);
                 Assert.fail();
             } catch (PException ex) {
                 Assert.assertTrue(ex.getMessage(), ex.getMessage().endsWith("rocksdb error: 4"));
@@ -1040,7 +1038,7 @@ public class TestCheckAndMutate {
             options.returnCheckValue = true;
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "1".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1049,11 +1047,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "3".getBytes();
+            mutations.set( "k1".getBytes(),"3".getBytes());
             try {
                 client.checkAndMutate(tableName, hashKey,
                         "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "".getBytes(),
-                        mutates, options);
+                        mutations, options);
                 Assert.fail();
             } catch (PException ex) {
                 Assert.assertTrue(ex.getMessage(), ex.getMessage().endsWith("rocksdb error: 4"));
@@ -1068,7 +1066,7 @@ public class TestCheckAndMutate {
             try {
                 client.checkAndMutate(tableName, hashKey,
                         "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "v1".getBytes(),
-                        mutates, options);
+                        mutations, options);
                 Assert.fail();
             } catch (PException ex) {
                 Assert.assertTrue(ex.getMessage(), ex.getMessage().endsWith("rocksdb error: 4"));
@@ -1085,7 +1083,7 @@ public class TestCheckAndMutate {
                 client.checkAndMutate(tableName, hashKey,
                         "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL,
                         "88888888888888888888888888888888888888888888888".getBytes(),
-                        mutates, options);
+                        mutations, options);
                 Assert.fail();
             } catch (PException ex) {
                 Assert.assertTrue(ex.getMessage(), ex.getMessage().endsWith("rocksdb error: 4"));
@@ -1099,10 +1097,10 @@ public class TestCheckAndMutate {
             client.set(tableName, hashKey, "k1".getBytes(), "0".getBytes());
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "-1".getBytes();
+            mutations.set( "k1".getBytes(),"-1".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "0".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1111,10 +1109,10 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("-1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "-2".getBytes();
+            mutations.set( "k1".getBytes(),"-2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "-1".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1135,14 +1133,14 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k4".getBytes(), "".getBytes(), 0));
+            Mutations mutations = new Mutations();
+            mutations.set( "k4".getBytes(), "".getBytes(), 0);
 
             options.returnCheckValue = true;
-            mutates.get(0).value = "4".getBytes();
+            mutations.set( "k4".getBytes(),"4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "3".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1163,15 +1161,14 @@ public class TestCheckAndMutate {
             CheckAndMutateOptions options = new CheckAndMutateOptions();
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k5".getBytes(), "".getBytes(), 0));
+            Mutations mutations = new Mutations();
 
             // 1 < 2
             options.returnCheckValue = true;
-            mutates.get(0).value = "2".getBytes();
+            mutations.set( "k5".getBytes(),"2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS, "2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1181,10 +1178,10 @@ public class TestCheckAndMutate {
 
             // 2 <= 2
             options.returnCheckValue = true;
-            mutates.get(0).value = "3".getBytes();
+            mutations.set( "k5".getBytes(), "3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS_OR_EQUAL, "2".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1194,10 +1191,10 @@ public class TestCheckAndMutate {
 
             // 3 <= 4
             options.returnCheckValue = true;
-            mutates.get(0).value = "4".getBytes();
+            mutations.set( "k5".getBytes(),"4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS_OR_EQUAL, "4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1207,10 +1204,10 @@ public class TestCheckAndMutate {
 
             // 4 >= 4
             options.returnCheckValue = true;
-            mutates.get(0).value = "5".getBytes();
+            mutations.set( "k5".getBytes(), "5".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER_OR_EQUAL, "4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1220,10 +1217,10 @@ public class TestCheckAndMutate {
 
             // 5 >= 4
             options.returnCheckValue = true;
-            mutates.get(0).value = "6".getBytes();
+            mutations.set( "k5".getBytes(),"6".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER_OR_EQUAL, "4".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1233,10 +1230,10 @@ public class TestCheckAndMutate {
 
             // 6 > 5
             options.returnCheckValue = true;
-            mutates.get(0).value = "7".getBytes();
+            mutations.set( "k5".getBytes(), "7".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER, "5".getBytes(),
-                    mutates, options);
+                    mutations, options);
             Assert.assertTrue(result.succeed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
@@ -1251,65 +1248,5 @@ public class TestCheckAndMutate {
         }
 
         PegasusClientFactory.closeSingletonClient();
-    }
-
-    @Test
-    public void testMultiMutations() throws PException{
-        PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
-        String tableName = "temp";
-        byte[] hashKey = "check_and_mutate_java_test_value_not_empty".getBytes();
-
-        try {
-            client.del(tableName, hashKey, "k1".getBytes());
-
-            CheckAndMutateOptions options = new CheckAndMutateOptions();
-            PegasusTableInterface.CheckAndMutateResult result;
-            byte[] value;
-            List<PegasusTableInterface.Mutate> mutates = new ArrayList<PegasusTableInterface.Mutate>();
-
-            options.returnCheckValue = true;
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_PUT, "k1".getBytes(), "v1".getBytes(), 0));
-            mutates.add(new PegasusTableInterface.Mutate(mutate_operation.MO_DELETE, "k1".getBytes(), null, 0));
-            result = client.checkAndMutate(tableName, hashKey,
-                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
-            Assert.assertFalse(result.succeed);
-            Assert.assertTrue(result.checkValueReturned);
-            Assert.assertFalse(result.checkValueExist);
-            value = client.get(tableName, hashKey, "k1".getBytes());
-            Assert.assertNull(value);
-
-            client.set(tableName, hashKey, "k1".getBytes(), "".getBytes());
-
-            options.returnCheckValue = true;
-            result = client.checkAndMutate(tableName, hashKey,
-                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
-            Assert.assertFalse(result.succeed);
-            Assert.assertTrue(result.checkValueReturned);
-            Assert.assertTrue(result.checkValueExist);
-            Assert.assertArrayEquals("".getBytes(), result.checkValue);
-            value = client.get(tableName, hashKey, "k1".getBytes());
-            Assert.assertArrayEquals("".getBytes(), value);
-
-            client.set(tableName, hashKey, "k1".getBytes(), "v1".getBytes());
-
-            options.returnCheckValue = true;
-            mutates.get(0).value = "v2".getBytes();
-            result = client.checkAndMutate(tableName, hashKey,
-                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
-                    mutates, options);
-            Assert.assertTrue(result.succeed);
-            Assert.assertTrue(result.checkValueReturned);
-            Assert.assertTrue(result.checkValueExist);
-            Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
-            value = client.get(tableName, hashKey, "k1".getBytes());
-            Assert.assertNull(value);
-
-            client.del(tableName, hashKey, "k1".getBytes());
-        } catch (PException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
     }
 }

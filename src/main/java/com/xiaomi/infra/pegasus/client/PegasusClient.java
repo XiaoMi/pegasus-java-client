@@ -310,9 +310,9 @@ public class PegasusClient implements PegasusClientInterface {
     }
 
     @Override
-    public void set(String tableName, byte[] hashKey, byte[] sortKey, byte[] value, int ttl_seconds) throws PException {
+    public void set(String tableName, byte[] hashKey, byte[] sortKey, byte[] value, int ttlSeconds) throws PException {
         PegasusTable tb = getTable(tableName);
-        tb.set(hashKey, sortKey, value, ttl_seconds, 0);
+        tb.set(hashKey, sortKey, value, ttlSeconds, 0);
     }
 
     @Override
@@ -423,10 +423,10 @@ public class PegasusClient implements PegasusClientInterface {
     @Override
     public PegasusTableInterface.CheckAndMutateResult checkAndMutate(String tableName, byte[] hashKey, byte[] checkSortKey,
                                                      CheckType checkType, byte[] checkOperand,
-                                                     List<PegasusTableInterface.Mutate> mutateList,
+                                                     Mutations mutations,
                                                      CheckAndMutateOptions options) throws PException {
         PegasusTable tb = getTable(tableName);
-        return tb.checkAndMutate(hashKey, checkSortKey, checkType, checkOperand, mutateList, options, 0);
+        return tb.checkAndMutate(hashKey, checkSortKey, checkType, checkOperand, mutations, options, 0);
     }
 
     @Override

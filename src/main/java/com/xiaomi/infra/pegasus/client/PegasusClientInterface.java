@@ -230,12 +230,12 @@ public interface PegasusClientInterface {
      * @param sortKey     all the k-v under hashKey will be sorted by sortKey,
      *                    if null or length == 0, means no sort key.
      * @param value       should not be null
-     * @param ttl_seconds time to live in seconds,
+     * @param ttlSeconds time to live in seconds,
      *                    0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
      */
     public void set(String tableName, byte[] hashKey, byte[] sortKey,
-                    byte[] value, int ttl_seconds) throws PException;
+                    byte[] value, int ttlSeconds) throws PException;
 
     public void set(String tableName, byte[] hashKey, byte[] sortKey,
                     byte[] value) throws PException;
@@ -460,18 +460,18 @@ public interface PegasusClientInterface {
      * If the check condition is satisfied, then apply to mutate.
      *
      * @param tableName    the table name.
-     * @param hashKey      the hash key to check and set.
+     * @param hashKey      the hash key to check and mutate.
      * @param checkSortKey the sort key to check.
      * @param checkType    the check type.
      * @param checkOperand the check operand.
-     * @param mutateList   the list of mutations to perform if check condition is satisfied.
-     * @param options      the check-and-set options.
-     * @return CheckAndSetResult
+     * @param mutations    the list of mutations to perform if check condition is satisfied.
+     * @param options      the check-and-mutate options.
+     * @return CheckAndMutateResult
      * @throws PException throws exception if any error occurs.
      */
     PegasusTableInterface.CheckAndMutateResult checkAndMutate(String tableName, byte[] hashKey, byte[] checkSortKey,
                                                               CheckType checkType, byte[] checkOperand,
-                                                              List<PegasusTableInterface.Mutate> mutateList,
+                                                              Mutations mutations,
                                                               CheckAndMutateOptions options) throws PException;
 
     /**
