@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * @author qinzuoyan
- * <p>
+ * 
  * This class provides interfaces to access data of a specified cluster.
  */
 public interface PegasusClientInterface {
