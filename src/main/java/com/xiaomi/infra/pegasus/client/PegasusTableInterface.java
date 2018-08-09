@@ -612,7 +612,7 @@ public interface PegasusTableInterface {
      * @return the future for current op
      * <p>
      * Future return:
-     * On success: return CheckAndSetResult.
+     * On success: return CheckAndMutateResult.
      * On failure: a throwable, which is an instance of PException
      * <p>
      * Thread safety:
