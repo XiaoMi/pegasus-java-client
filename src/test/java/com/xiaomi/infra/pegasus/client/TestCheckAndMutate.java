@@ -30,7 +30,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -43,7 +43,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -55,7 +55,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertFalse(result.checkValueReturned);
             value = client.get(tableName, hashKey, "k1".getBytes());
             Assert.assertArrayEquals("v1".getBytes(), value);
@@ -79,7 +79,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k2".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k2".getBytes());
@@ -90,7 +90,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k2".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -117,7 +117,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k4".getBytes());
@@ -152,7 +152,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -164,7 +164,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -176,7 +176,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -203,7 +203,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_EXIST, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v3".getBytes(), result.checkValue);
@@ -239,7 +239,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -251,7 +251,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -265,7 +265,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -292,7 +292,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_NOT_EMPTY, null,
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v3".getBytes(), result.checkValue);
@@ -324,11 +324,11 @@ public class TestCheckAndMutate {
             Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -340,7 +340,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -351,7 +351,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -359,11 +359,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -371,11 +371,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"v111v".getBytes());
+            mutations.set("k1".getBytes(), "v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -383,11 +383,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "111".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v111v".getBytes(), result.checkValue);
@@ -395,11 +395,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v3".getBytes());
+            mutations.set("k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "y".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -410,7 +410,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v2v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -421,7 +421,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "v2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -444,11 +444,11 @@ public class TestCheckAndMutate {
             Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutations.set( "k4".getBytes(), "v4".getBytes(), 0);
+            mutations.set("k4".getBytes(), "v4".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_ANYWHERE, "333".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v333v".getBytes(), result.checkValue);
@@ -484,7 +484,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -496,7 +496,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -507,7 +507,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -515,11 +515,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -527,11 +527,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"v111v".getBytes());
+            mutations.set("k1".getBytes(), "v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -539,11 +539,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "111".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v111v".getBytes(), result.checkValue);
@@ -551,11 +551,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v111".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v111v".getBytes(), result.checkValue);
@@ -563,11 +563,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v3".getBytes());
+            mutations.set("k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "y".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -578,7 +578,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v2v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -589,7 +589,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -616,7 +616,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_PREFIX, "v333".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v333v".getBytes(), result.checkValue);
@@ -648,11 +648,11 @@ public class TestCheckAndMutate {
             Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -664,7 +664,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -675,7 +675,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -683,11 +683,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -695,11 +695,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v111v".getBytes());
+            mutations.set("k1".getBytes(), "v111v".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -707,11 +707,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v111v".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "111".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v111v".getBytes(), result.checkValue);
@@ -722,7 +722,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "111v".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v111v".getBytes(), result.checkValue);
@@ -730,11 +730,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v3".getBytes());
+            mutations.set("k1".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "y".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -745,7 +745,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "2v2".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -756,7 +756,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "v2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -783,7 +783,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_MATCH_POSTFIX, "333v".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v333v".getBytes(), result.checkValue);
@@ -815,11 +815,11 @@ public class TestCheckAndMutate {
             Mutations mutations = new Mutations();
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -831,7 +831,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("".getBytes(), result.checkValue);
@@ -842,7 +842,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -850,11 +850,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("v1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"v2".getBytes());
+            mutations.set("k1".getBytes(), "v2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "v1".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -881,7 +881,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_BYTES_EQUAL, "v3".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v3".getBytes(), result.checkValue);
@@ -905,11 +905,11 @@ public class TestCheckAndMutate {
 
             // v1 < v2
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "v2".getBytes(), 0);
+            mutations.set("k5".getBytes(), "v2".getBytes(), 0);
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS, "v2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v1".getBytes(), result.checkValue);
@@ -918,11 +918,11 @@ public class TestCheckAndMutate {
 
             // v2 <= v2
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"v3".getBytes());
+            mutations.set("k5".getBytes(), "v3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS_OR_EQUAL, "v2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v2".getBytes(), result.checkValue);
@@ -931,11 +931,11 @@ public class TestCheckAndMutate {
 
             // v3 <= v4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"v4".getBytes());
+            mutations.set("k5".getBytes(), "v4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_LESS_OR_EQUAL, "v4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v3".getBytes(), result.checkValue);
@@ -944,11 +944,11 @@ public class TestCheckAndMutate {
 
             // v4 >= v4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"v5".getBytes());
+            mutations.set("k5".getBytes(), "v5".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER_OR_EQUAL, "v4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v4".getBytes(), result.checkValue);
@@ -957,11 +957,11 @@ public class TestCheckAndMutate {
 
             // v5 >= v4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "v6".getBytes());
+            mutations.set("k5".getBytes(), "v6".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER_OR_EQUAL, "v4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v5".getBytes(), result.checkValue);
@@ -970,11 +970,11 @@ public class TestCheckAndMutate {
 
             // v6 > v5
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "v7".getBytes());
+            mutations.set("k5".getBytes(), "v7".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_BYTES_GREATER, "v5".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("v6".getBytes(), result.checkValue);
@@ -1003,14 +1003,14 @@ public class TestCheckAndMutate {
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
             Mutations mutations = new Mutations();
-            mutations.set( "k1".getBytes(), "v1".getBytes(), 0);
+            mutations.set("k1".getBytes(), "v1".getBytes(), 0);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(), "2".getBytes());
+            mutations.set("k1".getBytes(), "2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "1".getBytes(),
                     mutations, options);
-            Assert.assertFalse(result.succeed);
+            Assert.assertFalse(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
             value = client.get(tableName, hashKey, "k1".getBytes());
@@ -1039,7 +1039,7 @@ public class TestCheckAndMutate {
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "1".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("1".getBytes(), result.checkValue);
@@ -1047,7 +1047,7 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("2".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"3".getBytes());
+            mutations.set("k1".getBytes(), "3".getBytes());
             try {
                 client.checkAndMutate(tableName, hashKey,
                         "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "".getBytes(),
@@ -1097,11 +1097,11 @@ public class TestCheckAndMutate {
             client.set(tableName, hashKey, "k1".getBytes(), "0".getBytes());
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"-1".getBytes());
+            mutations.set("k1".getBytes(), "-1".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "0".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("0".getBytes(), result.checkValue);
@@ -1109,11 +1109,11 @@ public class TestCheckAndMutate {
             Assert.assertArrayEquals("-1".getBytes(), value);
 
             options.returnCheckValue = true;
-            mutations.set( "k1".getBytes(),"-2".getBytes());
+            mutations.set("k1".getBytes(), "-2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k1".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "-1".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("-1".getBytes(), result.checkValue);
@@ -1134,14 +1134,14 @@ public class TestCheckAndMutate {
             PegasusTableInterface.CheckAndMutateResult result;
             byte[] value;
             Mutations mutations = new Mutations();
-            mutations.set( "k4".getBytes(), "".getBytes(), 0);
+            mutations.set("k4".getBytes(), "".getBytes(), 0);
 
             options.returnCheckValue = true;
-            mutations.set( "k4".getBytes(),"4".getBytes());
+            mutations.set("k4".getBytes(), "4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k3".getBytes(), CheckType.CT_VALUE_INT_EQUAL, "3".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("3".getBytes(), result.checkValue);
@@ -1165,11 +1165,11 @@ public class TestCheckAndMutate {
 
             // 1 < 2
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"2".getBytes());
+            mutations.set("k5".getBytes(), "2".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS, "2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("1".getBytes(), result.checkValue);
@@ -1178,11 +1178,11 @@ public class TestCheckAndMutate {
 
             // 2 <= 2
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "3".getBytes());
+            mutations.set("k5".getBytes(), "3".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS_OR_EQUAL, "2".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("2".getBytes(), result.checkValue);
@@ -1191,11 +1191,11 @@ public class TestCheckAndMutate {
 
             // 3 <= 4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"4".getBytes());
+            mutations.set("k5".getBytes(), "4".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_LESS_OR_EQUAL, "4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("3".getBytes(), result.checkValue);
@@ -1204,11 +1204,11 @@ public class TestCheckAndMutate {
 
             // 4 >= 4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "5".getBytes());
+            mutations.set("k5".getBytes(), "5".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER_OR_EQUAL, "4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("4".getBytes(), result.checkValue);
@@ -1217,11 +1217,11 @@ public class TestCheckAndMutate {
 
             // 5 >= 4
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(),"6".getBytes());
+            mutations.set("k5".getBytes(), "6".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER_OR_EQUAL, "4".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("5".getBytes(), result.checkValue);
@@ -1230,11 +1230,11 @@ public class TestCheckAndMutate {
 
             // 6 > 5
             options.returnCheckValue = true;
-            mutations.set( "k5".getBytes(), "7".getBytes());
+            mutations.set("k5".getBytes(), "7".getBytes());
             result = client.checkAndMutate(tableName, hashKey,
                     "k5".getBytes(), CheckType.CT_VALUE_INT_GREATER, "5".getBytes(),
                     mutations, options);
-            Assert.assertTrue(result.succeed);
+            Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertTrue(result.checkValueExist);
             Assert.assertArrayEquals("6".getBytes(), result.checkValue);
@@ -1243,6 +1243,62 @@ public class TestCheckAndMutate {
 
             client.del(tableName, hashKey, "k5".getBytes());
         } catch (PException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+
+        PegasusClientFactory.closeSingletonClient();
+    }
+
+    @Test
+    public void testMutationsExpireSeconds() throws PException {
+        PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+        String tableName = "temp";
+        byte[] hashKey = "check_and_mutate_java_test_mutations_expire_seconds".getBytes();
+
+        try {
+            client.del(tableName, hashKey, "k1".getBytes());
+
+            CheckAndMutateOptions options = new CheckAndMutateOptions();
+            PegasusTableInterface.CheckAndMutateResult result;
+            byte[] value;
+            Mutations mutations = new Mutations();
+
+            options.returnCheckValue = true;
+            mutations.set("k1".getBytes(), "v1".getBytes(), 10);
+            result = client.checkAndMutate(tableName, hashKey,
+                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
+                    mutations, options);
+            Assert.assertTrue(result.mutateSucceed);
+            Assert.assertTrue(result.checkValueReturned);
+            Assert.assertFalse(result.checkValueExist);
+            Thread.sleep(10000);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertNull(value);
+
+            mutations = new Mutations();
+            options.returnCheckValue = true;
+
+            // k1's expireSeconds will be calculate in checkAndMutate(),
+            // so it doesn't matter how long the mutations loading is going to take
+            mutations.set("k1".getBytes(), "v1".getBytes(), 10);
+            Thread.sleep(10000);
+            mutations.set("k2".getBytes(), "v2".getBytes(), 10);
+
+            result = client.checkAndMutate(tableName, hashKey,
+                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
+                    mutations, options);
+            Assert.assertTrue(result.mutateSucceed);
+            Assert.assertTrue(result.checkValueReturned);
+            Assert.assertFalse(result.checkValueExist);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertArrayEquals("v1".getBytes(), value);
+
+            client.del(tableName, hashKey, "k1".getBytes());
+        } catch (PException e) {
+            e.printStackTrace();
+            Assert.fail();
+        } catch (InterruptedException e) {
             e.printStackTrace();
             Assert.fail();
         }

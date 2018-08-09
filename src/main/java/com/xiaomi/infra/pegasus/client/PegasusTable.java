@@ -601,9 +601,9 @@ public class PegasusTable implements PegasusTableInterface {
                 } else {
                     CheckAndMutateResult result = new CheckAndMutateResult();
                     if (op2.get_response().error == 0) {
-                        result.succeed = true;
+                        result.mutateSucceed = true;
                     } else {
-                        result.succeed = false;
+                        result.mutateSucceed = false;
                     }
 
                     if (op2.get_response().check_value_returned) {

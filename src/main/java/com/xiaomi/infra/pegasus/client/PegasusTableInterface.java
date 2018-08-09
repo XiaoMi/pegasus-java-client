@@ -585,12 +585,12 @@ public interface PegasusTableInterface {
         /**
          * return value for checkAndMutate
          *
-         * @param succeed true if mutate succeed.
+         * @param mutateSucceed true if mutate succeed.
          * @param checkValueReturned true if the check value is returned.
          * @param checkValueExist true if the check value is exist; can be used only when checkValueReturned is true.
          * @param checkValue return the check value if exist; can be used only when checkValueExist is true.
          */
-        public boolean succeed;
+        public boolean mutateSucceed;
         public boolean checkValueReturned;
         public boolean checkValueExist;
         public byte[] checkValue;

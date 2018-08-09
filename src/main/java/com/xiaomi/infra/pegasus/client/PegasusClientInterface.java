@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * @author qinzuoyan
- *
+ * <p>
  * This class provides interfaces to access data of a specified cluster.
  */
 public interface PegasusClientInterface {
@@ -28,16 +28,16 @@ public interface PegasusClientInterface {
 
     /**
      * Open a table. Please notice that pegasus support two kinds of API:
-     *     1. the client-interface way, which is provided in this class.
-     *     2. the table-interface way, which is provided by {@link PegasusTableInterface}.
+     * 1. the client-interface way, which is provided in this class.
+     * 2. the table-interface way, which is provided by {@link PegasusTableInterface}.
      * With the client-interface, you don't need to create PegasusTableInterface by openTable, so
      * you can access the pegasus cluster conveniently. However, the client-interface's api also has
      * some restrictions:
-     *     1. we don't provide async methods in client-interface.
-     *     2. the timeout in client-interface isn't as accurate as the table-interface.
-     *     3. the client-interface may throw an exception when open table fails. It means that
-     *        you may need to handle this exception in every data access operation, which is annoying.
-     *     4. You can't specify a per-operation timeout.
+     * 1. we don't provide async methods in client-interface.
+     * 2. the timeout in client-interface isn't as accurate as the table-interface.
+     * 3. the client-interface may throw an exception when open table fails. It means that
+     * you may need to handle this exception in every data access operation, which is annoying.
+     * 4. You can't specify a per-operation timeout.
      * So we recommend you to use the table-interface.
      *
      * @param tableName the table should be exist on the server, which is created before by
@@ -89,8 +89,8 @@ public interface PegasusClientInterface {
      *                  be same with keys; the value of keys[i] is stored in values[i]; if the value of
      *                  keys[i] is not found, then values[i] will be set to null.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchGet(String tableName, List<Pair<byte[], byte[]>> keys,
                          List<byte[]> values) throws PException;
@@ -107,8 +107,8 @@ public interface PegasusClientInterface {
      *                  - if Pair.left == null : means query keys[i] succeed, Pair.right is the result value.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchGet2(String tableName, List<Pair<byte[], byte[]>> keys,
                          List<Pair<PException, byte[]>> results) throws PException;
@@ -175,8 +175,8 @@ public interface PegasusClientInterface {
      * @param values    output values; should be created by caller; if succeed, the size of values will
      *                  be same with keys; the data for keys[i] is stored in values[i].
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiGet(String tableName, List<Pair<byte[], List<byte[]>>> keys,
                               List<HashKeyData> values) throws PException;
@@ -194,8 +194,8 @@ public interface PegasusClientInterface {
      *                  - if Pair.left == null : means query keys[i] succeed, Pair.right is the result value.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiGet2(String tableName, List<Pair<byte[], List<byte[]>>> keys,
                               List<Pair<PException, HashKeyData>> results) throws PException;
@@ -224,14 +224,14 @@ public interface PegasusClientInterface {
     /**
      * Set value.
      *
-     * @param tableName   TableHandler name
-     * @param hashKey     used to decide which partition to put this k-v,
-     *                    if null or length == 0, means no hash key.
-     * @param sortKey     all the k-v under hashKey will be sorted by sortKey,
-     *                    if null or length == 0, means no sort key.
-     * @param value       should not be null
+     * @param tableName  TableHandler name
+     * @param hashKey    used to decide which partition to put this k-v,
+     *                   if null or length == 0, means no hash key.
+     * @param sortKey    all the k-v under hashKey will be sorted by sortKey,
+     *                   if null or length == 0, means no sort key.
+     * @param value      should not be null
      * @param ttlSeconds time to live in seconds,
-     *                    0 means no ttl. default value is 0.
+     *                   0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
      */
     public void set(String tableName, byte[] hashKey, byte[] sortKey,
@@ -247,8 +247,8 @@ public interface PegasusClientInterface {
      * @param tableName TableHandler name
      * @param items     list of items.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchSet(String tableName, List<SetItem> items) throws PException;
 
@@ -264,21 +264,21 @@ public interface PegasusClientInterface {
      *                  - if results[i] == null : means set items[i] succeed.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchSet2(String tableName, List<SetItem> items, List<PException> results) throws PException;
 
     /**
      * Set multiple value under the same hash key.
      *
-     * @param tableName   table name
-     * @param hashKey     used to decide which partition to put this k-v,
-     *                    should not be null or empty.
-     * @param values      all <sortkey,value> pairs to be set,
-     *                    should not be null or empty.
+     * @param tableName  table name
+     * @param hashKey    used to decide which partition to put this k-v,
+     *                   should not be null or empty.
+     * @param values     all <sortkey,value> pairs to be set,
+     *                   should not be null or empty.
      * @param ttlSeconds time to live in seconds,
-     *                    0 means no ttl. default value is 0.
+     *                   0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
      */
     public void multiSet(String tableName, byte[] hashKey,
@@ -291,13 +291,13 @@ public interface PegasusClientInterface {
      * Batch set multiple value under the same hash key.
      * Will terminate immediately if any error occurs.
      *
-     * @param tableName   TableHandler name
-     * @param items       list of items.
+     * @param tableName  TableHandler name
+     * @param items      list of items.
      * @param ttlSeconds time to live in seconds,
-     *                    0 means no ttl. default value is 0.
+     *                   0 means no ttl. default value is 0.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiSet(String tableName, List<HashKeyData> items, int ttlSeconds) throws PException;
 
@@ -307,18 +307,18 @@ public interface PegasusClientInterface {
      * Batch set multiple value under the same hash key.
      * Will wait for all requests done even if some error occurs.
      *
-     * @param tableName   table name
-     * @param items       list of items.
+     * @param tableName  table name
+     * @param items      list of items.
      * @param ttlSeconds time to live in seconds,
-     *                    0 means no ttl. default value is 0.
-     * @param results     output results; should be created by caller; after call done, the size of results will
-     *                    be same with items; the results[i] is a PException:
-     *                    - if results[i] != null : means set items[i] failed, results[i] is the exception.
-     *                    - if results[i] == null : means set items[i] succeed.
+     *                   0 means no ttl. default value is 0.
+     * @param results    output results; should be created by caller; after call done, the size of results will
+     *                   be same with items; the results[i] is a PException:
+     *                   - if results[i] != null : means set items[i] failed, results[i] is the exception.
+     *                   - if results[i] == null : means set items[i] succeed.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiSet2(String tableName, List<HashKeyData> items,
                               int ttlSeconds, List<PException> results) throws PException;
@@ -345,8 +345,8 @@ public interface PegasusClientInterface {
      * @param tableName table name
      * @param keys      hashKey and sortKey pair list.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchDel(String tableName, List<Pair<byte[], byte[]>> keys) throws PException;
 
@@ -362,8 +362,8 @@ public interface PegasusClientInterface {
      *                  - if results[i] == null : means del keys[i] succeed.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchDel2(String tableName, List<Pair<byte[], byte[]>> keys,
                          List<PException> results) throws PException;
@@ -387,8 +387,8 @@ public interface PegasusClientInterface {
      * @param tableName table name
      * @param keys      List{hashKey,List{sortKey}}
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public void batchMultiDel(String tableName, List<Pair<byte[], List<byte[]>>> keys) throws PException;
 
@@ -404,8 +404,8 @@ public interface PegasusClientInterface {
      *                  - if results[i] == null : means del keys[i] succeed.
      * @return succeed count.
      * @throws PException throws exception if any error occurs.
-     *
-     * Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
+     *                    <p>
+     *                    Notice: the method is not atomic, that means, maybe some keys succeed but some keys failed.
      */
     public int batchMultiDel2(String tableName, List<Pair<byte[], List<byte[]>>> keys,
                               List<PException> results) throws PException;
@@ -478,10 +478,10 @@ public interface PegasusClientInterface {
      * Atomically compare and exchange value by key.
      * <p>
      * - if the original value for the key is equal to the expected value, then update it with the desired value,
-     *   set CompareExchangeResult.setSucceed to true, and set CompareExchangeResult.actualValue to null because
-     *   the actual value must be equal to the desired value.
+     * set CompareExchangeResult.setSucceed to true, and set CompareExchangeResult.actualValue to null because
+     * the actual value must be equal to the desired value.
      * - if the original value for the key is not exist or not equal to the expected value, then set
-     *   CompareExchangeResult.setSucceed to false, and set the actual value in CompareExchangeResult.actualValue.
+     * CompareExchangeResult.setSucceed to false, and set the actual value in CompareExchangeResult.actualValue.
      * <p>
      * This method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
