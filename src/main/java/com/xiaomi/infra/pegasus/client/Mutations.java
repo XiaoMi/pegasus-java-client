@@ -56,7 +56,7 @@ public class Mutations {
     List<mutate> getMutations() {
         int currentTime = (int) Tools.epoch_now();
         for (Pair<Integer, Integer> pair : ttlList) {
-            muList.get(pair.getLeft()).set_expire_ts_seconds += pair.getRight() + currentTime;
+            muList.get(pair.getLeft()).set_expire_ts_seconds += (pair.getRight() + currentTime);
         }
         return Collections.unmodifiableList(muList);
     }
