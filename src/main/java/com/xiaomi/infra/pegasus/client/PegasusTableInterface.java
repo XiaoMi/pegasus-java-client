@@ -85,11 +85,11 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return A future for current op.
-     * <p>
+     * 
      * Future return:
      * On success: true if exist, false if not exist
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * The api is thread safe.
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
@@ -122,11 +122,11 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: the count result for the hashKey
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * The api is thread safe.
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
@@ -161,11 +161,11 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: the got value
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * The api is thread safe.
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
@@ -216,11 +216,11 @@ public interface PegasusTableInterface {
      *                      if timeout > 0, it is a timeout value for current op,
      *                      else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: An object of type MultiGetResult
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -249,11 +249,11 @@ public interface PegasusTableInterface {
      *                      if timeout > 0, it is a timeout value for current op,
      *                      else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: An object of type MultiGetResult
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -305,11 +305,11 @@ public interface PegasusTableInterface {
      *                      if timeout > 0, it is a timeout value for current op,
      *                      else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: An object of type MultiGetSortKeysResult
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -349,11 +349,11 @@ public interface PegasusTableInterface {
      *                   if timeout > 0, it is a timeout value for current op,
      *                   else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: no return
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * The api is thread safe.
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
@@ -392,11 +392,11 @@ public interface PegasusTableInterface {
      *                   if timeout > 0, it is a timeout value for current op,
      *                   else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: no return
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -433,11 +433,11 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: no return
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -471,11 +471,11 @@ public interface PegasusTableInterface {
      *                 if timeout > 0, it is a timeout value for current op,
      *                 else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: no return
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -508,11 +508,11 @@ public interface PegasusTableInterface {
      *                  if timeout > 0, it is a timeout value for current op,
      *                  else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: return new value.
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -565,11 +565,11 @@ public interface PegasusTableInterface {
      *                     if timeout > 0, it is a timeout value for current op,
      *                     else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: return CheckAndSetResult.
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -610,11 +610,11 @@ public interface PegasusTableInterface {
      *                     if timeout > 0, it is a timeout value for current op,
      *                     else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: return CheckAndMutateResult.
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -652,13 +652,13 @@ public interface PegasusTableInterface {
 
     /**
      * atomically compare and exchange value by key, async version.
-     * <p>
+     * 
      * - if the original value for the key is equal to the expected value, then update it with the desired value,
      *   set CompareExchangeResult.setSucceed to true, and set CompareExchangeResult.actualValue to null because
      *   the actual value must be equal to the desired value.
      * - if the original value for the key is not exist or not equal to the expected value, then set
      *   CompareExchangeResult.setSucceed to false, and set the actual value in CompareExchangeResult.actualValue.
-     * <p>
+     * 
      * this method is very like the C++ function in {https://en.cppreference.com/w/cpp/atomic/atomic_compare_exchange}.
      *
      * @param hashKey       the hash key to compare and exchange.
@@ -670,11 +670,11 @@ public interface PegasusTableInterface {
      *                      if timeout > 0, it is a timeout value for current op,
      *                      else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: return CompareExchangeResult.
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
@@ -710,11 +710,11 @@ public interface PegasusTableInterface {
      *                if timeout > 0, it is a timeout value for current op,
      *                else the timeout value in the configuration file will be used.
      * @return the future for current op
-     * <p>
+     * 
      * Future return:
      * On success: ttl time in seconds; -1 if no ttl set; -2 if not exist.
      * On failure: a throwable, which is an instance of PException
-     * <p>
+     * 
      * Thread safety:
      * All the listeners for the same table are guaranteed to be dispatched in the same thread, so all the
      * listeners for the same future are guaranteed to be executed as the same order as the listeners added.
