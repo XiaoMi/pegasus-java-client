@@ -1251,6 +1251,86 @@ public class TestCheckAndMutate {
     }
 
     @Test
+    public void testSetDel() throws PException {
+        PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+        String tableName = "temp";
+        byte[] hashKey = "check_and_mutate_java_test_set_del".getBytes();
+
+        try {
+            client.del(tableName, hashKey, "k1".getBytes());
+
+            CheckAndMutateOptions options = new CheckAndMutateOptions();
+            PegasusTableInterface.CheckAndMutateResult result;
+            byte[] value;
+            Mutations mutations = new Mutations();
+
+            options.returnCheckValue = true;
+            mutations.set("k1".getBytes(), "v1".getBytes(), 10);
+            mutations.del("k1".getBytes());
+            result = client.checkAndMutate(tableName, hashKey,
+                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
+                    mutations, options);
+            Assert.assertTrue(result.mutateSucceed);
+            Assert.assertTrue(result.checkValueReturned);
+            Assert.assertFalse(result.checkValueExist);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertNull(value);
+        } catch (PException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testMultiGetMutations() throws PException {
+        PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+        String tableName = "temp";
+        byte[] hashKey = "check_and_mutate_java_test_multi_get_mutations".getBytes();
+
+        try {
+            client.del(tableName, hashKey, "k1".getBytes());
+
+            CheckAndMutateOptions options = new CheckAndMutateOptions();
+            PegasusTableInterface.CheckAndMutateResult result;
+            byte[] value;
+            Mutations mutations = new Mutations();
+
+            options.returnCheckValue = true;
+            mutations.set("k1".getBytes(), "v1".getBytes(), 10);
+            result = client.checkAndMutate(tableName, hashKey,
+                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
+                    mutations, options);
+            Assert.assertTrue(result.mutateSucceed);
+            Assert.assertTrue(result.checkValueReturned);
+            Assert.assertFalse(result.checkValueExist);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertArrayEquals("v1".getBytes(), value);
+
+            Thread.sleep(12000);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertNull(value);
+
+            // use the same mutations(the second time to call getMutations())
+            result = client.checkAndMutate(tableName, hashKey,
+                    "k1".getBytes(), CheckType.CT_VALUE_NOT_EXIST, null,
+                    mutations, options);
+            Assert.assertTrue(result.mutateSucceed);
+            Assert.assertTrue(result.checkValueReturned);
+            Assert.assertFalse(result.checkValueExist);
+            value = client.get(tableName, hashKey, "k1".getBytes());
+            Assert.assertArrayEquals("v1".getBytes(), value);
+
+            client.del(tableName, hashKey, "k1".getBytes());
+        } catch (PException e) {
+            e.printStackTrace();
+            Assert.fail();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
+
+    @Test
     public void testMutationsExpireSeconds() throws PException {
         PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
         String tableName = "temp";
@@ -1272,7 +1352,7 @@ public class TestCheckAndMutate {
             Assert.assertTrue(result.mutateSucceed);
             Assert.assertTrue(result.checkValueReturned);
             Assert.assertFalse(result.checkValueExist);
-            Thread.sleep(10000);
+            Thread.sleep(12000);
             value = client.get(tableName, hashKey, "k1".getBytes());
             Assert.assertNull(value);
 
@@ -1282,7 +1362,7 @@ public class TestCheckAndMutate {
             // k1's expireSeconds will be calculate in checkAndMutate(),
             // so it doesn't matter how long the mutations loading is going to take
             mutations.set("k1".getBytes(), "v1".getBytes(), 10);
-            Thread.sleep(10000);
+            Thread.sleep(12000);
             mutations.set("k2".getBytes(), "v2".getBytes(), 10);
 
             result = client.checkAndMutate(tableName, hashKey,
