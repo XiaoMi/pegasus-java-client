@@ -9,7 +9,7 @@ package com.xiaomi.infra.pegasus.client;
  * check_and_mutate options.
  */
 public class CheckAndMutateOptions {
-    public boolean returnCheckValue = false; // if return the check value in results.
+    public boolean returnCheckValue = false; // whether return the check value in results.
 
     public CheckAndMutateOptions() {
     }

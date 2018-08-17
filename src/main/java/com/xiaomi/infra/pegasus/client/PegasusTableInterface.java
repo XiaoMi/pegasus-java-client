@@ -1022,7 +1022,7 @@ public interface PegasusTableInterface {
 
     /**
      * sync version of CheckAndMutate, please refer to the async version
-     *{@link #checkAndMutate(byte[], byte[], CheckType, byte[], Mutations, CheckAndMutateOptions, int)}
+     *{@link #asyncCheckAndMutate(byte[], byte[], CheckType, byte[], Mutations, CheckAndMutateOptions, int)}
      */
     public CheckAndMutateResult checkAndMutate(byte[] hashKey, byte[] checkSortKey, CheckType checkType,
                                                byte[] checkOperand, Mutations mutations,
