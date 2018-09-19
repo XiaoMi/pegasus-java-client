@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.sun.security.auth.callback.TextCallbackHandler;
 import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
@@ -15,6 +16,9 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 
+import javax.security.auth.Subject;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +33,12 @@ public class ClusterManager extends Cluster {
     private int retryDelay;
     private boolean enableCounter;
 
+    private boolean openAuth;
+    private String serviceName;
+    private String serviceFqdn;
+    private Subject subject;
+    private LoginContext loginContext = null;
+
     private ConcurrentHashMap<rpc_address, ReplicaSession> replicaSessions;
     private EventLoopGroup metaGroup; // group used for handle meta logic
     private EventLoopGroup replicaGroup; // group used for handle io with replica servers
@@ -38,6 +48,7 @@ public class ClusterManager extends Cluster {
 
     private static final String osName;
     private static final String Linux = "Linux";
+
     static {
         Properties p = System.getProperties();
         osName = p.getProperty("os.name");
@@ -50,11 +61,47 @@ public class ClusterManager extends Cluster {
             boolean enableCounter,
             String perfCounterTags,
             int pushIntervalSecs,
-            String[] address_list) throws IllegalArgumentException {
+            String[] address_list,
+            boolean openAuth,
+            String serviceName,
+            String serviceFqdn)
+            throws IllegalArgumentException {
         setTimeout(timeout);
         this.enableCounter = enableCounter;
         if (enableCounter) {
             MetricsManager.detectHostAndInit(perfCounterTags, pushIntervalSecs);
+        }
+
+        if (openAuth) {
+            logger.info("Open authentication");
+            this.openAuth = openAuth;
+            this.serviceName = serviceName;
+            this.serviceFqdn = serviceFqdn;
+
+            String jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
+            if (jaasConf == null) {
+                System.setProperty("java.security.auth.login.config", "configuration/jaas.conf");
+                logger.info("use the default jaas config path:  configuration/jaas.conf");
+            }
+            try {
+                loginContext = new LoginContext(
+                        "client",
+                        new TextCallbackHandler());
+            } catch (LoginException le) {
+                logger.error("Cannot create LoginContext. LoginException: {}", le.getMessage());
+                System.exit(-1); // TODO HW 错误处理
+            } catch (SecurityException se) {
+                logger.error("Cannot create LoginContext. SecurityException: {}", se.getMessage());
+                System.exit(-1);
+            }
+            try {
+                loginContext.login();
+            } catch (LoginException le) {
+                logger.error("Authentication failed: {}", le.getMessage());
+                System.exit(-1);
+            }
+
+            subject = loginContext.getSubject();
         }
 
         replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
@@ -66,6 +113,26 @@ public class ClusterManager extends Cluster {
         // the constructor of meta session is depend on the replicaSessions,
         // so the replicaSessions should be initialized earlier
         metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
+    }
+
+    public ClusterManager(
+            int timeout,
+            int io_threads,
+            boolean enableCounter,
+            String perfCounterTags,
+            int pushIntervalSecs,
+            String[] address_list)
+            throws IllegalArgumentException {
+        this(
+                timeout,
+                io_threads,
+                enableCounter,
+                perfCounterTags,
+                pushIntervalSecs,
+                address_list,
+                false,
+                null,
+                null);
     }
 
     public EventExecutor getExecutor(String name, int threadCount) {
@@ -87,19 +154,43 @@ public class ClusterManager extends Cluster {
             ss = replicaSessions.get(address);
             if (ss != null)
                 return ss;
-            ss = new ReplicaSession(address, replicaGroup, Cluster.SOCK_TIMEOUT);
+            if (openAuth()) {
+                logger.info("Create a replicaSession {} which is open-auth", address);
+                ss = new ReplicaSession(
+                        address,
+                        replicaGroup,
+                        Cluster.SOCK_TIMEOUT,
+                        true,
+                        subject,
+                        serviceName,
+                        serviceFqdn);
+            } else {
+                ss = new ReplicaSession(address, replicaGroup, Cluster.SOCK_TIMEOUT);
+            }
             replicaSessions.put(address, ss);
             return ss;
         }
     }
 
-    public int getTimeout() { return operationTimeout; }
+    public int getTimeout() {
+        return operationTimeout;
+    }
 
-    public long getRetryDelay(long timeoutMs) { return (timeoutMs < 3 ? 1: timeoutMs/3); }
+    public long getRetryDelay(long timeoutMs) {
+        return (timeoutMs < 3 ? 1 : timeoutMs / 3);
+    }
 
-    public int getRetryDelay() { return retryDelay; }
+    public int getRetryDelay() {
+        return retryDelay;
+    }
 
-    public boolean counterEnabled() { return enableCounter; }
+    public boolean counterEnabled() {
+        return enableCounter;
+    }
+
+    public boolean openAuth() {
+        return openAuth;
+    }
 
     public void setTimeout(int t) {
         operationTimeout = t;
@@ -118,7 +209,9 @@ public class ClusterManager extends Cluster {
     }
 
     @Override
-    public String[] getMetaList() { return metaList; }
+    public String[] getMetaList() {
+        return metaList;
+    }
 
     @Override
     public TableHandler openTable(String name, KeyHasher h) throws ReplicationException {
@@ -132,7 +225,7 @@ public class ClusterManager extends Cluster {
         }
 
         metaSession.closeSession();
-        for (Map.Entry<rpc_address, ReplicaSession> entry: replicaSessions.entrySet()) {
+        for (Map.Entry<rpc_address, ReplicaSession> entry : replicaSessions.entrySet()) {
             entry.getValue().closeSession();
         }
 

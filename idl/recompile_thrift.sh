@@ -23,7 +23,8 @@ rm -rf $TMP_DIR
 
 mkdir -p $TMP_DIR
 $thrift --gen java rrdb.thrift
-$thrift --gen java replication.thrift 
+$thrift --gen java replication.thrift
+$thrift --gen java security.thrift
 
 # as we pack the thrift source in our project, so we need to replace the package name
 find $TMP_DIR -name "*.java" | xargs sed -i -e "s/org.apache.thrift/com.xiaomi.infra.pegasus.thrift/g"

@@ -35,7 +35,7 @@ public class TimeoutBenchmark {
         long current = System.currentTimeMillis();
         final AtomicInteger call_count = new AtomicInteger(0);
         System.out.println("start");
-        for (int i=0; i<count; ++i) {
+        for (int i = 0; i < count; ++i) {
             try {
                 handle.operate(op, 0);
                 Assert.fail();
@@ -50,20 +50,26 @@ public class TimeoutBenchmark {
         long max_value = -1;
         long min_value = Long.MAX_VALUE;
         double average = 0;
-        for (int i=0; i<result.length; ++i) {
+        for (int i = 0; i < result.length; ++i) {
             max_value = Math.max(result[i], max_value);
             min_value = Math.min(result[i], min_value);
             average += result[i];
         }
-        average = average/count;
+        average = average / count;
         logger.warn("Min timeout: {}, Max timeout: {}, average timeout: {}", min_value, max_value, average);
     }
 
     @Test
     public void timeoutChecker() {
         String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
-        ClusterManager manager = new ClusterManager(1000, 1, false,
-                null, 60, metaList);
+        String prop = System.getProperties().getProperty("test.open.auth");
+        boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
+        ClusterManager manager;
+        if (openAuth) {
+            manager = new ClusterManager(1000, 1, false, null, 60, metaList, true, "xxxx", "xxxx");
+        } else {
+            manager = new ClusterManager(1000, 1, false, null, 60, metaList);
+        }
 
         TableHandler handle;
         try {
@@ -78,7 +84,7 @@ public class TimeoutBenchmark {
         int[] timeoutCount = {10000, 2000, 1000, 500, 500, 100, 100};
         //int[] timeoutValues = {1};
         //int[] timeoutCount = {10000};
-        for (int i=0; i<timeoutValues.length; ++i) {
+        for (int i = 0; i < timeoutValues.length; ++i) {
             testTimeout(manager, handle, timeoutValues[i], timeoutCount[i]);
         }
     }

@@ -5,6 +5,7 @@ package com.xiaomi.infra.pegasus.rpc;
 
 import com.xiaomi.infra.pegasus.thrift.TException;
 import com.xiaomi.infra.pegasus.rpc.async.ClusterManager;
+
 import java.util.Properties;
 
 public abstract class Cluster {
@@ -27,6 +28,18 @@ public abstract class Cluster {
 
     public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
     public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
+
+    public static final String PEGASUS_SERVICE_NAME_KEY = "service_name";
+    public static final String PEGASUS_SERVICE_NAME_DEF = "test-server";
+
+    public static final String PEGASUS_SERVICE_FQDN_KEY = "service_fqdn";
+    public static final String PEGASUS_SERVICE_FQDN_DEF = "myhost";
+
+    public static final String PEGASUS_OPEN_AUTH_KEY = "open_auth";
+    public static final String PEGASUS_OPEN_AUTH_DEF = "false";
+
+    public static final String PEGASUS_JAAS_CONF_KEY = "jaas_conf";
+    public static final String PEGASUS_JAAS_CONF_DEF = "configuration/jaas.conf";
 
     public static Cluster createCluster(Properties config) throws IllegalArgumentException {
         int operatorTimeout = Integer.parseInt(config.getProperty(
@@ -51,16 +64,30 @@ public abstract class Cluster {
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY,
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF
         ));
+
+        boolean needAuth = Boolean.parseBoolean(config.getProperty(PEGASUS_OPEN_AUTH_KEY, PEGASUS_OPEN_AUTH_DEF));
+        String serviceName = needAuth ? config.getProperty(PEGASUS_SERVICE_NAME_KEY, PEGASUS_SERVICE_NAME_DEF) : null;
+        String serviceFqdn = needAuth ? config.getProperty(PEGASUS_SERVICE_FQDN_KEY, PEGASUS_SERVICE_FQDN_DEF) : null;
+        String jaasConfPath = needAuth ? config.getProperty(PEGASUS_JAAS_CONF_KEY, PEGASUS_JAAS_CONF_DEF) : null;
+        if (jaasConfPath != null) {
+            System.setProperty("java.security.auth.login.config", jaasConfPath);
+        }
+
         return new ClusterManager(
                 operatorTimeout,
                 asyncWorkers,
                 enablePerfCounter,
                 perfCounterTags,
                 pushIntervalSecs,
-                address);
+                address,
+                needAuth,
+                serviceName,
+                serviceFqdn);
     }
 
     public abstract String[] getMetaList();
+
     public abstract Table openTable(String name, KeyHasher function) throws ReplicationException, TException;
+
     public abstract void close();
 }

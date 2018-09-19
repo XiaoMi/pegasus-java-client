@@ -1,7 +1,7 @@
 // Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
 // This source code is licensed under the Apache License Version 2.0, which
 // can be found in the LICENSE file in the root directory of this source tree.
-package com.xiaomi.infra.pegasus.rpc.async; 
+package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
@@ -23,11 +23,11 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 
 /**
-* TableHandler Tester.
-*
-* @author sunweijie@xiaomi.com
-* @version 1.0
-*/
+ * TableHandler Tester.
+ *
+ * @author sunweijie@xiaomi.com
+ * @version 1.0
+ */
 public class TableHandlerTest {
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandlerTest.class);
 
@@ -38,8 +38,13 @@ public class TableHandlerTest {
 
     @Before
     public void before() throws Exception {
-        testManager = new ClusterManager(1000, 1, false,
-                null, 60, addr_list);
+        String prop = System.getProperties().getProperty("test.open.auth");
+        boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
+        if (openAuth) {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, true, "xxxx", "xxxx");
+        } else {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
+        }
     }
 
     @After
@@ -48,7 +53,7 @@ public class TableHandlerTest {
 
     private rpc_address getValidWrongServer(final rpc_address right_address) {
         ArrayList<rpc_address> replicas = new ArrayList<rpc_address>();
-        for (int i=0; i<replica_servers.length; ++i) {
+        for (int i = 0; i < replica_servers.length; ++i) {
             rpc_address a = new rpc_address();
             boolean ans = a.fromString(replica_servers[i]);
             assert ans;
@@ -57,7 +62,7 @@ public class TableHandlerTest {
                 replicas.add(a);
         }
 
-        int p = (int)(Math.random()*replicas.size());
+        int p = (int) (Math.random() * replicas.size());
         return replicas.get(p);
     }
 
@@ -158,7 +163,7 @@ public class TableHandlerTest {
         Assert.assertEquals(8, table.getPartitionCount());
 
         TableHandler.TableConfiguration tableConfig = table.tableConfig_.get();
-        for (int i=0; i<tableConfig.replicas.size(); ++i) {
+        for (int i = 0; i < tableConfig.replicas.size(); ++i) {
             ReplicaConfiguration handle = tableConfig.replicas.get(i);
             Assert.assertNotNull(handle);
             Assert.assertNotNull(handle.session);
@@ -174,7 +179,7 @@ public class TableHandlerTest {
         Assert.assertTrue(doTheQuerying);
 
         final TableHandler finalRef = table;
-        Assert.assertTrue( Toollet.waitCondition(
+        Assert.assertTrue(Toollet.waitCondition(
                 new Toollet.BoolCallable() {
                     @Override
                     public boolean call() {
@@ -182,9 +187,9 @@ public class TableHandlerTest {
                     }
                 },
                 10
-        ) );
+        ));
 
         handle = table.getReplicaConfig(0);
-        Assert.assertEquals(oldBallot+1, handle.ballot);
+        Assert.assertEquals(oldBallot + 1, handle.ballot);
     }
 }

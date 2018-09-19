@@ -27,18 +27,27 @@ public class ClusterManagerTest {
     public void after() throws Exception {
     }
 
+    private static boolean isOpenAuth() {
+        // openAuth is on by default
+        String prop = System.getProperties().getProperty("test.open.auth");
+        return (prop != null) ? Boolean.valueOf(prop) : false;
+    }
+
     /**
      * Method: getReplicaSession(rpc_address address)
      */
     @Test
     public void testGetReplicaSession() throws Exception {
         String[] address_list = {
-            "127.0.0.1:1", "127.0.0.1:2", "127.0.0.1:3"
+                "127.0.0.1:1", "127.0.0.1:2", "127.0.0.1:3"
         };
 
-        ClusterManager testManager = new ClusterManager(1000, 1, false,
-                null, 60, address_list);
-
+        ClusterManager testManager;
+        if (isOpenAuth()) {
+            testManager = new ClusterManager(1000, 1, false, null, 60, address_list, true, "xxxx", "xxxx");
+        } else {
+            testManager = new ClusterManager(1000, 1, false, null, 60, address_list);
+        }
         // input an invalid rpc address
         rpc_address address = new rpc_address();
         ReplicaSession session = testManager.getReplicaSession(address);
@@ -52,8 +61,12 @@ public class ClusterManagerTest {
     public void testOpenTable() throws Exception {
         // test invalid meta list
         String[] addr_list = {"127.0.0.1:123", "127.0.0.1:124", "127.0.0.1:125"};
-        ClusterManager testManager = new ClusterManager(1000, 1, false,
-                null, 60, addr_list);
+        ClusterManager testManager;
+        if (isOpenAuth()) {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, true, "xxxx", "xxxx");
+        } else {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
+        }
 
         TableHandler result = null;
         try {
@@ -67,8 +80,11 @@ public class ClusterManagerTest {
 
         // test partially invalid meta list
         String[] addr_list2 = {"127.0.0.1:123", "127.0.0.1:34603", "127.0.0.1:34601", "127.0.0.1:34602"};
-        testManager = new ClusterManager(1000, 1, false,
-                null, 60, addr_list2);
+        if (isOpenAuth()) {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list2, true, "xxxx", "xxxx");
+        } else {
+            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list2);
+        }
         try {
             result = testManager.openTable("hehe", KeyHasher.DEFAULT);
         } catch (ReplicationException e) {
