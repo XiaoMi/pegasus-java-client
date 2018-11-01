@@ -73,35 +73,38 @@ public class ClusterManager extends Cluster {
         }
 
         if (openAuth) {
-            logger.info("Open authentication");
+            logger.info("open authentication");
             this.openAuth = openAuth;
             this.serviceName = serviceName;
             this.serviceFqdn = serviceFqdn;
 
             String jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
             if (jaasConf == null) {
-                System.setProperty("java.security.auth.login.config", "configuration/jaas.conf");
-                logger.info("use the default jaas config path:  configuration/jaas.conf");
+                System.setProperty("java.security.auth.login.config", "configuration/pegasus_jaas.conf");
+                jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
             }
+            logger.info("open authentication, jaas config path: {}, login now", jaasConf);
+
             try {
                 loginContext = new LoginContext(
                         "client",
                         new TextCallbackHandler());
             } catch (LoginException le) {
-                logger.error("Cannot create LoginContext. LoginException: {}", le.getMessage());
-                System.exit(-1); // TODO HW 错误处理
+                logger.error("cannot create LoginContext. LoginException: {}", le.getMessage());
+                System.exit(-1);
             } catch (SecurityException se) {
-                logger.error("Cannot create LoginContext. SecurityException: {}", se.getMessage());
+                logger.error("cannot create LoginContext. SecurityException: {}", se.getMessage());
                 System.exit(-1);
             }
             try {
                 loginContext.login();
             } catch (LoginException le) {
-                logger.error("Authentication failed: {}", le.getMessage());
+                logger.error("authentication failed: {}", le.getMessage());
                 System.exit(-1);
             }
 
             subject = loginContext.getSubject();
+            logger.info("login succeed, as user {}", subject.getPrincipals().toString());
         }
 
         replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
