@@ -28,6 +28,10 @@ public class ZstdWrapper {
      * decompress the `src` and return the original.
      */
     public static byte[] decompress(byte[] src) throws PException {
+        if (src == null || src.length == 0) {
+            throw new IllegalArgumentException("src is empty");
+        }
+
         byte[] ret;
         long originalSize = Zstd.decompressedSize(src);
         if (originalSize > 0) {

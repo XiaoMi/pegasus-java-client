@@ -33,17 +33,27 @@ public class TestZstdWrapper {
         }
 
         // ensure empty value don't break the program
-        // TODO(wutao1): throws an exception?
         {
-            byte[] value = ZstdWrapper.decompress("".getBytes());
-            Assert.assertArrayEquals(value, "".getBytes());
+            try {
+                ZstdWrapper.decompress("".getBytes());
+                Assert.fail("expecting a IllegalArgumentException");
+            } catch (Exception e) {
+                Assert.assertTrue(e instanceof IllegalArgumentException);
+            }
+            try {
+                ZstdWrapper.decompress(null);
+                Assert.fail("expecting a IllegalArgumentException");
+            } catch (Exception e) {
+                Assert.assertTrue(e instanceof IllegalArgumentException);
+            }
         }
 
         { // decompress invalid data
             try {
                 ZstdWrapper.decompress("abc123".getBytes());
                 Assert.fail("expecting a PException");
-            } catch (PException e) {
+            } catch (Exception e) {
+                Assert.assertTrue(e instanceof PException);
             }
         }
     }
