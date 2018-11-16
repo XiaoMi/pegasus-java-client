@@ -11,6 +11,7 @@ import io.netty.util.concurrent.Future;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
+import com.xiaomi.infra.pegasus.tools.ZStdWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2142,5 +2143,30 @@ public class TestBasic {
         }
 
         PegasusClientFactory.closeSingletonClient();
+    }
+
+    @Test
+    public void testCompression() throws Exception {
+        PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+        PegasusTableInterface table = client.openTable("temp");
+
+        ZStdWrapper zstd = new ZStdWrapper();
+        for (int t = 0; t < 4; t++) {
+            // generate a 10KB value
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < 10000; i++) {
+                builder.append('a' + t);
+            }
+            byte[] value = builder.toString().getBytes();
+
+            // write the record into pegasus
+            table.set("h".getBytes(), "s".getBytes(), zstd.compress(value), 1000);
+
+            // read the record from pegasus
+            byte[] compressedBuf = table.get("h".getBytes(), "s".getBytes(), 1000);
+
+            // decompress the value
+            Assert.assertArrayEquals(zstd.decompress(compressedBuf), value);
+        }
     }
 }
