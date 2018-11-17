@@ -32,7 +32,7 @@ public class TestZstdWrapper {
             Assert.assertArrayEquals(ZstdWrapper.decompress(compressedBuf), value);
         }
 
-        // ensure empty value don't break the program
+        // ensure empty value won't break the program
         {
             try {
                 ZstdWrapper.decompress("".getBytes());

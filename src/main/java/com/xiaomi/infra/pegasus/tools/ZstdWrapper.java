@@ -26,6 +26,9 @@ public class ZstdWrapper {
 
     /**
      * decompress the `src` and return the original.
+     * throws:
+     *  - IllegalArgumentException if given `src` is null or empty
+     *  - PException if decompression failed, maybe your `src` is corrupted.
      */
     public static byte[] decompress(byte[] src) throws PException {
         if (src == null || src.length == 0) {
