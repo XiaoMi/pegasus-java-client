@@ -44,9 +44,9 @@ public class ClusterManagerTest {
 
         ClusterManager testManager;
         if (isOpenAuth()) {
-            testManager = new ClusterManager(1000, 1, false, null, 60, address_list, true, "xxxx", "xxxx");
+            testManager = new ClusterManager.Builder(1000, 1, address_list).openAuth("xxxx", "xxxx").build();
         } else {
-            testManager = new ClusterManager(1000, 1, false, null, 60, address_list);
+            testManager = new ClusterManager.Builder(1000, 1, address_list).build();
         }
         // input an invalid rpc address
         rpc_address address = new rpc_address();
@@ -63,9 +63,9 @@ public class ClusterManagerTest {
         String[] addr_list = {"127.0.0.1:123", "127.0.0.1:124", "127.0.0.1:125"};
         ClusterManager testManager;
         if (isOpenAuth()) {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, true, "xxxx", "xxxx");
+            testManager = new ClusterManager.Builder(1000, 1, addr_list).openAuth("xxxx", "xxxx").build();
         } else {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
+            testManager = new ClusterManager.Builder(1000, 1, addr_list).build();
         }
 
         TableHandler result = null;
@@ -81,9 +81,9 @@ public class ClusterManagerTest {
         // test partially invalid meta list
         String[] addr_list2 = {"127.0.0.1:123", "127.0.0.1:34603", "127.0.0.1:34601", "127.0.0.1:34602"};
         if (isOpenAuth()) {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list2, true, "xxxx", "xxxx");
+            testManager = new ClusterManager.Builder(1000, 1, addr_list2).openAuth("xxxx", "xxxx").build();
         } else {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list2);
+            testManager = new ClusterManager.Builder(1000, 1, addr_list2).build();
         }
         try {
             result = testManager.openTable("hehe", KeyHasher.DEFAULT);

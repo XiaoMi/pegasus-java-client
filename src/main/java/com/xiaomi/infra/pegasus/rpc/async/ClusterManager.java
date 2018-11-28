@@ -55,28 +55,54 @@ public class ClusterManager extends Cluster {
         logger.info("operating system name: {}", osName);
     }
 
-    public ClusterManager(
-            int timeout,
-            int io_threads,
-            boolean enableCounter,
-            String perfCounterTags,
-            int pushIntervalSecs,
-            String[] address_list,
-            boolean openAuth,
-            String serviceName,
-            String serviceFqdn)
-            throws IllegalArgumentException {
-        setTimeout(timeout);
-        this.enableCounter = enableCounter;
-        if (enableCounter) {
-            MetricsManager.detectHostAndInit(perfCounterTags, pushIntervalSecs);
+    public static class Builder {
+        private int timeout;
+        private int io_threads;
+        private boolean enableCounter;
+        private String perfCounterTags;
+        private int pushIntervalSecs;
+        private String[] address_list;
+        private boolean openAuth;
+        private String serviceName;
+        private String serviceFqdn;
+
+        public Builder(int timeout, int io_threads, String[] address_list
+        ) {
+            this.timeout = timeout;
+            this.io_threads = io_threads;
+            this.address_list = address_list;
         }
 
-        if (openAuth) {
-            logger.info("open authentication");
-            this.openAuth = openAuth;
+        public Builder enableCounter(String perfCounterTags, int pushIntervalSecs) {
+            this.enableCounter = true;
+            this.perfCounterTags = perfCounterTags;
+            this.pushIntervalSecs = pushIntervalSecs;
+            return this;
+        }
+
+        public Builder openAuth(String serviceName, String serviceFqdn) {
+            this.openAuth = true;
             this.serviceName = serviceName;
             this.serviceFqdn = serviceFqdn;
+            return this;
+        }
+
+        public ClusterManager build() {
+            return new ClusterManager(this);
+        }
+    }
+
+    public ClusterManager(Builder builder) {
+        setTimeout(builder.timeout);
+        this.enableCounter = builder.enableCounter;
+        if (enableCounter) {
+            MetricsManager.detectHostAndInit(builder.perfCounterTags, builder.pushIntervalSecs);
+        }
+
+        if (builder.openAuth) {
+            this.openAuth = true;
+            this.serviceName = builder.serviceName;
+            this.serviceFqdn = builder.serviceFqdn;
 
             String jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
             if (jaasConf == null) {
@@ -108,34 +134,14 @@ public class ClusterManager extends Cluster {
         }
 
         replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
-        replicaGroup = getEventLoopGroupInstance(io_threads);
+        replicaGroup = getEventLoopGroupInstance(builder.io_threads);
         metaGroup = getEventLoopGroupInstance(1);
         tableGroup = getEventLoopGroupInstance(1);
 
-        metaList = address_list;
+        metaList = builder.address_list;
         // the constructor of meta session is depend on the replicaSessions,
         // so the replicaSessions should be initialized earlier
-        metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
-    }
-
-    public ClusterManager(
-            int timeout,
-            int io_threads,
-            boolean enableCounter,
-            String perfCounterTags,
-            int pushIntervalSecs,
-            String[] address_list)
-            throws IllegalArgumentException {
-        this(
-                timeout,
-                io_threads,
-                enableCounter,
-                perfCounterTags,
-                pushIntervalSecs,
-                address_list,
-                false,
-                null,
-                null);
+        metaSession = new MetaSession(this, builder.address_list, builder.timeout, 10, metaGroup);
     }
 
     public EventExecutor getExecutor(String name, int threadCount) {

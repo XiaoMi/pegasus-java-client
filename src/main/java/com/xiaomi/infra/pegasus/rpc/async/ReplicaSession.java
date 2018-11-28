@@ -347,6 +347,12 @@ public class ReplicaSession {
         negotiation_message msg = new negotiation_message();
         msg.status = negotiation_status.SASL_LIST_MECHANISMS;
 
+        sendNegoMsg(msg);
+
+        logger.info("{}: start negotiation", name());
+    }
+
+    private void sendNegoMsg(negotiation_message msg) {
         final RequestEntry entry = new ReplicaSession.RequestEntry();
         entry.sequenceId = seqId.getAndIncrement();
         entry.op = new negotiate_operator(msg);
@@ -355,7 +361,6 @@ public class ReplicaSession {
         pendingResponse.put(new Integer(entry.sequenceId), entry);
 
         write(entry, fields);
-        logger.info("Start negotiation");
     }
 
     private class Action implements PrivilegedExceptionAction {
@@ -451,14 +456,7 @@ public class ReplicaSession {
                     throw new Exception("Received an unknown response, status " + resp.status);
             }
 
-            final RequestEntry entry = new ReplicaSession.RequestEntry();
-            entry.sequenceId = seqId.getAndIncrement();
-            entry.op = new negotiate_operator(msg);
-            entry.callback = new SaslRecvHandler((negotiate_operator) entry.op);
-            pendingResponse.put(new Integer(entry.sequenceId), entry);
-            entry.timeoutTask = addTimer(entry.sequenceId, 1000);
-
-            write(entry, fields);
+            sendNegoMsg(msg);
         }
     }
 

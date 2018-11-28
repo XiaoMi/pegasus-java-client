@@ -40,9 +40,9 @@ public class ReplicaSessionTest {
         String prop = System.getProperties().getProperty("test.open.auth");
         boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
         if (openAuth) {
-            manager = new ClusterManager(1000, 1, false, null, 60, metaList, true, "xxxx", "xxxx");
+            manager = new ClusterManager.Builder(1000, 1, metaList).openAuth("xxxx", "xxxx").build();
         } else {
-            manager = new ClusterManager(1000, 1, false, null, 60, metaList);
+            manager = new ClusterManager.Builder(1000, 1, metaList).build();
         }
     }
 

@@ -56,33 +56,32 @@ public abstract class Cluster {
 
         int asyncWorkers = Integer.parseInt(config.getProperty(
                 PEGASUS_ASYNC_WORKERS_KEY, PEGASUS_ASYNC_WORKERS_DEF));
+        ClusterManager.Builder builder = new ClusterManager.Builder(operatorTimeout, asyncWorkers, address);
+
         boolean enablePerfCounter = Boolean.parseBoolean(config.getProperty(
                 PEGASUS_ENABLE_PERF_COUNTER_KEY, PEGASUS_ENABLE_PERF_COUNTER_VALUE));
-        String perfCounterTags = enablePerfCounter ? config.getProperty(
-                PEGASUS_PERF_COUNTER_TAGS_KEY, PEGASUS_PERF_COUNTER_TAGS_DEF) : null;
-        int pushIntervalSecs = Integer.parseInt(config.getProperty(
-                PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY,
-                PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF
-        ));
-
-        boolean needAuth = Boolean.parseBoolean(config.getProperty(PEGASUS_OPEN_AUTH_KEY, PEGASUS_OPEN_AUTH_DEF));
-        String serviceName = needAuth ? config.getProperty(PEGASUS_SERVICE_NAME_KEY, PEGASUS_SERVICE_NAME_DEF) : null;
-        String serviceFqdn = needAuth ? config.getProperty(PEGASUS_SERVICE_FQDN_KEY, PEGASUS_SERVICE_FQDN_DEF) : null;
-        String jaasConfPath = needAuth ? config.getProperty(PEGASUS_JAAS_CONF_KEY, PEGASUS_JAAS_CONF_DEF) : null;
-        if (jaasConfPath != null) {
-            System.setProperty("java.security.auth.login.config", jaasConfPath);
+        if (enablePerfCounter) {
+            String perfCounterTags = config.getProperty(
+                    PEGASUS_PERF_COUNTER_TAGS_KEY, PEGASUS_PERF_COUNTER_TAGS_DEF);
+            int pushIntervalSecs = Integer.parseInt(config.getProperty(
+                    PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY,
+                    PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF
+            ));
+            builder.enableCounter(perfCounterTags, pushIntervalSecs);
         }
 
-        return new ClusterManager(
-                operatorTimeout,
-                asyncWorkers,
-                enablePerfCounter,
-                perfCounterTags,
-                pushIntervalSecs,
-                address,
-                needAuth,
-                serviceName,
-                serviceFqdn);
+        boolean needAuth = Boolean.parseBoolean(config.getProperty(PEGASUS_OPEN_AUTH_KEY, PEGASUS_OPEN_AUTH_DEF));
+
+        if (needAuth) {
+            String serviceName = config.getProperty(PEGASUS_SERVICE_NAME_KEY, PEGASUS_SERVICE_NAME_DEF);
+            String serviceFqdn = config.getProperty(PEGASUS_SERVICE_FQDN_KEY, PEGASUS_SERVICE_FQDN_DEF);
+            String jaasConfPath = config.getProperty(PEGASUS_JAAS_CONF_KEY, PEGASUS_JAAS_CONF_DEF);
+            if (jaasConfPath != null) {
+                System.setProperty("java.security.auth.login.config", jaasConfPath);
+            }
+            builder.openAuth(serviceName, serviceFqdn);
+        }
+        return builder.build();
     }
 
     public abstract String[] getMetaList();

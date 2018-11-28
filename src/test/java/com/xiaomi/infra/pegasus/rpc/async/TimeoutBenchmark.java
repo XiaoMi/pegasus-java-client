@@ -66,9 +66,9 @@ public class TimeoutBenchmark {
         boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
         ClusterManager manager;
         if (openAuth) {
-            manager = new ClusterManager(1000, 1, false, null, 60, metaList, true, "xxxx", "xxxx");
+            manager = new ClusterManager.Builder(1000, 1, metaList).openAuth("xxxx", "xxxx").build();
         } else {
-            manager = new ClusterManager(1000, 1, false, null, 60, metaList);
+            manager = new ClusterManager.Builder(1000, 1, metaList).build();
         }
 
         TableHandler handle;

@@ -71,9 +71,9 @@ public class MetaSessionTest {
         String[] addr_list = {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"};
         ClusterManager manager;
         if (isOpenAuth()) {
-            manager = new ClusterManager(1000, 4, false, null, 60, addr_list, true, "xxxx", "xxxx");
+            manager = new ClusterManager.Builder(1000, 4, addr_list).openAuth("xxxx", "xxxx").build();
         } else {
-            manager = new ClusterManager(1000, 4, false, null, 60, addr_list);
+            manager = new ClusterManager.Builder(1000, 4, addr_list).build();
         }
         MetaSession session = manager.getMetaSession();
 

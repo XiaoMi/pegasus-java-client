@@ -41,9 +41,9 @@ public class TableHandlerTest {
         String prop = System.getProperties().getProperty("test.open.auth");
         boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
         if (openAuth) {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, true, "xxxx", "xxxx");
+            testManager = new ClusterManager.Builder(1000, 1, addr_list).openAuth("xxxx", "xxxx").build();
         } else {
-            testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
+            testManager = new ClusterManager.Builder(1000, 1, addr_list).build();
         }
     }
 
