@@ -188,7 +188,7 @@ public class PegasusCli {
                 readUncompressType = CompressionType.valueOf(args[2]);
             }
             if (args.length > 3) {
-                readUncompressType = CompressionType.valueOf(args[3]);
+                writeCompressType = CompressionType.valueOf(args[3]);
             }
             if (args.length > 4) {
                 maxCount = Integer.parseInt(args[4]);
