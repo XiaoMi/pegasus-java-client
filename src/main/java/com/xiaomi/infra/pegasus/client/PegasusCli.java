@@ -265,6 +265,7 @@ public class PegasusCli {
                             new String(p.getKey().getValue()), new String(p.getValue()));
                     count++;
                 }
+                scanner.close();
                 if (count > 0)
                     System.out.println();
                 System.out.printf("%d key-value pairs got.\n", count);
@@ -280,44 +281,48 @@ public class PegasusCli {
                                 new String(p.getKey().getValue()), new String(p.getValue()));
                         count++;
                     }
+                    scanner.close();
                 }
                 if (count > 0)
                     System.out.println();
                 System.out.printf("%d key-value pairs got.\n", count);
-            }
-            else if (opName.equals("copy_data")) {
+            } else if (opName.equals("copy_data")) {
                 PegasusClientInterface targetClient = PegasusClientFactory.createClient(targetClusterConfigPath);
-                PegasusTableInterface targetTable = targetClient.openTable(targetTableName);
-                List<PegasusScannerInterface> scanners = client.getUnorderedScanners(appName, 1, new ScanOptions());
-                int count = 0;
-                if (scanners.size() > 0) {
-                    PegasusScannerInterface scanner = scanners.get(0);
-                    Pair<Pair<byte[], byte[]>, byte[]> p;
-                    while (count < maxCount && (p = scanner.next()) != null) {
-                        byte[] newValue = p.getValue();
-                        switch (readUncompressType) {
-                            case none:
-                                break;
-                            case zstd:
-                                newValue = ZstdWrapper.decompress(newValue);
-                                break;
+                try {
+                    PegasusTableInterface targetTable = targetClient.openTable(targetTableName);
+                    List<PegasusScannerInterface> scanners = client.getUnorderedScanners(appName, 1, new ScanOptions());
+                    int count = 0;
+                    if (scanners.size() > 0) {
+                        PegasusScannerInterface scanner = scanners.get(0);
+                        Pair<Pair<byte[], byte[]>, byte[]> p;
+                        while (count < maxCount && (p = scanner.next()) != null) {
+                            byte[] newValue = p.getValue();
+                            switch (readUncompressType) {
+                                case none:
+                                    break;
+                                case zstd:
+                                    newValue = ZstdWrapper.decompress(newValue);
+                                    break;
+                            }
+                            switch (writeCompressType) {
+                                case none:
+                                    break;
+                                case zstd:
+                                    newValue = ZstdWrapper.compress(newValue);
+                                    break;
+                            }
+                            targetTable.set(p.getKey().getKey(), p.getKey().getValue(), newValue, 0);
+                            count++;
+                            if (count % 10000 == 0) {
+                                System.out.printf("Copied %d key-value pairs.\n", count);
+                            }
                         }
-                        switch (writeCompressType) {
-                            case none:
-                                break;
-                            case zstd:
-                                newValue = ZstdWrapper.compress(newValue);
-                                break;
-                        }
-                        targetTable.set(p.getKey().getKey(), p.getKey().getValue(), newValue, 0);
-                        count++;
-                        if (count % 10000 == 0) {
-                            System.out.printf("Copied %d key-value pairs.\n", count);
-                        }
+                        scanner.close();
                     }
+                    System.out.printf("Done, copied %d key-value pairs.\n", count);
+                } finally {
+                    targetClient.close();
                 }
-                System.out.printf("Done, copied %d key-value pairs.\n", count);
-                targetClient.close();
             }
         }
         catch (PException e) {
