@@ -311,6 +311,7 @@ public class PegasusCli {
                     }
                 }
                 System.out.printf("Done, copied %d key-value pairs.\n", count);
+                targetClient.close();
             }
         }
         catch (PException e) {
