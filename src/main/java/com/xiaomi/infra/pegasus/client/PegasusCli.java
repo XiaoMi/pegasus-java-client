@@ -296,12 +296,18 @@ public class PegasusCli {
                     while (count < maxCount && (p = scanner.next()) != null) {
                         byte[] newValue = p.getValue();
                         switch (readUncompressType) {
-                            case none: {}
-                            case zstd: newValue = ZstdWrapper.decompress(newValue);
+                            case none:
+                                break;
+                            case zstd:
+                                newValue = ZstdWrapper.decompress(newValue);
+                                break;
                         }
                         switch (writeCompressType) {
-                            case none: {}
-                            case zstd: newValue = ZstdWrapper.compress(newValue);
+                            case none:
+                                break;
+                            case zstd:
+                                newValue = ZstdWrapper.compress(newValue);
+                                break;
                         }
                         targetTable.set(p.getKey().getKey(), p.getKey().getValue(), newValue, 0);
                         count++;
