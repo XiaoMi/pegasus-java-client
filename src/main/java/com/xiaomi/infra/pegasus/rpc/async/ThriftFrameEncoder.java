@@ -32,7 +32,7 @@ public class ThriftFrameEncoder extends MessageToByteEncoder<ReplicaSession.Requ
         out.writerIndex(initIndex + ThriftHeader.HEADER_LENGTH);
         TBinaryProtocol protocol = new TBinaryProtocol(new TByteBufTransport(out));
         e.op.send_data(protocol, e.sequenceId);
-        out.setBytes(initIndex, e.op.prepare_thrift_header(out.readableBytes() - ThriftHeader.HEADER_LENGTH));
+        out.setBytes(initIndex, e.op.prepare_thrift_header(out.readableBytes() - ThriftHeader.HEADER_LENGTH, (int)e.timeoutMs));
     }
 
     @Override
