@@ -35,7 +35,7 @@ public class MetaSession {
             }
         }
         if (metaList.isEmpty()) {
-            throw new IllegalArgumentException("can't find valid meta server address " + addrList.toString());
+            throw new IllegalArgumentException("no valid meta server address");
         }
         curLeader = 0;
 
@@ -145,7 +145,7 @@ public class MetaSession {
             return;
         }
 
-        logger.info("query meta got error, rpc({}), meta({}), forward({}), connected leader({}), " +
+        logger.info("query meta got error, rpc error({}), meta error({}), forward address({}), current leader({}), " +
                         "remain retry count({}), need switch leader({}), need delay({})",
                 op.rpc_error.errno.toString(),
                 metaError.toString(),
