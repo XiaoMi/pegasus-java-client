@@ -51,7 +51,7 @@ public class MetaSession {
         return op.get_response().getErr().errno;
     }
 
-    static public final rpc_address getMetaServiceFrowardAddress(client_operator metaQueryOp) {
+    static public final rpc_address getMetaServiceForwardAddress(client_operator metaQueryOp) {
         if (metaQueryOp.rpc_error.errno != error_types.ERR_OK)
             return null;
         query_cfg_operator op = (query_cfg_operator) metaQueryOp;
@@ -128,7 +128,7 @@ public class MetaSession {
             else if (metaError == error_types.ERR_FORWARD_TO_OTHERS) {
                 needDelay = false;
                 needSwitchLeader = true;
-                forwardAddress = getMetaServiceFrowardAddress(op);
+                forwardAddress = getMetaServiceForwardAddress(op);
             }
             else {
                 round.callbackFunc.run();
