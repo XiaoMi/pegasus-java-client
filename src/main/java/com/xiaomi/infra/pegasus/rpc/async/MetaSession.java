@@ -122,17 +122,13 @@ public class MetaSession {
         rpc_address forwardAddress = null;
 
         --round.maxQueryCount;
-        if (round.maxQueryCount == 0) {
-            round.callbackFunc.run();
-            return;
-        }
 
         error_types metaError = error_types.ERR_UNKNOWN;
         if (op.rpc_error.errno == error_types.ERR_OK) {
             metaError = getMetaServiceError(op);
             if (metaError == error_types.ERR_SERVICE_NOT_ACTIVE) {
-                needDelay = true;
-                needSwitchLeader = false;
+                needDelay = false;
+                needSwitchLeader = true;
             }
             else if (metaError == error_types.ERR_FORWARD_TO_OTHERS) {
                 needDelay = false;
@@ -145,7 +141,7 @@ public class MetaSession {
             }
         }
         else if (op.rpc_error.errno == error_types.ERR_SESSION_RESET || op.rpc_error.errno == error_types.ERR_TIMEOUT) {
-            needDelay = true;
+            needDelay = false;
             needSwitchLeader = true;
         }
         else {
@@ -186,6 +182,11 @@ public class MetaSession {
                 }
             }
             round.lastSession = metaList.get(curLeader);
+        }
+
+        if (round.maxQueryCount == 0) {
+            round.callbackFunc.run();
+            return;
         }
 
         group.schedule(new Runnable() {
