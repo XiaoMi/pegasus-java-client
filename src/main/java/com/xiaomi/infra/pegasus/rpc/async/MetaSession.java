@@ -127,8 +127,8 @@ public class MetaSession {
         if (op.rpc_error.errno == error_types.ERR_OK) {
             metaError = getMetaServiceError(op);
             if (metaError == error_types.ERR_SERVICE_NOT_ACTIVE) {
-                needDelay = false;
-                needSwitchLeader = true;
+                needDelay = true;
+                needSwitchLeader = false;
             }
             else if (metaError == error_types.ERR_FORWARD_TO_OTHERS) {
                 needDelay = false;
