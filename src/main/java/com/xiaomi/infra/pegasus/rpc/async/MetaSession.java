@@ -30,8 +30,7 @@ public class MetaSession {
             if (rpc_addr.fromString(addr)) {
                 logger.info("add {} as meta server", addr);
                 metaList.add(clusterManager.getReplicaSession(rpc_addr));
-            }
-            else {
+            } else {
                 logger.error("invalid address {}", addr);
             }
         }
@@ -134,8 +133,7 @@ public class MetaSession {
                 needDelay = false;
                 needSwitchLeader = true;
                 forwardAddress = getMetaServiceForwardAddress(op);
-            }
-            else {
+            } else {
                 round.callbackFunc.run();
                 return;
             }
@@ -143,9 +141,8 @@ public class MetaSession {
         else if (op.rpc_error.errno == error_types.ERR_SESSION_RESET || op.rpc_error.errno == error_types.ERR_TIMEOUT) {
             needDelay = false;
             needSwitchLeader = true;
-        }
-        else {
-            logger.error("unknown error: {}", op.rpc_error.errno.toString());
+        } else {
+            logger.error(op.rpc_error.errno == error_types.ERR_UNAUTHENTICATED ? "{}" : "unknown error: {}", op.rpc_error.errno.toString());
             round.callbackFunc.run();
             return;
         }
@@ -176,8 +173,7 @@ public class MetaSession {
                         metaList.add(clusterManager.getReplicaSession(forwardAddress));
                         curLeader = metaList.size() - 1;
                     }
-                }
-                else if (metaList.get(curLeader) == round.lastSession) {
+                } else if (metaList.get(curLeader) == round.lastSession) {
                     curLeader = (curLeader + 1) % metaList.size();
                 }
             }

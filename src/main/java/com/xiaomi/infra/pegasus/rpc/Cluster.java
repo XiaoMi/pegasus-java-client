@@ -39,7 +39,7 @@ public abstract class Cluster {
     public static final String PEGASUS_OPEN_AUTH_DEF = "false";
 
     public static final String PEGASUS_JAAS_CONF_KEY = "jaas_conf";
-    public static final String PEGASUS_JAAS_CONF_DEF = "configuration/jaas.conf";
+    public static final String PEGASUS_JAAS_CONF_DEF = "configuration/pegasus_jaas.conf";
 
     public static Cluster createCluster(Properties config) throws IllegalArgumentException {
         int operatorTimeout = Integer.parseInt(config.getProperty(

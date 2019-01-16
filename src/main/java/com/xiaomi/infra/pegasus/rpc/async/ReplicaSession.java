@@ -97,7 +97,7 @@ public class ReplicaSession {
     }
 
     public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, boolean openAuth, Subject subject, String serviceName, String serviceFqdn, MessageResponseFilter filter) {
-        this(address, rpcGroup, socketTimeout, true, subject, serviceName, serviceFqdn);
+        this(address, rpcGroup, socketTimeout, openAuth, subject, serviceName, serviceFqdn);
         this.filter = filter;
     }
 
@@ -211,15 +211,21 @@ public class ReplicaSession {
     }
 
     private void markSessionNegotiation(Channel activeChannel) {
+        logger.info("{}: mark session state negotiation");
         VolatileFields newCache = new VolatileFields();
         newCache.state = ConnState.NEGOTIATION;
         newCache.nettyChannel = activeChannel;
         fields = newCache;
-        logger.info("{}: mark session state negotiation, now negotiate", name());
-        startNegotiation();
+        if (needAuthConnection()) {
+            // version + auth, now only support auth
+            startNegotiation();
+        } else {
+            logger.info("{}: mark session state connected");
+            markSessionConnected(activeChannel);
+        }
     }
 
-    private void markSessionDisconnect() {
+    private void markSessionDisconnect(error_types errorType) {
         VolatileFields cache = fields;
         synchronized (pendingSend) {
             if (cache.state != ConnState.DISCONNECTED) {
@@ -231,14 +237,14 @@ public class ReplicaSession {
                 // this. In this case, we are relying on the timeout task.
                 while (!pendingSend.isEmpty()) {
                     RequestEntry e = pendingSend.poll();
-                    tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+                    tryNotifyWithSequenceID(e.sequenceId, errorType, false);
                 }
                 List<RequestEntry> l = new LinkedList<RequestEntry>();
                 for (Map.Entry<Integer, RequestEntry> entry : pendingResponse.entrySet()) {
                     l.add(entry.getValue());
                 }
                 for (RequestEntry e : l) {
-                    tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+                    tryNotifyWithSequenceID(e.sequenceId, errorType, false);
                 }
 
                 cache = new VolatileFields();
@@ -251,10 +257,17 @@ public class ReplicaSession {
         }
     }
 
-    private void tryNotifyWithSequenceID(
-            int seqID,
-            error_types errno,
-            boolean isTimeoutTask) {
+    // for netty event, reflect status of the session
+    private void markSessionDisconnect() {
+        markSessionDisconnect(error_types.ERR_SESSION_RESET);
+    }
+
+    // for handling logic, initiative to disconnect the session. However, the only thing to do is 'markSessionDisconnect'
+    private void disconnectCurrentSession(error_types errorType) {
+        markSessionDisconnect(errorType);
+    }
+
+    private void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask) {
         logger.debug("{}: {} is notified with error {}, isTimeoutTask {}",
                 name(), seqID, errno.toString(), isTimeoutTask);
         RequestEntry entry = pendingResponse.remove(new Integer(seqID));
@@ -306,12 +319,7 @@ public class ReplicaSession {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             logger.info("Channel {} for session {} is active", ctx.channel().toString(), name());
-            if (needAuthConnection() && !isAuthed()) {
-                logger.info("Session {} needs auth", name());
-                markSessionNegotiation(ctx.channel());
-            } else {
-                markSessionConnected(ctx.channel());
-            }
+            markSessionNegotiation(ctx.channel());
         }
 
         @Override
@@ -339,17 +347,11 @@ public class ReplicaSession {
         return openAuth;
     }
 
-    private boolean isAuthed() {
-        return negoStatus == negotiation_status.SASL_SUCC;
-    }
-
     private void startNegotiation() {
+        logger.info("{}: start auth negotiation", name());
         negotiation_message msg = new negotiation_message();
         msg.status = negotiation_status.SASL_LIST_MECHANISMS;
-
         sendNegoMsg(msg);
-
-        logger.info("{}: start negotiation", name());
     }
 
     private void sendNegoMsg(negotiation_message msg) {
@@ -383,8 +385,8 @@ public class ReplicaSession {
                 if (op.rpc_error.errno != error_types.ERR_OK) throw new ReplicationException(op.rpc_error.errno);
                 handleResp();
             } catch (Exception e) {
-                // e.printStackTrace();
                 logger.error(e.toString());
+                disconnectCurrentSession(error_types.ERR_AUTH_NEGO_FAILED);
             }
         }
 
@@ -399,7 +401,8 @@ public class ReplicaSession {
             final negotiation_message msg = new negotiation_message();
             switch (resp.status) {
                 case INVALID:
-                    throw new Exception("Received a response which status is INVALID");
+                case SASL_AUTH_FAIL:
+                    throw new Exception("Received a response which status is " + resp.status + ", break off this negotiation");
                 case SASL_LIST_MECHANISMS_RESP:
                     Subject.doAs(
                             subject,
@@ -446,11 +449,6 @@ public class ReplicaSession {
                     break;
                 case SASL_SUCC:
                     markSessionConnected(fields.nettyChannel);
-                    negoStatus = negotiation_status.SASL_SUCC; // After succeed, the authentication is permanent in this session
-                    return;
-                case SASL_AUTH_FAIL:
-                    //throw new Exception("Received SASL_AUTH_FAIL");
-                    startNegotiation();
                     return;
                 default:
                     throw new Exception("Received an unknown response, status " + resp.status);
@@ -466,7 +464,7 @@ public class ReplicaSession {
     }
 
     interface MessageResponseFilter {
-        public boolean abandonIt(error_types err, TMessage header);
+        boolean abandonIt(error_types err, TMessage header);
     }
 
     MessageResponseFilter filter = null;
@@ -493,9 +491,7 @@ public class ReplicaSession {
     private String serviceFqdn; // name used for SASL authentication
     private CallbackHandler cbh = null; // Don't need handler for GSSAPI
     private SaslClient saslClient;
-    private negotiation_status negoStatus = negotiation_status.INVALID;
     private final HashMap<String, Object> props = new HashMap<String, Object>();
-    private LoginContext loginContext = null;
     private final Subject subject;
     // TODO: read expected mechanisms from config file
     private static final List<String> expectedMechanisms =

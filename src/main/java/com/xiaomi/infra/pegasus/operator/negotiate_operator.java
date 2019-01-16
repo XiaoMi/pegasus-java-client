@@ -12,7 +12,7 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TMessageType;
 
 public class negotiate_operator extends client_operator {
     public negotiate_operator(negotiation_message request) {
-        super(new gpid(), ""); // TODO HW gpid and tableName needless
+        super(new gpid(), "");
         this.request = request;
     }
 
