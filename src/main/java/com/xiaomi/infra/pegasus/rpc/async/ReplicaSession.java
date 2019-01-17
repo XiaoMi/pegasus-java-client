@@ -228,11 +228,16 @@ public class ReplicaSession {
             if (errno == error_types.ERR_TIMEOUT) {
                 long firstTs = firstRecentTimedOutMs.get();
                 if (firstTs == 0) {
+                    // it is the first timeout in the window.
                     firstRecentTimedOutMs.set(System.currentTimeMillis());
                 } else if (System.currentTimeMillis() - firstTs >= sessionResetTimeWindowMs) {
-                    logger.warn("{}: actively close the session because it's not responding for {} seconds",
-                                name(), sessionResetTimeWindowMs);
-                    closeSession();
+                    // ensure that closeSession() will be invoked only once.
+                    if (firstRecentTimedOutMs.compareAndSet(firstTs, 0)) {
+                        logger.warn("{}: actively close the session because it's not responding for {} seconds",
+                                name(),
+                                sessionResetTimeWindowMs / 1000);
+                        closeSession();
+                    }
                 }
             } else {
                 firstRecentTimedOutMs.set(0);
