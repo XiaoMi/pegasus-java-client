@@ -328,6 +328,10 @@ public class ReplicaSession {
     private Bootstrap boot;
     private EventLoopGroup rpcGroup;
 
+    // Session will be actively closed if there're successive timeout errors across
+    // `sessionResetTimeWindowMs`, after which we suspect that the server is unavailable.
+
+    // Timestamp of the first timed out rpc.
     private AtomicLong firstRecentTimedOutMs;
     private static final long sessionResetTimeWindowMs = 10 * 1000; // 10s
 
