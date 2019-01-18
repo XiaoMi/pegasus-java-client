@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by weijiesun on 17-9-13.
@@ -94,6 +95,8 @@ public class ReplicaSession {
         } else {
             this.subject = new Subject();
         }
+        
+        this.firstRecentTimedOutMs = new AtomicLong(0);
     }
 
     public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, boolean openAuth, Subject subject, String serviceName, String serviceFqdn, MessageResponseFilter filter) {
@@ -276,6 +279,24 @@ public class ReplicaSession {
                 entry.timeoutTask.cancel(true);
             entry.op.rpc_error.errno = errno;
             entry.callback.run();
+
+            if (errno == error_types.ERR_TIMEOUT) {
+                long firstTs = firstRecentTimedOutMs.get();
+                if (firstTs == 0) {
+                    // it is the first timeout in the window.
+                    firstRecentTimedOutMs.set(System.currentTimeMillis());
+                } else if (System.currentTimeMillis() - firstTs >= sessionResetTimeWindowMs) {
+                    // ensure that closeSession() will be invoked only once.
+                    if (firstRecentTimedOutMs.compareAndSet(firstTs, 0)) {
+                        logger.warn("{}: actively close the session because it's not responding for {} seconds",
+                                name(),
+                                sessionResetTimeWindowMs / 1000);
+                        closeSession();
+                    }
+                }
+            } else {
+                firstRecentTimedOutMs.set(0);
+            }
         } else {
             logger.warn("{}: {} is removed by others, current error {}, isTimeoutTask {}",
                     name(), seqID, errno.toString(), isTimeoutTask);
@@ -481,9 +502,16 @@ public class ReplicaSession {
 
     private volatile VolatileFields fields = new VolatileFields();
 
-    private rpc_address address;
+    private final rpc_address address;
     private Bootstrap boot;
     private EventLoopGroup rpcGroup;
+
+    // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
+    // are timed out, in that case we suspect that the server is unavailable.
+
+    // Timestamp of the first timed out rpc.
+    private AtomicLong firstRecentTimedOutMs;
+    private static final long sessionResetTimeWindowMs = 10 * 1000; // 10s
 
     // security
     private boolean openAuth;
