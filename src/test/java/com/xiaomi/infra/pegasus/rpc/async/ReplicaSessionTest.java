@@ -13,7 +13,7 @@ import com.xiaomi.infra.pegasus.apps.*;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Before; 
+import org.junit.Before;
 import org.junit.After;
 
 import com.xiaomi.infra.pegasus.operator.*;
@@ -24,12 +24,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
-/** 
-* ReplicaSession Tester. 
-* 
-* @author sunweijie@xiaomi.com
-* @version 1.0 
-*/ 
+/**
+ * ReplicaSession Tester.
+ *
+ * @author sunweijie@xiaomi.com
+ * @version 1.0
+ */
 public class ReplicaSessionTest {
     private String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
     private final Logger logger = org.slf4j.LoggerFactory.getLogger(ReplicaSessionTest.class);
@@ -37,18 +37,23 @@ public class ReplicaSessionTest {
 
     @Before
     public void before() throws Exception {
-        manager = new ClusterManager(1000, 1, false,
-                null, 60, metaList);
+        String prop = System.getProperties().getProperty("test.open.auth");
+        boolean openAuth = (prop != null) ? Boolean.valueOf(prop) : false;
+        if (openAuth) {
+            manager = new ClusterManager.Builder(1000, 1, metaList).openAuth("xxxx", "xxxx").build();
+        } else {
+            manager = new ClusterManager.Builder(1000, 1, metaList).build();
+        }
     }
-    
+
     @After
     public void after() throws Exception {
         manager.close();
-    } 
+    }
 
     /**
-     * Method: connect() 
-     */ 
+     * Method: connect()
+     */
     @Test
     public void testConnect() throws Exception {
         //test1: connect to a invalid address
@@ -56,9 +61,9 @@ public class ReplicaSessionTest {
         addr.fromString("127.0.0.1:12345");
         ReplicaSession rs = manager.getReplicaSession(addr);
 
-        ArrayList<FutureTask<Void> > callbacks = new ArrayList<FutureTask<Void>>();
+        ArrayList<FutureTask<Void>> callbacks = new ArrayList<FutureTask<Void>>();
 
-        for (int i=0; i<100; ++i) {
+        for (int i = 0; i < 100; ++i) {
             final client_operator op = new rrdb_put_operator(new com.xiaomi.infra.pegasus.base.gpid(-1, -1),
                     "",
                     null);
@@ -74,7 +79,7 @@ public class ReplicaSessionTest {
             rs.asyncSend(op, cb, 1000);
         }
 
-        for (FutureTask<Void> cb: callbacks) {
+        for (FutureTask<Void> cb : callbacks) {
             try {
                 Tools.waitUninterruptable(cb, Integer.MAX_VALUE);
             } catch (ExecutionException e) {
@@ -86,7 +91,7 @@ public class ReplicaSessionTest {
         Toollet.waitCondition(new Toollet.BoolCallable() {
             @Override
             public boolean call() {
-                return ReplicaSession.ConnState.DISCONNECTED==cp_rs.getState();
+                return ReplicaSession.ConnState.DISCONNECTED == cp_rs.getState();
             }
         }, 5);
 
@@ -101,7 +106,7 @@ public class ReplicaSessionTest {
                 return true;
             }
         });
-        for (int i=0; i<20; ++i) {
+        for (int i = 0; i < 20; ++i) {
             // we send query request to replica server. We expect it to discard it.
             final int index = i;
             update_request req = new update_request(
@@ -127,7 +132,7 @@ public class ReplicaSessionTest {
             rs.asyncSend(op, cb, 500);
         }
 
-        for (int i=0; i<80; ++i) {
+        for (int i = 0; i < 80; ++i) {
             // then we still send query request to replica server. But the timeout is longer.
             update_request req = new update_request(
                     new blob("hello".getBytes()),
@@ -147,7 +152,7 @@ public class ReplicaSessionTest {
             rs.asyncSend(op, cb, 2000);
         }
 
-        for (FutureTask<Void> cb: callbacks) {
+        for (FutureTask<Void> cb : callbacks) {
             try {
                 Tools.waitUninterruptable(cb, Integer.MAX_VALUE);
             } catch (ExecutionException e) {

@@ -7,7 +7,7 @@ import com.xiaomi.infra.pegasus.tools.Tools;
 import com.xiaomi.infra.pegasus.tools.Toollet;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.Before; 
+import org.junit.Before;
 import org.junit.After;
 
 import java.util.ArrayList;
@@ -19,18 +19,18 @@ import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.base.*;
 import com.xiaomi.infra.pegasus.replication.query_cfg_request;
 
-/** 
-* MetaSession Tester. 
-* 
-* @author sunweijie@xiaomi.com
-* @version 1.0 
-*/ 
-public class MetaSessionTest { 
+/**
+ * MetaSession Tester.
+ *
+ * @author sunweijie@xiaomi.com
+ * @version 1.0
+ */
+public class MetaSessionTest {
 
     @Before
-    public void before() throws Exception { 
-    } 
-    
+    public void before() throws Exception {
+    }
+
     @After
     public void after() throws Exception {
         rpc_address addr = new rpc_address();
@@ -53,9 +53,15 @@ public class MetaSessionTest {
         }
     }
 
+    private static boolean isOpenAuth() {
+        // openAuth is on by default
+        String prop = System.getProperties().getProperty("test.open.auth");
+        return (prop != null) ? Boolean.valueOf(prop) : false;
+    }
+
     /**
-     * Method: connect() 
-     */ 
+     * Method: connect()
+     */
     @Test
     public void testConnect() throws Exception {
         // test: first connect to a wrong server
@@ -63,8 +69,12 @@ public class MetaSessionTest {
         // then the wrong server crashed
 
         String[] addr_list = {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"};
-        ClusterManager manager = new ClusterManager(1000, 4, false,
-                null, 60, addr_list);
+        ClusterManager manager;
+        if (isOpenAuth()) {
+            manager = new ClusterManager.Builder(1000, 4, addr_list).openAuth("xxxx", "xxxx").build();
+        } else {
+            manager = new ClusterManager.Builder(1000, 4, addr_list).build();
+        }
         MetaSession session = manager.getMetaSession();
 
         rpc_address addr = new rpc_address();
@@ -72,7 +82,7 @@ public class MetaSessionTest {
         ensureNotLeader(addr);
 
         ArrayList<FutureTask<Void>> callbacks = new ArrayList<FutureTask<Void>>();
-        for (int i=0; i<1000; ++i) {
+        for (int i = 0; i < 1000; ++i) {
             query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
             final client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
             FutureTask<Void> callback = new FutureTask<Void>(new Callable<Void>() {
@@ -87,7 +97,7 @@ public class MetaSessionTest {
         }
 
         Toollet.closeServer(addr);
-        for (FutureTask<Void> cb: callbacks) {
+        for (FutureTask<Void> cb : callbacks) {
             try {
                 Tools.waitUninterruptable(cb, Integer.MAX_VALUE);
             } catch (ExecutionException e) {

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author qinzuoyan
- *
+ * 
  * Implementation of {@link PegasusClientInterface}.
  */
 public class PegasusClient implements PegasusClientInterface {
@@ -62,12 +62,16 @@ public class PegasusClient implements PegasusClientInterface {
     }
 
     // pegasus client configuration keys
-    public static final String[] PEGASUS_CLIENT_CONFIG_KEYS = new String[] {
+    public static final String[] PEGASUS_CLIENT_CONFIG_KEYS = new String[]{
             Cluster.PEGASUS_META_SERVERS_KEY,
             Cluster.PEGASUS_OPERATION_TIMEOUT_KEY,
             Cluster.PEGASUS_ASYNC_WORKERS_KEY,
             Cluster.PEGASUS_ENABLE_PERF_COUNTER_KEY,
-            Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY
+            Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY,
+            Cluster.PEGASUS_OPEN_AUTH_KEY,
+            Cluster.PEGASUS_SERVICE_NAME_KEY,
+            Cluster.PEGASUS_SERVICE_FQDN_KEY,
+            Cluster.PEGASUS_JAAS_CONF_KEY
     };
 
     // configPath could be:
@@ -94,12 +98,12 @@ public class PegasusClient implements PegasusClientInterface {
     // generate rocksdb key.
     public static byte[] generateKey(byte[] hashKey, byte[] sortKey) {
         int hashKeyLen = (hashKey == null ? 0 : hashKey.length);
-        Validate.isTrue(hashKeyLen < 0xFFFF, 
-            "length of hash key must be less than UINT16_MAX");
+        Validate.isTrue(hashKeyLen < 0xFFFF,
+                "length of hash key must be less than UINT16_MAX");
         int sortKeyLen = (sortKey == null ? 0 : sortKey.length);
         // default byte order of ByteBuffer is BIG_ENDIAN
         ByteBuffer buf = ByteBuffer.allocate(2 + hashKeyLen + sortKeyLen);
-        buf.putShort((short)hashKeyLen);
+        buf.putShort((short) hashKeyLen);
         if (hashKeyLen > 0) {
             buf.put(hashKey);
         }
@@ -113,9 +117,9 @@ public class PegasusClient implements PegasusClientInterface {
     public static byte[] generateNextBytes(byte[] hashKey) {
         int hashKeyLen = hashKey == null ? 0 : hashKey.length;
         Validate.isTrue(hashKeyLen < 0xFFFF,
-            "length of hash key must be less than UINT16_MAX");
+                "length of hash key must be less than UINT16_MAX");
         ByteBuffer buf = ByteBuffer.allocate(2 + hashKeyLen);
-        buf.putShort((short)hashKeyLen);
+        buf.putShort((short) hashKeyLen);
         if (hashKeyLen > 0) {
             buf.put(hashKey);
         }
@@ -144,18 +148,18 @@ public class PegasusClient implements PegasusClientInterface {
         }
         return Arrays.copyOf(array, i + 1);
     }
-    
+
     public static Pair<byte[], byte[]> restoreKey(byte[] key) {
         Validate.isTrue(key != null && key.length >= 2);
         ByteBuffer buf = ByteBuffer.wrap(key);
         int hashKeyLen = 0xFFFF & buf.getShort();
         Validate.isTrue(hashKeyLen != 0xFFFF && (2 + hashKeyLen <= key.length));
         return new ImmutablePair<byte[], byte[]>(
-            Arrays.copyOfRange(key, 2, 2 + hashKeyLen),
-            Arrays.copyOfRange(key, 2 + hashKeyLen, key.length)
+                Arrays.copyOfRange(key, 2, 2 + hashKeyLen),
+                Arrays.copyOfRange(key, 2 + hashKeyLen, key.length)
         );
     }
-    
+
     public static int bytesCompare(byte[] left, byte[] right) {
         int len = Math.min(left.length, right.length);
         for (int i = 0; i < len; i++) {
@@ -298,7 +302,7 @@ public class PegasusClient implements PegasusClientInterface {
         }
         PegasusTable table = getTable(tableName);
         PegasusTableInterface.MultiGetSortKeysResult result = table.multiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, 0);
-        for (byte[] key: result.keys) {
+        for (byte[] key : result.keys) {
             sortKeys.add(key);
         }
         return result.allFetched;
@@ -428,9 +432,9 @@ public class PegasusClient implements PegasusClientInterface {
 
     @Override
     public PegasusTableInterface.CheckAndMutateResult checkAndMutate(String tableName, byte[] hashKey, byte[] checkSortKey,
-                                                     CheckType checkType, byte[] checkOperand,
-                                                     Mutations mutations,
-                                                     CheckAndMutateOptions options) throws PException {
+                                                                     CheckType checkType, byte[] checkOperand,
+                                                                     Mutations mutations,
+                                                                     CheckAndMutateOptions options) throws PException {
         PegasusTable tb = getTable(tableName);
         return tb.checkAndMutate(hashKey, checkSortKey, checkType, checkOperand, mutations, options, 0);
     }
@@ -451,7 +455,7 @@ public class PegasusClient implements PegasusClientInterface {
 
     @Override
     public PegasusScannerInterface getScanner(String tableName, byte[] hashKey,
-            byte[] startSortKey, byte[] stopSortKey, ScanOptions options)
+                                              byte[] startSortKey, byte[] stopSortKey, ScanOptions options)
             throws PException {
         PegasusTable tb = getTable(tableName);
         return tb.getScanner(hashKey, startSortKey, stopSortKey, options);
@@ -459,7 +463,7 @@ public class PegasusClient implements PegasusClientInterface {
 
     @Override
     public List<PegasusScannerInterface> getUnorderedScanners(String tableName,
-            int maxSplitCount, ScanOptions options) throws PException {
+                                                              int maxSplitCount, ScanOptions options) throws PException {
         PegasusTable tb = getTable(tableName);
         return tb.getUnorderedScanners(maxSplitCount, options);
     }

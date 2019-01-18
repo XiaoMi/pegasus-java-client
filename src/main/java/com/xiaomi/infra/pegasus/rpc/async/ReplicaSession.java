@@ -3,10 +3,15 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.apps.negotiation_message;
+import com.xiaomi.infra.pegasus.apps.negotiation_status;
+import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
+import com.xiaomi.infra.pegasus.operator.negotiate_operator;
+import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
 import io.netty.channel.*;
 import io.netty.bootstrap.Bootstrap;
@@ -14,16 +19,20 @@ import io.netty.channel.socket.SocketChannel;
 
 import org.slf4j.Logger;
 
+import javax.security.auth.Subject;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.login.LoginContext;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslClient;
 import java.net.UnknownHostException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by weijiesun on 17-9-13.
@@ -34,15 +43,29 @@ public class ReplicaSession {
         public com.xiaomi.infra.pegasus.operator.client_operator op;
         public Runnable callback;
         public ScheduledFuture timeoutTask;
+        public long timeoutMs;
     }
 
     public enum ConnState {
         CONNECTED,
         CONNECTING,
+        NEGOTIATION,
         DISCONNECTED
     }
 
     public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout) {
+        this(address, rpcGroup, socketTimeout, false, null, null, null);
+    }
+
+    // You can specify a message response filter with constructor or with "setMessageResponseFilter" function.
+    // the mainly usage of filter is test, in which you can control whether to abaondon a response
+    // and how to abandon it, so as to emulate some network failure cases
+    public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, MessageResponseFilter filter) {
+        this(address, rpcGroup, socketTimeout, false, null, null, null);
+        this.filter = filter;
+    }
+
+    public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, boolean openAuth, Subject subject, String serviceName, String serviceFqdn) {
         this.address = address;
         this.rpcGroup = rpcGroup;
 
@@ -61,15 +84,26 @@ public class ReplicaSession {
                         pipeline.addLast("ClientHandler", new ReplicaSession.DefaultHandler());
                     }
                 });
+
+        this.openAuth = openAuth;
+        if (openAuth) {
+            this.subject = subject;
+            this.serviceName = serviceName;
+            this.serviceFqdn = serviceFqdn;
+            // QOP(Quality of Protection) mismatch between client and server may cause the error - No common protection layer between client and server
+            props.put(Sasl.QOP, "auth");
+        } else {
+            this.subject = new Subject();
+        }
+        
+        this.firstRecentTimedOutMs = new AtomicLong(0);
     }
 
-    // You can specify a message response filter with constructor or with "setMessageResponseFilter" function.
-    // the mainly usage of filter is test, in which you can control whether to abaondon a response
-    // and how to abandon it, so as to emulate some network failure cases
-    public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, MessageResponseFilter filter) {
-        this(address, rpcGroup, socketTimeout);
+    public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, boolean openAuth, Subject subject, String serviceName, String serviceFqdn, MessageResponseFilter filter) {
+        this(address, rpcGroup, socketTimeout, openAuth, subject, serviceName, serviceFqdn);
         this.filter = filter;
     }
+
     public void setMessageResponseFilter(MessageResponseFilter filter) {
         this.filter = filter;
     }
@@ -83,6 +117,7 @@ public class ReplicaSession {
         //the timer task is scheduled.
         pendingResponse.put(new Integer(entry.sequenceId), entry);
         entry.timeoutTask = addTimer(entry.sequenceId, timeoutInMilliseconds);
+        entry.timeoutMs = timeoutInMilliseconds;
 
         // We store the connection_state & netty channel in a struct so that they can fetch and update in atomic.
         // Moreover, we can avoid the lock protection when we want to get the netty channel for send message
@@ -130,9 +165,13 @@ public class ReplicaSession {
         return pendingResponse.remove(new Integer(seqID));
     }
 
-    public final String name() { return address.toString(); }
+    public final String name() {
+        return address.toString();
+    }
 
-    public final rpc_address getAddress() { return address; }
+    public final rpc_address getAddress() {
+        return address;
+    }
 
     private void doConnect() {
         try {
@@ -174,7 +213,22 @@ public class ReplicaSession {
         }
     }
 
-    private void markSessionDisconnect() {
+    private void markSessionNegotiation(Channel activeChannel) {
+        logger.info("{}: mark session state negotiation");
+        VolatileFields newCache = new VolatileFields();
+        newCache.state = ConnState.NEGOTIATION;
+        newCache.nettyChannel = activeChannel;
+        fields = newCache;
+        if (needAuthConnection()) {
+            // version + auth, now only support auth
+            startNegotiation();
+        } else {
+            logger.info("{}: mark session state connected");
+            markSessionConnected(activeChannel);
+        }
+    }
+
+    private void markSessionDisconnect(error_types errorType) {
         VolatileFields cache = fields;
         synchronized (pendingSend) {
             if (cache.state != ConnState.DISCONNECTED) {
@@ -186,14 +240,14 @@ public class ReplicaSession {
                 // this. In this case, we are relying on the timeout task.
                 while (!pendingSend.isEmpty()) {
                     RequestEntry e = pendingSend.poll();
-                    tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+                    tryNotifyWithSequenceID(e.sequenceId, errorType, false);
                 }
                 List<RequestEntry> l = new LinkedList<RequestEntry>();
                 for (Map.Entry<Integer, RequestEntry> entry : pendingResponse.entrySet()) {
                     l.add(entry.getValue());
                 }
                 for (RequestEntry e : l) {
-                    tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+                    tryNotifyWithSequenceID(e.sequenceId, errorType, false);
                 }
 
                 cache = new VolatileFields();
@@ -206,10 +260,17 @@ public class ReplicaSession {
         }
     }
 
-    private void tryNotifyWithSequenceID(
-            int seqID,
-            error_types errno,
-            boolean isTimeoutTask) {
+    // for netty event, reflect status of the session
+    private void markSessionDisconnect() {
+        markSessionDisconnect(error_types.ERR_SESSION_RESET);
+    }
+
+    // for handling logic, initiative to disconnect the session. However, the only thing to do is 'markSessionDisconnect'
+    private void disconnectCurrentSession(error_types errorType) {
+        markSessionDisconnect(errorType);
+    }
+
+    private void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask) {
         logger.debug("{}: {} is notified with error {}, isTimeoutTask {}",
                 name(), seqID, errno.toString(), isTimeoutTask);
         RequestEntry entry = pendingResponse.remove(new Integer(seqID));
@@ -218,8 +279,25 @@ public class ReplicaSession {
                 entry.timeoutTask.cancel(true);
             entry.op.rpc_error.errno = errno;
             entry.callback.run();
-        }
-        else {
+
+            if (errno == error_types.ERR_TIMEOUT) {
+                long firstTs = firstRecentTimedOutMs.get();
+                if (firstTs == 0) {
+                    // it is the first timeout in the window.
+                    firstRecentTimedOutMs.set(System.currentTimeMillis());
+                } else if (System.currentTimeMillis() - firstTs >= sessionResetTimeWindowMs) {
+                    // ensure that closeSession() will be invoked only once.
+                    if (firstRecentTimedOutMs.compareAndSet(firstTs, 0)) {
+                        logger.warn("{}: actively close the session because it's not responding for {} seconds",
+                                name(),
+                                sessionResetTimeWindowMs / 1000);
+                        closeSession();
+                    }
+                }
+            } else {
+                firstRecentTimedOutMs.set(0);
+            }
+        } else {
             logger.warn("{}: {} is removed by others, current error {}, isTimeoutTask {}",
                     name(), seqID, errno.toString(), isTimeoutTask);
         }
@@ -262,7 +340,7 @@ public class ReplicaSession {
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             logger.info("Channel {} for session {} is active", ctx.channel().toString(), name());
-            markSessionConnected(ctx.channel());
+            markSessionNegotiation(ctx.channel());
         }
 
         @Override
@@ -285,13 +363,131 @@ public class ReplicaSession {
         }
     }
 
+    // security
+    private boolean needAuthConnection() {
+        return openAuth;
+    }
+
+    private void startNegotiation() {
+        logger.info("{}: start auth negotiation", name());
+        negotiation_message msg = new negotiation_message();
+        msg.status = negotiation_status.SASL_LIST_MECHANISMS;
+        sendNegoMsg(msg);
+    }
+
+    private void sendNegoMsg(negotiation_message msg) {
+        final RequestEntry entry = new ReplicaSession.RequestEntry();
+        entry.sequenceId = seqId.getAndIncrement();
+        entry.op = new negotiate_operator(msg);
+        entry.callback = new SaslRecvHandler((negotiate_operator) entry.op);
+        entry.timeoutTask = addTimer(entry.sequenceId, 1000);
+        pendingResponse.put(new Integer(entry.sequenceId), entry);
+
+        write(entry, fields);
+    }
+
+    private class Action implements PrivilegedExceptionAction {
+        @Override
+        public Object run() throws Exception {
+            return null;
+        }
+    }
+
+    private class SaslRecvHandler implements Runnable {
+        negotiate_operator op;
+
+        SaslRecvHandler(negotiate_operator op) {
+            this.op = op;
+        }
+
+        @Override
+        public void run() {
+            try {
+                if (op.rpc_error.errno != error_types.ERR_OK) throw new ReplicationException(op.rpc_error.errno);
+                handleResp();
+            } catch (Exception e) {
+                logger.error(e.toString());
+                disconnectCurrentSession(error_types.ERR_AUTH_NEGO_FAILED);
+            }
+        }
+
+        private void handleResp() throws Exception {
+            final negotiation_message resp = op.get_response();
+
+            if (resp == null) {
+                logger.error("SaslRecvHandler received a null response, abandon it");
+                return;
+            }
+
+            final negotiation_message msg = new negotiation_message();
+            switch (resp.status) {
+                case INVALID:
+                case SASL_AUTH_FAIL:
+                    throw new Exception("Received a response which status is " + resp.status + ", break off this negotiation");
+                case SASL_LIST_MECHANISMS_RESP:
+                    Subject.doAs(
+                            subject,
+                            new Action() {
+                                public Object run() throws Exception {
+                                    String[] mechanisms = new String[expectedMechanisms.size()];
+                                    expectedMechanisms.toArray(mechanisms);
+                                    saslClient =
+                                            Sasl.createSaslClient(
+                                                    mechanisms, null, serviceName, serviceFqdn, props, cbh);
+                                    logger.info("Select mechanism: {}", saslClient.getMechanismName());
+                                    msg.status = negotiation_status.SASL_SELECT_MECHANISMS;
+                                    msg.msg = new blob(saslClient.getMechanismName().getBytes());
+                                    return null;
+                                }
+                            });
+                    break;
+                case SASL_SELECT_MECHANISMS_OK:
+                    Subject.doAs(
+                            subject,
+                            new Action() {
+                                public Object run() throws Exception {
+                                    msg.status = negotiation_status.SASL_INITIATE;
+                                    if (saslClient.hasInitialResponse()) {
+                                        msg.msg = new blob(saslClient.evaluateChallenge(new byte[0]));
+                                    } else {
+                                        msg.msg = new blob(new byte[0]);
+                                    }
+                                    return null;
+                                }
+                            });
+
+                    break;
+                case SASL_CHALLENGE:
+                    Subject.doAs(
+                            subject,
+                            new Action() {
+                                public Object run() throws Exception {
+                                    msg.status = negotiation_status.SASL_RESPONSE;
+                                    msg.msg = new blob(saslClient.evaluateChallenge(resp.msg.data));
+                                    return null;
+                                }
+                            });
+                    break;
+                case SASL_SUCC:
+                    markSessionConnected(fields.nettyChannel);
+                    return;
+                default:
+                    throw new Exception("Received an unknown response, status " + resp.status);
+            }
+
+            sendNegoMsg(msg);
+        }
+    }
+
     // for test
     ConnState getState() {
         return fields.state;
     }
+
     interface MessageResponseFilter {
-        public boolean abandonIt(error_types err, TMessage header);
+        boolean abandonIt(error_types err, TMessage header);
     }
+
     MessageResponseFilter filter = null;
 
     final private ConcurrentHashMap<Integer, RequestEntry> pendingResponse = new ConcurrentHashMap<Integer, RequestEntry>();
@@ -303,11 +499,31 @@ public class ReplicaSession {
         public ConnState state = ConnState.DISCONNECTED;
         public Channel nettyChannel = null;
     }
+
     private volatile VolatileFields fields = new VolatileFields();
 
-    private rpc_address address;
+    private final rpc_address address;
     private Bootstrap boot;
     private EventLoopGroup rpcGroup;
+
+    // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
+    // are timed out, in that case we suspect that the server is unavailable.
+
+    // Timestamp of the first timed out rpc.
+    private AtomicLong firstRecentTimedOutMs;
+    private static final long sessionResetTimeWindowMs = 10 * 1000; // 10s
+
+    // security
+    private boolean openAuth;
+    private String serviceName; // used for SASL authentication
+    private String serviceFqdn; // name used for SASL authentication
+    private CallbackHandler cbh = null; // Don't need handler for GSSAPI
+    private SaslClient saslClient;
+    private final HashMap<String, Object> props = new HashMap<String, Object>();
+    private final Subject subject;
+    // TODO: read expected mechanisms from config file
+    private static final List<String> expectedMechanisms =
+            new ArrayList<String>(Collections.singletonList("GSSAPI"));
 
     private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ReplicaSession.class);
 }

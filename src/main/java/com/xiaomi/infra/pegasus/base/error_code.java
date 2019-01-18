@@ -108,6 +108,10 @@ public class error_code implements TBase<error_code, error_code._Fields>, java.i
       ERR_MOCK_INTERNAL,
       ERR_ZOOKEEPER_OPERATION,
 
+      ERR_AUTH_NEGO_FAILED,
+
+      ERR_UNAUTHENTICATED,
+      ERR_ACL_DENY,
       //ERROR_CODE defined by client
       ERR_SESSION_RESET,
   };

@@ -46,7 +46,7 @@ public class ThriftFrameDecoder extends ByteToMessageDecoder {
             ec.read(iprot);
             TMessage msgHeader = iprot.readMessageBegin();
             if (session.filter != null && session.filter.abandonIt(ec.errno, msgHeader)) {
-                logger.info("{}: abaondon a message, err({}), header({})",
+                logger.info("{}: abandon a message, err({}), header({})",
                         ctx.channel().toString(),
                         ec.errno.toString(),
                         msgHeader.toString());

@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.sun.security.auth.callback.TextCallbackHandler;
 import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
@@ -15,6 +16,9 @@ import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 
+import javax.security.auth.Subject;
+import javax.security.auth.login.LoginContext;
+import javax.security.auth.login.LoginException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,6 +33,12 @@ public class ClusterManager extends Cluster {
     private int retryDelay;
     private boolean enableCounter;
 
+    private boolean openAuth;
+    private String serviceName;
+    private String serviceFqdn;
+    private Subject subject;
+    private LoginContext loginContext = null;
+
     private ConcurrentHashMap<rpc_address, ReplicaSession> replicaSessions;
     private EventLoopGroup metaGroup; // group used for handle meta logic
     private EventLoopGroup replicaGroup; // group used for handle io with replica servers
@@ -38,34 +48,100 @@ public class ClusterManager extends Cluster {
 
     private static final String osName;
     private static final String Linux = "Linux";
+
     static {
         Properties p = System.getProperties();
         osName = p.getProperty("os.name");
         logger.info("operating system name: {}", osName);
     }
 
-    public ClusterManager(
-            int timeout,
-            int io_threads,
-            boolean enableCounter,
-            String perfCounterTags,
-            int pushIntervalSecs,
-            String[] address_list) throws IllegalArgumentException {
-        setTimeout(timeout);
-        this.enableCounter = enableCounter;
+    public static class Builder {
+        private int timeout;
+        private int io_threads;
+        private boolean enableCounter;
+        private String perfCounterTags;
+        private int pushIntervalSecs;
+        private String[] address_list;
+        private boolean openAuth;
+        private String serviceName;
+        private String serviceFqdn;
+
+        public Builder(int timeout, int io_threads, String[] address_list
+        ) {
+            this.timeout = timeout;
+            this.io_threads = io_threads;
+            this.address_list = address_list;
+        }
+
+        public Builder enableCounter(String perfCounterTags, int pushIntervalSecs) {
+            this.enableCounter = true;
+            this.perfCounterTags = perfCounterTags;
+            this.pushIntervalSecs = pushIntervalSecs;
+            return this;
+        }
+
+        public Builder openAuth(String serviceName, String serviceFqdn) {
+            this.openAuth = true;
+            this.serviceName = serviceName;
+            this.serviceFqdn = serviceFqdn;
+            return this;
+        }
+
+        public ClusterManager build() {
+            return new ClusterManager(this);
+        }
+    }
+
+    public ClusterManager(Builder builder) {
+        setTimeout(builder.timeout);
+        this.enableCounter = builder.enableCounter;
         if (enableCounter) {
-            MetricsManager.detectHostAndInit(perfCounterTags, pushIntervalSecs);
+            MetricsManager.detectHostAndInit(builder.perfCounterTags, builder.pushIntervalSecs);
+        }
+
+        if (builder.openAuth) {
+            this.openAuth = true;
+            this.serviceName = builder.serviceName;
+            this.serviceFqdn = builder.serviceFqdn;
+
+            String jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
+            if (jaasConf == null) {
+                System.setProperty("java.security.auth.login.config", "configuration/pegasus_jaas.conf");
+                jaasConf = System.getProperties().getProperty("java.security.auth.login.config");
+            }
+            logger.info("open authentication, jaas config path: {}, login now", jaasConf);
+
+            try {
+                loginContext = new LoginContext(
+                        "client",
+                        new TextCallbackHandler());
+            } catch (LoginException le) {
+                logger.error("cannot create LoginContext. LoginException: {}", le.getMessage());
+                System.exit(-1);
+            } catch (SecurityException se) {
+                logger.error("cannot create LoginContext. SecurityException: {}", se.getMessage());
+                System.exit(-1);
+            }
+            try {
+                loginContext.login();
+            } catch (LoginException le) {
+                logger.error("authentication failed: {}", le.getMessage());
+                System.exit(-1);
+            }
+
+            subject = loginContext.getSubject();
+            logger.info("login succeed, as user {}", subject.getPrincipals().toString());
         }
 
         replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
-        replicaGroup = getEventLoopGroupInstance(io_threads);
+        replicaGroup = getEventLoopGroupInstance(builder.io_threads);
         metaGroup = getEventLoopGroupInstance(1);
         tableGroup = getEventLoopGroupInstance(1);
 
-        metaList = address_list;
+        metaList = builder.address_list;
         // the constructor of meta session is depend on the replicaSessions,
         // so the replicaSessions should be initialized earlier
-        metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
+        metaSession = new MetaSession(this, builder.address_list, builder.timeout, 10, metaGroup);
     }
 
     public EventExecutor getExecutor(String name, int threadCount) {
@@ -87,19 +163,43 @@ public class ClusterManager extends Cluster {
             ss = replicaSessions.get(address);
             if (ss != null)
                 return ss;
-            ss = new ReplicaSession(address, replicaGroup, Cluster.SOCK_TIMEOUT);
+            if (openAuth()) {
+                logger.info("Create a replicaSession {} which is open-auth", address);
+                ss = new ReplicaSession(
+                        address,
+                        replicaGroup,
+                        Cluster.SOCK_TIMEOUT,
+                        true,
+                        subject,
+                        serviceName,
+                        serviceFqdn);
+            } else {
+                ss = new ReplicaSession(address, replicaGroup, Cluster.SOCK_TIMEOUT);
+            }
             replicaSessions.put(address, ss);
             return ss;
         }
     }
 
-    public int getTimeout() { return operationTimeout; }
+    public int getTimeout() {
+        return operationTimeout;
+    }
 
-    public long getRetryDelay(long timeoutMs) { return (timeoutMs < 3 ? 1: timeoutMs/3); }
+    public long getRetryDelay(long timeoutMs) {
+        return (timeoutMs < 3 ? 1 : timeoutMs / 3);
+    }
 
-    public int getRetryDelay() { return retryDelay; }
+    public int getRetryDelay() {
+        return retryDelay;
+    }
 
-    public boolean counterEnabled() { return enableCounter; }
+    public boolean counterEnabled() {
+        return enableCounter;
+    }
+
+    public boolean openAuth() {
+        return openAuth;
+    }
 
     public void setTimeout(int t) {
         operationTimeout = t;
@@ -118,7 +218,9 @@ public class ClusterManager extends Cluster {
     }
 
     @Override
-    public String[] getMetaList() { return metaList; }
+    public String[] getMetaList() {
+        return metaList;
+    }
 
     @Override
     public TableHandler openTable(String name, KeyHasher h) throws ReplicationException {
@@ -132,7 +234,7 @@ public class ClusterManager extends Cluster {
         }
 
         metaSession.closeSession();
-        for (Map.Entry<rpc_address, ReplicaSession> entry: replicaSessions.entrySet()) {
+        for (Map.Entry<rpc_address, ReplicaSession> entry : replicaSessions.entrySet()) {
             entry.getValue().closeSession();
         }
 
