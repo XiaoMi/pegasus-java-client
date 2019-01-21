@@ -5,7 +5,7 @@
 
 <suppressions>
     <!--
-    /* Temporary Suppressions
+    /* TODO(wutao1): Temporary Suppressions
      * The following checks should be removed from
      * the suppression list after their checkstyle errors are fixed.
      */

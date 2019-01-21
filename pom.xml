@@ -154,6 +154,8 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Checkstyle -->
       <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.0.0</version>
@@ -193,10 +195,25 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- FindBugs -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
         <version>3.0.4</version>
+        <configuration>
+          <excludeFilterFile>dev-support/findbugs-exclude.xml</excludeFilterFile>
+          <!--
+              Enables analysis which takes more memory but finds more bugs.
+              If you run out of memory, changes the value of the effort element
+              to 'Low'.
+            -->
+          <effort>Max</effort>
+          <failOnError>true</failOnError>
+          <threshold>Low</threshold>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
         <executions>
           <execution>
             <id>findbugs</id>
@@ -207,6 +224,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
 </project>
