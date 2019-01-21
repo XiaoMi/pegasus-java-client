@@ -1,9 +1,8 @@
-
 language: java
 
-jdk: oraclejdk8
-os: linux
-dist: bionic
+jdk:
+  - oraclejdk8
+  - oraclejdk11
 
 cache:
   directories:
