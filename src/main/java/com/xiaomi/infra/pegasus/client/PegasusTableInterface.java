@@ -5,9 +5,8 @@ package com.xiaomi.infra.pegasus.client;
 
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * This class provides sync and async interfaces to access data of a specified table. All the async

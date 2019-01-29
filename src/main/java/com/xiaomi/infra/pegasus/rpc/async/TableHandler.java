@@ -16,14 +16,13 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
 
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {

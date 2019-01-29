@@ -10,8 +10,6 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
-import org.slf4j.Logger;
-
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,6 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.slf4j.Logger;
 
 /** Created by weijiesun on 17-9-13. */
 public class ReplicaSession {
