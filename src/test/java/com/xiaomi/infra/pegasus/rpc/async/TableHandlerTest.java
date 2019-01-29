@@ -6,17 +6,18 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
-import com.xiaomi.infra.pegasus.operator.*;
+import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.ReplicaConfiguration;
 import com.xiaomi.infra.pegasus.tools.Toollet;
-import java.util.ArrayList;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
 
 /**
  * TableHandler Tester.
@@ -90,7 +91,7 @@ public class TableHandlerTest {
       table.operate(op, 0);
       Assert.fail();
     } catch (ReplicationException ex) {
-      Assert.assertEquals(error_types.ERR_TIMEOUT, ex.err_type);
+      Assert.assertEquals(error_types.ERR_TIMEOUT, ex.getErrorType());
     }
 
     // we should try to query meta accordingly
@@ -114,7 +115,7 @@ public class TableHandlerTest {
       table.operate(op, 0);
       Assert.fail();
     } catch (ReplicationException ex) {
-      Assert.assertEquals(error_code.error_types.ERR_TIMEOUT, ex.err_type);
+      Assert.assertEquals(error_code.error_types.ERR_TIMEOUT, ex.getErrorType());
     }
 
     // 3. we should open a onebox cluster with three replica servers. thus every
@@ -132,7 +133,7 @@ public class TableHandlerTest {
       table.operate(op, 0);
       Assert.fail();
     } catch (ReplicationException ex) {
-      Assert.assertEquals(error_types.ERR_TIMEOUT, ex.err_type);
+      Assert.assertEquals(error_types.ERR_TIMEOUT, ex.getErrorType());
     }
   }
 

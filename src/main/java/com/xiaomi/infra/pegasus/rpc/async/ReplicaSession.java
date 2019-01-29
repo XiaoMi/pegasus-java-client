@@ -10,6 +10,8 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
+import org.slf4j.Logger;
+
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +22,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
 
 /** Created by weijiesun on 17-9-13. */
 public class ReplicaSession {
@@ -147,10 +148,10 @@ public class ReplicaSession {
     return address;
   }
 
-  private void doConnect() {
+  ChannelFuture doConnect() {
     try {
       // we will receive the channel connect event in DefaultHandler.ChannelActive
-      boot.connect(address.get_ip(), address.get_port())
+      return boot.connect(address.get_ip(), address.get_port())
           .addListener(
               new ChannelFutureListener() {
                 @Override
@@ -168,6 +169,7 @@ public class ReplicaSession {
     } catch (UnknownHostException ex) {
       logger.error("invalid address: {}", address.toString());
       assert false;
+      return null; // unreachable
     }
   }
 

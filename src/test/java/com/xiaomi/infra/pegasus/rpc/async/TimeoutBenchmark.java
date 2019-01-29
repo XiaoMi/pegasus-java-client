@@ -8,10 +8,11 @@ import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.tools.Toollet;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Created by weijiesun on 16-11-25. */
 public class TimeoutBenchmark {
@@ -42,7 +43,7 @@ public class TimeoutBenchmark {
         long t = System.currentTimeMillis();
         result[i] = t - current;
         current = t;
-        Assert.assertEquals(e.err_type, error_code.error_types.ERR_TIMEOUT);
+        Assert.assertEquals(e.getErrorType(), error_code.error_types.ERR_TIMEOUT);
       }
     }
     System.out.println("finished");

@@ -14,13 +14,16 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
-import io.netty.util.concurrent.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.EventExecutor;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
 
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {
@@ -136,6 +139,7 @@ public class TableHandler extends Table {
       newConfig.replicas.add(newReplicaConfig);
     }
 
+    List<ChannelFuture> rsFutures = new ArrayList<ChannelFuture>();
     for (partition_configuration pc : resp.getPartitions()) {
       ReplicaConfiguration s = newConfig.replicas.get(pc.getPid().get_pidx());
       if (s.ballot != pc.ballot) {
@@ -174,7 +178,21 @@ public class TableHandler extends Table {
         if (s.session == null || !s.session.getAddress().equals(pc.primary)) {
           // reset to new primary
           s.session = manager_.getReplicaSession(pc.primary);
+          ChannelFuture fut = s.session.doConnect();
+          if (fut != null) {
+            rsFutures.add(fut);
+          }
         }
+      }
+    }
+    // Warm up the connections during client.openTable, so RPCs thereafter can
+    // skip the connect process.
+    for (ChannelFuture fut : rsFutures) {
+      try {
+        // await for at maximum 10 milliseconds.
+        fut.await(10);
+      } catch (InterruptedException e) {
+        break;
       }
     }
 

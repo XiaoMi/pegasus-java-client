@@ -22,7 +22,9 @@ public interface PegasusClientInterface {
   public void close();
 
   /**
-   * Open a table. Please notice that pegasus support two kinds of API: 1. the client-interface way,
+   * Open a table, and prepare the sessions and route-table to the replica-servers.
+   * ======
+   * Please notice that pegasus support two kinds of API: 1. the client-interface way,
    * which is provided in this class. 2. the table-interface way, which is provided by {@link
    * PegasusTableInterface}. With the client-interface, you don't need to create
    * PegasusTableInterface by openTable, so you can access the pegasus cluster conveniently.
@@ -279,7 +281,7 @@ public interface PegasusClientInterface {
    *
    * @param tableName table name
    * @param hashKey used to decide which partition to put this k-v, should not be null or empty.
-   * @param values all <sortkey,value> pairs to be set, should not be null or empty.
+   * @param values all (sortkey,value) pairs to be set, should not be null or empty.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
    * @throws PException throws exception if any error occurs.
    */
