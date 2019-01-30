@@ -184,6 +184,11 @@ public class TableHandler extends Table {
         }
       }
     }
+
+    // there should only be one thread to do the table config update
+    appID_ = resp.getApp_id();
+    tableConfig_.set(newConfig);
+
     // Warm up the connections during client.openTable, so RPCs thereafter can
     // skip the connect process.
     for (ChannelFuture fut : rsFutures) {
@@ -194,10 +199,6 @@ public class TableHandler extends Table {
         break;
       }
     }
-
-    // there should only be one thread to do the table config update
-    appID_ = resp.getApp_id();
-    tableConfig_.set(newConfig);
   }
 
   void onUpdateConfiguration(final query_cfg_operator op) {

@@ -57,7 +57,7 @@ public class TableHandlerTest {
   /** Method: operate(client_operator op) */
   @Test
   public void testOperateOp() throws Exception {
-    System.out.println("test synchronized opearate");
+    System.out.println("TableHandlerTest#testOperateOp");
     TableHandler table = null;
     try {
       table = testManager.openTable("temp", KeyHasher.DEFAULT);
@@ -90,10 +90,11 @@ public class TableHandlerTest {
       table.operate(op, 0);
       Assert.fail();
     } catch (ReplicationException ex) {
+      logger.info("timeout is set 0, no enough time to process");
       Assert.assertEquals(error_types.ERR_TIMEOUT, ex.getErrorType());
     }
 
-    // we should try to query meta accordingly
+    // we should try to query meta since the session to replica-server is unreachable.
     final TableHandler finalTableRef = table;
     boolean ans =
         Toollet.waitCondition(

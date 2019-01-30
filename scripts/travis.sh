@@ -37,7 +37,7 @@ mkdir -p .zk_install && cd .zk_install
 wget "https://github.com/xiaomi/pegasus-common/raw/master/zookeeper-3.4.6.tar.gz"
 cd ..
 
-./run.sh start_onebox
+./run.sh start_onebox -m 2 -r 3
 sleep 4
 ./run.sh list_onebox
 cd ../
