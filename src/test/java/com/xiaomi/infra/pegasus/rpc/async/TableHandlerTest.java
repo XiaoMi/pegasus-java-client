@@ -181,4 +181,22 @@ public class TableHandlerTest {
     handle = table.getReplicaConfig(0);
     Assert.assertEquals(oldBallot + 1, handle.ballot);
   }
+
+  @Test
+  public void testConnectAfterQueryMeta() throws Exception {
+    System.out.println("TableHandlerTest#testConnectAfterQueryMeta");
+    TableHandler table = null;
+
+    try {
+      table = testManager.openTable("temp", KeyHasher.DEFAULT);
+    } catch (ReplicationException e) {
+      Assert.fail();
+    }
+    Assert.assertNotNull(table);
+
+    ArrayList<ReplicaConfiguration> replicas = table.tableConfig_.get().replicas;
+    for (ReplicaConfiguration r : replicas) {
+      Assert.assertEquals(r.session.getState(), ReplicaSession.ConnState.CONNECTED);
+    }
+  }
 }
