@@ -197,7 +197,7 @@ public class TableHandler extends Table {
         long startTs = System.currentTimeMillis();
         fut.await(timeLimit);
         long duration = System.currentTimeMillis() - startTs;
-        assert duration > 0;
+        assert duration >= 0;
         timeLimit -= duration;
         if (timeLimit <= 0) {
           break;
