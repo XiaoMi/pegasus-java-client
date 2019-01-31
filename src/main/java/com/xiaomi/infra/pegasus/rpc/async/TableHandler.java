@@ -191,10 +191,17 @@ public class TableHandler extends Table {
 
     // Warm up the connections during client.openTable, so RPCs thereafter can
     // skip the connect process.
+    int timeLimit = 10; // await for at maximum 10 milliseconds.
     for (ChannelFuture fut : rsFutures) {
       try {
-        // await for at maximum 10 milliseconds.
-        fut.await(10);
+        long startTs = System.currentTimeMillis();
+        fut.await(timeLimit);
+        long duration = System.currentTimeMillis() - startTs;
+        assert duration > 0;
+        timeLimit -= duration;
+        if (timeLimit <= 0) {
+          break;
+        }
       } catch (InterruptedException e) {
         break;
       }
