@@ -8,20 +8,19 @@
  */
 package com.xiaomi.infra.pegasus.base;
 
-import com.xiaomi.infra.pegasus.thrift.*;
-import com.xiaomi.infra.pegasus.thrift.async.*;
-import com.xiaomi.infra.pegasus.thrift.meta_data.*;
-import com.xiaomi.infra.pegasus.thrift.protocol.*;
-import com.xiaomi.infra.pegasus.thrift.transport.*;
+import com.xiaomi.infra.pegasus.thrift.TBase;
+import com.xiaomi.infra.pegasus.thrift.TException;
+import com.xiaomi.infra.pegasus.thrift.TFieldIdEnum;
+import com.xiaomi.infra.pegasus.thrift.meta_data.FieldMetaData;
+import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
+import com.xiaomi.infra.pegasus.thrift.protocol.TStruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.*;
 
-public class rpc_address
+public final class rpc_address
     implements TBase<rpc_address, rpc_address._Fields>, java.io.Serializable, Cloneable {
   private static final TStruct STRUCT_DESC = new TStruct("rpc_address");
 
@@ -121,12 +120,9 @@ public class rpc_address
     }
 
     try {
+      // TODO(wutao1): getByName will query DNS if the given address is not valid ip:port.
       byte[] byteArray = InetAddress.getByName(pairs[0]).getAddress();
-      ip =
-          ((int) (byteArray[0] & 0xff) << 24)
-              | ((int) (byteArray[1] & 0xff) << 16)
-              | ((int) (byteArray[2] & 0xff) << 8)
-              | ((int) (byteArray[3] & 0xff));
+      ip = ByteBuffer.wrap(byteArray).order(ByteOrder.BIG_ENDIAN).getInt();
     } catch (UnknownHostException e) {
       return false;
     }
@@ -135,6 +131,36 @@ public class rpc_address
     address = ((long) ip << 32) + ((long) port << 16) + 1;
     return true;
   }
+
+
+  public static rpc_address fromIpPort(String ipPort) {
+    rpc_address addr = new rpc_address();
+    return addr.fromString(ipPort) ? addr : null;
+  }
+
+  public static rpc_address[] resolveFromHostPort(String hostPort) {
+    String[] pairs = hostPort.split(":");
+    if (pairs.length != 2) {
+      return null;
+    }
+    Integer port = Integer.valueOf(pairs[1]);
+
+    try {
+      InetAddress[] resolvedAddresses = InetAddress.getAllByName(pairs[0]);
+      rpc_address[] results = new rpc_address[resolvedAddresses.length];
+      int size = 0;
+      for (InetAddress addr : resolvedAddresses) {
+        rpc_address rpcAddr = new rpc_address();
+        int ip = ByteBuffer.wrap(addr.getAddress()).order(ByteOrder.BIG_ENDIAN).getInt();
+        rpcAddr.address = ((long) ip << 32) + ((long) port << 16) + 1;
+        results[size++] = rpcAddr;
+      }
+      return results;
+    } catch (UnknownHostException e) {
+      return null;
+    }
+  }
+
   /** Performs a deep copy on <i>other</i>. */
   public rpc_address(rpc_address other) {
     this.address = other.address;
@@ -192,10 +218,8 @@ public class rpc_address
   }
 
   public int compareTo(rpc_address other) {
-    if (!getClass().equals(other.getClass())) {
-      return getClass().getName().compareTo(other.getClass().getName());
-    }
-
+    if (address < other.address) return -1;
+    if (address > other.address) return 1;
     return 0;
   }
 
