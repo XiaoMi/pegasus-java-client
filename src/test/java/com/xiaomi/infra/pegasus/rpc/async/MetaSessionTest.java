@@ -8,14 +8,18 @@ import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
+import com.xiaomi.infra.pegasus.replication.partition_configuration;
 import com.xiaomi.infra.pegasus.replication.query_cfg_request;
+import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.tools.Toollet;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -201,14 +205,68 @@ public class MetaSessionTest {
     meta.onFinishQueryMeta(round);
     // switch curLeader to 1, meta list unchanged.
     Assert.assertArrayEquals(convert(meta.getMetaList()), addrs);
+    Integer curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
+    Assert.assertEquals(curLeader.intValue(), 1);
 
     // failed again
     meta.onFinishQueryMeta(round);
     // switch curLeader to 0, meta list updated
     Assert.assertArrayEquals(convert(meta.getMetaList()), addrs2);
+    curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
+    Assert.assertEquals(curLeader.intValue(), 0);
 
     // retry
     meta.onFinishQueryMeta(round);
     Assert.assertArrayEquals(convert(meta.getMetaList()), addrs2);
+  }
+
+  @Test
+  public void testMetaForwardRealLeader() throws Exception {
+    ClusterManager manager =
+        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
+    MetaSession session = manager.getMetaSession();
+    MetaSession meta = Mockito.spy(session);
+    // curLeader=0, hostPort="localhost:34601"
+
+    // metaList = 172.0.0.1:34601, 172.0.0.2:34601
+    rpc_address[] addrs = new rpc_address[2];
+    addrs[0] = rpc_address.fromIpPort("172.0.0.1:34601");
+    addrs[1] = rpc_address.fromIpPort("172.0.0.2:34601");
+    Mockito.when(meta.resolve(("localhost:34601"))).thenReturn(addrs);
+    meta.resolveHost("localhost:34601");
+    Assert.assertArrayEquals(convert(meta.getMetaList()), addrs);
+
+    query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
+    query_cfg_operator op = new query_cfg_operator(new gpid(-1, -1), req);
+    op.rpc_error.errno = error_code.error_types.ERR_OK;
+    FieldUtils.writeField(op, "response", new query_cfg_response(), true);
+    op.get_response().err = new error_code();
+    op.get_response().err.errno = error_code.error_types.ERR_FORWARD_TO_OTHERS;
+    op.get_response().partitions = Arrays.asList(new partition_configuration[1]);
+    op.get_response().partitions.set(0, new partition_configuration());
+    op.get_response().partitions.get(0).primary = rpc_address.fromIpPort("172.0.0.3:34601");
+    MetaSession.MetaRequestRound round =
+        new MetaSession.MetaRequestRound(
+            op,
+            new Runnable() {
+              @Override
+              public void run() {}
+            },
+            10,
+            meta.getMetaList().get(0));
+
+    // do not retry after a failed QueryMeta.
+    Mockito.doNothing().when(meta).retryQueryMeta(round, false);
+
+    // failed to query meta
+    meta.onFinishQueryMeta(round);
+
+    rpc_address[] addrs2 = Arrays.copyOf(addrs, 3);
+    addrs2[2] = rpc_address.fromIpPort("172.0.0.3:34601");
+
+    // forward to 172.0.0.3:34601
+    Assert.assertArrayEquals(convert(meta.getMetaList()), addrs2);
+    Integer curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
+    Assert.assertEquals(curLeader.intValue(), 2);
   }
 }
