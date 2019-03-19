@@ -10,6 +10,7 @@ import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_put_operator;
+import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.thrift.TException;
 import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
 import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
@@ -170,7 +171,7 @@ public class ReplicaSessionTest {
   public void testRecvInvalidData() throws Exception {
     class test_operator extends rrdb_put_operator {
       private test_operator(gpid gpid, update_request request) {
-        super(gpid, "", request, 0);
+        super(gpid, "", request, KeyHasher.DEFAULT.hash("a".getBytes()));
       }
 
       // should be called on ThriftFrameDecoder#decode
@@ -197,7 +198,8 @@ public class ReplicaSessionTest {
                 @Override
                 public Void call() throws Exception {
                   if (op.rpc_error.errno != error_code.error_types.ERR_OBJECT_NOT_FOUND
-                      && op.rpc_error.errno != error_code.error_types.ERR_INVALID_STATE) {
+                      && op.rpc_error.errno != error_code.error_types.ERR_INVALID_STATE
+                      && op.rpc_error.errno != error_code.error_types.ERR_SESSION_RESET) {
                     Assert.assertEquals(
                         error_code.error_types.ERR_INVALID_DATA, op.rpc_error.errno);
                   }
