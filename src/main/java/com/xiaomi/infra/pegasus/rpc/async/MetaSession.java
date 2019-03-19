@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
+import com.xiaomi.infra.pegasus.replication.partition_configuration;
 import io.netty.channel.EventLoopGroup;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,19 +25,19 @@ public class MetaSession {
       int defaultMaxQueryCount,
       EventLoopGroup g)
       throws IllegalArgumentException {
+    clusterManager = manager;
     metaList = new ArrayList<ReplicaSession>();
     for (String addr : addrList) {
       rpc_address rpc_addr = new rpc_address();
       if (rpc_addr.fromString(addr)) {
         logger.info("add {} as meta server", addr);
-        metaList.add(manager.getReplicaSession(rpc_addr));
+        metaList.add(clusterManager.getReplicaSession(rpc_addr));
       } else {
         logger.error("invalid address {}", addr);
       }
     }
     if (metaList.isEmpty()) {
-      throw new IllegalArgumentException(
-          "can't find valid meta server address " + addrList.toString());
+      throw new IllegalArgumentException("no valid meta server address");
     }
     curLeader = 0;
 
@@ -49,6 +50,17 @@ public class MetaSession {
     if (metaQueryOp.rpc_error.errno != error_types.ERR_OK) return metaQueryOp.rpc_error.errno;
     query_cfg_operator op = (query_cfg_operator) metaQueryOp;
     return op.get_response().getErr().errno;
+  }
+
+  public static final rpc_address getMetaServiceForwardAddress(client_operator metaQueryOp) {
+    if (metaQueryOp.rpc_error.errno != error_types.ERR_OK) return null;
+    query_cfg_operator op = (query_cfg_operator) metaQueryOp;
+    if (op.get_response().getErr().errno != error_types.ERR_FORWARD_TO_OTHERS) return null;
+    java.util.List<partition_configuration> partitions = op.get_response().getPartitions();
+    if (partitions == null || partitions.isEmpty()) return null;
+    rpc_address addr = partitions.get(0).getPrimary();
+    if (addr == null || addr.isInvalid()) return null;
+    return addr;
   }
 
   public final void asyncQuery(client_operator op, Runnable callbackFunc, int maxQueryCount) {
@@ -109,12 +121,9 @@ public class MetaSession {
 
     boolean needDelay = false;
     boolean needSwitchLeader = false;
+    rpc_address forwardAddress = null;
 
     --round.maxQueryCount;
-    if (round.maxQueryCount == 0) {
-      round.callbackFunc.run();
-      return;
-    }
 
     error_types metaError = error_types.ERR_UNKNOWN;
     if (op.rpc_error.errno == error_types.ERR_OK) {
@@ -125,13 +134,14 @@ public class MetaSession {
       } else if (metaError == error_types.ERR_FORWARD_TO_OTHERS) {
         needDelay = false;
         needSwitchLeader = true;
+        forwardAddress = getMetaServiceForwardAddress(op);
       } else {
         round.callbackFunc.run();
         return;
       }
     } else if (op.rpc_error.errno == error_types.ERR_SESSION_RESET
         || op.rpc_error.errno == error_types.ERR_TIMEOUT) {
-      needDelay = true;
+      needDelay = false;
       needSwitchLeader = true;
     } else {
       logger.error("unknown error: {}", op.rpc_error.errno.toString());
@@ -140,19 +150,41 @@ public class MetaSession {
     }
 
     logger.info(
-        "query meta got error, rpc({}), meta({}), connected leader({}), remain retry count({}), "
-            + "need switch leader({}), need delay({})",
+        "query meta got error, rpc error({}), meta error({}), forward address({}), current leader({}), "
+            + "remain retry count({}), need switch leader({}), need delay({})",
         op.rpc_error.errno.toString(),
         metaError.toString(),
+        forwardAddress,
         round.lastSession.name(),
         round.maxQueryCount,
         needSwitchLeader,
         needDelay);
     synchronized (this) {
-      if (needSwitchLeader && metaList.get(curLeader) == round.lastSession) {
-        curLeader = (curLeader + 1) % metaList.size();
+      if (needSwitchLeader) {
+        if (forwardAddress != null && !forwardAddress.isInvalid()) {
+          boolean found = false;
+          for (int i = 0; i < metaList.size(); i++) {
+            if (metaList.get(i).getAddress().equals(forwardAddress)) {
+              curLeader = i;
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            logger.info("add forward address {} as meta server", forwardAddress);
+            metaList.add(clusterManager.getReplicaSession(forwardAddress));
+            curLeader = metaList.size() - 1;
+          }
+        } else if (metaList.get(curLeader) == round.lastSession) {
+          curLeader = (curLeader + 1) % metaList.size();
+        }
       }
       round.lastSession = metaList.get(curLeader);
+    }
+
+    if (round.maxQueryCount == 0) {
+      round.callbackFunc.run();
+      return;
     }
 
     group.schedule(
@@ -180,6 +212,7 @@ public class MetaSession {
     }
   }
 
+  private ClusterManager clusterManager;
   private List<ReplicaSession> metaList;
   private int curLeader;
   private int eachQueryTimeoutInMills;

@@ -276,6 +276,7 @@ public class PegasusScanner implements PegasusScannerInterface {
 
   private gpid _gpid;
   private long _hash;
+
   private List<key_value> _kvs;
   private int _p;
 
@@ -287,6 +288,7 @@ public class PegasusScanner implements PegasusScannerInterface {
   // mark whether scan operation encounter error
   private boolean _encounterError;
   Throwable _cause;
+
   private boolean _needCheckHash;
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PegasusScanner.class);
