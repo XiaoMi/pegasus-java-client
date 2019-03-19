@@ -12,8 +12,9 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TMessageType;
 import com.xiaomi.infra.pegasus.apps.rrdb;
 
 public class rrdb_multi_get_operator extends client_operator {
-    public rrdb_multi_get_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, multi_get_request request) {
-        super(gpid, tableName);
+    public rrdb_multi_get_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName,
+                                   multi_get_request request, long partitionHash) {
+        super(gpid, tableName, partitionHash);
         this.request = request;
     }
 

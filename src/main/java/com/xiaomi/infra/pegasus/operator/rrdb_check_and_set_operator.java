@@ -13,8 +13,9 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
 import com.xiaomi.infra.pegasus.apps.rrdb;
 
 public class rrdb_check_and_set_operator extends client_operator {
-    public rrdb_check_and_set_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, check_and_set_request request) {
-        super(gpid, tableName);
+    public rrdb_check_and_set_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName,
+                                       check_and_set_request request, long partitionHash) {
+        super(gpid, tableName, partitionHash);
         this.request = request;
     }
 

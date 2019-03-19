@@ -13,8 +13,9 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
 import com.xiaomi.infra.pegasus.apps.rrdb;
 
 public class rrdb_get_scanner_operator extends client_operator {
-    public rrdb_get_scanner_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, get_scanner_request request) {
-        super(gpid, tableName);
+    public rrdb_get_scanner_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName,
+                                     get_scanner_request request, long partitionHash) {
+        super(gpid, tableName, partitionHash);
         this.request = request;
     }
 

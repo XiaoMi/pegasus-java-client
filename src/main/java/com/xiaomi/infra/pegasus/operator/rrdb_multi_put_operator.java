@@ -13,8 +13,9 @@ import com.xiaomi.infra.pegasus.apps.multi_put_request;
 import com.xiaomi.infra.pegasus.apps.update_response;
 
 public class rrdb_multi_put_operator extends client_operator {
-    public rrdb_multi_put_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, multi_put_request request) {
-        super(gpid, tableName);
+    public rrdb_multi_put_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName,
+                                   multi_put_request request, long partitionHash) {
+        super(gpid, tableName, partitionHash);
         this.request = request;
     }
 

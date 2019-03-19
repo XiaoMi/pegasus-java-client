@@ -13,8 +13,8 @@ import com.xiaomi.infra.pegasus.apps.rrdb;
 import com.xiaomi.infra.pegasus.base.blob;
 
 public class rrdb_remove_operator extends client_operator {
-    public rrdb_remove_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, blob request) {
-        super(gpid, tableName);
+    public rrdb_remove_operator(com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, blob request, long partitionHash) {
+        super(gpid, tableName, partitionHash);
         this.request = request;
     }
 

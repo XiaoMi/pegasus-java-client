@@ -61,7 +61,8 @@ public class ReplicaSessionTest {
         for (int i=0; i<100; ++i) {
             final client_operator op = new rrdb_put_operator(new com.xiaomi.infra.pegasus.base.gpid(-1, -1),
                     "",
-                    null);
+                    null,
+                    0);
             final FutureTask<Void> cb = new FutureTask<Void>(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
