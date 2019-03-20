@@ -8,6 +8,7 @@ import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
+import com.xiaomi.infra.pegasus.client.PegasusClient;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_put_operator;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
@@ -190,7 +191,10 @@ public class ReplicaSessionTest {
     for (int pid = 0; pid < 16; pid++) {
       // find a valid partition held on 127.0.0.1:34801
       update_request req =
-          new update_request(new blob("a".getBytes()), new blob("a".getBytes()), 0);
+          new update_request(
+              new blob(PegasusClient.generateKey("a".getBytes(), "".getBytes())),
+              new blob("a".getBytes()),
+              0);
       final client_operator op = new test_operator(new gpid(1, pid), req);
       FutureTask<Void> cb =
           new FutureTask<Void>(
