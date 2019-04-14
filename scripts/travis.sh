@@ -28,7 +28,7 @@ fi
 
 # start pegasus onebox environment
 wget https://github.com/XiaoMi/pegasus/releases/download/v1.11.3/pegasus-1.11.3-b45cb06-linux-x86_64-release.zip
-unzip pegasus-1.11.3-b45cb06-linux-x86_64-release.tar.gz
+unzip pegasus-1.11.3-b45cb06-linux-x86_64-release.zip
 cd pegasus-1.11.3-b45cb06-linux-x86_64-release
 
 ./run.sh start_onebox -w
