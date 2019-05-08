@@ -1368,6 +1368,40 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
+  public void delRange(byte[] hashKey, byte[] startSortKey, byte[] stopSortKey, DelRangeOptions options, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    int count = 0;
+    int maxBatchDelCount = 100;
+    List<byte[]> sortKeys = new ArrayList<byte[]>();
+    try {
+      ScanOptions scanOptions = new ScanOptions();
+      scanOptions.startInclusive = options.startInclusive;
+      scanOptions.stopInclusive = options.stopInclusive;
+      scanOptions.sortKeyFilterType = options.sortKeyFilterType;
+      scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
+      scanOptions.noValue = options.noValue;
+      PegasusScannerInterface pegasusScanner = getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
+
+      Pair<Pair<byte[], byte[]>, byte[]> pairs;
+      while ((pairs = pegasusScanner.next()) != null) {
+        sortKeys.add(pairs.getKey().getValue());
+        count++;
+        if (sortKeys.size() == maxBatchDelCount) {
+          asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
+          sortKeys = new ArrayList<byte[]>();
+        }
+      }
+      asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (TimeoutException e) {
+      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (ExecutionException e) {
+      throw new PException("del the index:" + count + " sortKey:" + sortKeys.get(0) + " is error:", e);
+    }
+  }
+
+  @Override
   public void batchMultiDel(List<Pair<byte[], List<byte[]>>> keys, int timeout) throws PException {
     if (keys == null || keys.size() == 0) {
       throw new PException("Invalid parameter: keys should not be null or empty");
