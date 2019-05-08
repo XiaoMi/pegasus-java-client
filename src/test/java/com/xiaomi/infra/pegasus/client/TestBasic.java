@@ -1966,7 +1966,7 @@ public class TestBasic {
       Assert.fail();
     }
 
-    // delRange exception handle
+    // multiDel exception handle
     System.out.println("Test multidel exception handle");
     try {
       Future<Void> f = tb.asyncMultiDel(null, null, 0).await();

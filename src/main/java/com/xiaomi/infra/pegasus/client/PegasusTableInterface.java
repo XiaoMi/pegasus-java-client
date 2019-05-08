@@ -49,7 +49,6 @@ import org.apache.commons.lang3.tuple.Pair;
  */
 public interface PegasusTableInterface {
 
-
   /// < -------- Exist --------
 
   public static interface ExistListener extends GenericFutureListener<Future<Boolean>> {
