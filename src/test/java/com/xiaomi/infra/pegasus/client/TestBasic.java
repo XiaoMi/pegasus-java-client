@@ -2361,7 +2361,7 @@ public class TestBasic {
   @Test
   public void delRange() throws PException {
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
-    DelRangeOptions multiDelOptions = new DelRangeOptions();
+    DelRangeOptions delRangeOptions = new DelRangeOptions();
 
     List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
     int count = 0;
@@ -2371,11 +2371,7 @@ public class TestBasic {
     }
     client.multiSet("temp", "hashkey".getBytes(), values);
 
-    client.delRange(
-            "temp", "hashkey".getBytes(),
-            "0".getBytes(),
-            "89".getBytes(),
-            multiDelOptions);
+    client.delRange("temp", "hashkey".getBytes(), "0".getBytes(), "89".getBytes(), delRangeOptions);
     System.out.println("OK");
   }
 }

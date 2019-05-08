@@ -1368,7 +1368,9 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
-  public void delRange(byte[] hashKey, byte[] startSortKey, byte[] stopSortKey, DelRangeOptions options, int timeout) throws PException {
+  public void delRange(
+      byte[] hashKey, byte[] startSortKey, byte[] stopSortKey, DelRangeOptions options, int timeout)
+      throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
     int count = 0;
     int maxBatchDelCount = 100;
@@ -1379,8 +1381,8 @@ public class PegasusTable implements PegasusTableInterface {
       scanOptions.stopInclusive = options.stopInclusive;
       scanOptions.sortKeyFilterType = options.sortKeyFilterType;
       scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
-      scanOptions.noValue = options.noValue;
-      PegasusScannerInterface pegasusScanner = getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
+      PegasusScannerInterface pegasusScanner =
+          getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
 
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null) {
@@ -1397,7 +1399,8 @@ public class PegasusTable implements PegasusTableInterface {
     } catch (TimeoutException e) {
       throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     } catch (ExecutionException e) {
-      throw new PException("del the index:" + count + " sortKey:" + sortKeys.get(0) + " is error:", e);
+      throw new PException(
+          "del the index:" + count + " sortKey:" + sortKeys.get(0) + " is error:", e);
     }
   }
 
