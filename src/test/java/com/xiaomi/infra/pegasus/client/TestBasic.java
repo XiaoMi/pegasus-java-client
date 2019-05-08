@@ -2363,15 +2363,122 @@ public class TestBasic {
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
     DelRangeOptions delRangeOptions = new DelRangeOptions();
 
+    // multi set values
     List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
     int count = 0;
-    while (count < 150) {
-      values.add(Pair.of(String.valueOf(count).getBytes(), String.valueOf(count).getBytes()));
-      count++;
+    try {
+      while (count < 150) {
+        values.add(Pair.of(String.valueOf(count).getBytes(), String.valueOf(count).getBytes()));
+        count++;
+      }
+      client.multiSet("temp", "delRange".getBytes(), values);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
     }
-    client.multiSet("temp", "hashkey".getBytes(), values);
 
-    client.delRange("temp", "hashkey".getBytes(), "0".getBytes(), "89".getBytes(), delRangeOptions);
-    System.out.println("OK");
+    // delRange with default delRangeOptions
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "0".getBytes(), "90".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    List<byte[]> remainingSortKey = new ArrayList<byte[]>();
+
+    remainingSortKey.add("90".getBytes());
+    remainingSortKey.add("91".getBytes());
+    remainingSortKey.add("92".getBytes());
+    remainingSortKey.add("93".getBytes());
+    remainingSortKey.add("94".getBytes());
+    remainingSortKey.add("95".getBytes());
+    remainingSortKey.add("96".getBytes());
+    remainingSortKey.add("97".getBytes());
+    remainingSortKey.add("98".getBytes());
+    remainingSortKey.add("99".getBytes());
+    List<Pair<byte[], byte[]>> remainingValue = new ArrayList<Pair<byte[], byte[]>>();
+
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    List<String> valueStr = new ArrayList<String>();
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+    Assert.assertEquals(10, valueStr.size());
+    Assert.assertTrue(valueStr.contains("90"));
+    Assert.assertTrue(valueStr.contains("91"));
+    Assert.assertTrue(valueStr.contains("92"));
+    Assert.assertTrue(valueStr.contains("93"));
+    Assert.assertTrue(valueStr.contains("94"));
+    Assert.assertTrue(valueStr.contains("95"));
+    Assert.assertTrue(valueStr.contains("96"));
+    Assert.assertTrue(valueStr.contains("97"));
+    Assert.assertTrue(valueStr.contains("98"));
+    Assert.assertTrue(valueStr.contains("99"));
+
+    // delRange with FT_MATCH_POSTFIX option
+    delRangeOptions.sortKeyFilterType = FilterType.FT_MATCH_POSTFIX;
+    delRangeOptions.sortKeyFilterPattern = "3".getBytes();
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "90".getBytes(), "95".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    remainingValue.clear();
+    valueStr.clear();
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+
+    Assert.assertEquals(9, valueStr.size());
+    Assert.assertTrue(!valueStr.contains("93"));
+
+    // delRange with "*Inclusive" option
+    delRangeOptions.startInclusive = false;
+    delRangeOptions.stopInclusive = true;
+    delRangeOptions.sortKeyFilterType = FilterType.FT_NO_FILTER;
+    delRangeOptions.sortKeyFilterPattern = null;
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "90".getBytes(), "95".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    remainingValue.clear();
+    valueStr.clear();
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+
+    Assert.assertEquals(5, valueStr.size());
+    Assert.assertTrue(valueStr.contains("90"));
+    Assert.assertTrue(valueStr.contains("96"));
+    Assert.assertTrue(valueStr.contains("97"));
+    Assert.assertTrue(valueStr.contains("98"));
+    Assert.assertTrue(valueStr.contains("99"));
   }
 }
