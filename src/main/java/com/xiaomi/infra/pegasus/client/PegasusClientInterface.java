@@ -381,22 +381,23 @@ public interface PegasusClientInterface {
   public void multiDel(String tableName, byte[] hashKey, List<byte[]> sortKeys) throws PException;
 
   /**
-   * Del various key-values non-Atomically under the same hashKey with sortKey range limited
+   * Del various key-values under the same hashKey with sortKey range limited,and this operation is
+   * nonatomic.
    *
-   * @param tableName    table name
-   * @param hashKey      used to decide which partition the key may exist should not be null or empty.
+   * @param tableName table name
+   * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
-   * @param stopSortKey  the stop sort key. null or "" means fetch to the last sort key.
-   * @param options      del range options.
+   * @param stopSortKey the stop sort key. null or "" means fetch to the last sort key.
+   * @param options del range options.
    * @throws PException throws exception if any error occurs.
    */
   public void delRange(
-          String tableName,
-          byte[] hashKey,
-          byte[] startSortKey,
-          byte[] stopSortKey,
-          DelRangeOptions options)
-          throws PException;
+      String tableName,
+      byte[] hashKey,
+      byte[] startSortKey,
+      byte[] stopSortKey,
+      DelRangeOptions options)
+      throws PException;
 
   /**
    * Batch delete specified sort keys under the same hash key. Will terminate immediately if any

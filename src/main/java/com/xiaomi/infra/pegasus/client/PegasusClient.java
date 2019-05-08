@@ -428,12 +428,12 @@ public class PegasusClient implements PegasusClientInterface {
 
   @Override
   public void delRange(
-          String tableName,
-          byte[] hashKey,
-          byte[] startSortKey,
-          byte[] stopSortKey,
-          DelRangeOptions options)
-          throws PException {
+      String tableName,
+      byte[] hashKey,
+      byte[] startSortKey,
+      byte[] stopSortKey,
+      DelRangeOptions options)
+      throws PException {
     PegasusTable tb = getTable(tableName);
     tb.delRange(hashKey, startSortKey, stopSortKey, options, 0);
   }
