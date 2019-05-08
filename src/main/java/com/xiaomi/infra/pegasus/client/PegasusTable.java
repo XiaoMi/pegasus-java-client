@@ -1395,12 +1395,18 @@ public class PegasusTable implements PegasusTableInterface {
       }
       asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
-    } catch (TimeoutException e) {
-      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
-    } catch (ExecutionException e) {
+      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
       throw new PException(
-          "del the index:" + count + " sortKey:" + sortKeys.get(0) + " is error:", e);
+          "Delete the index " + count + " sortKey: " + sortKey + " is error:",
+          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (TimeoutException e) {
+      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
+      throw new PException(
+          "Delete the index " + count + " sortKey: " + sortKey + " is error:",
+          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (ExecutionException e) {
+      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
+      throw new PException("Delete the index " + count + " sortKey: " + sortKey + " is error:", e);
     }
   }
 
