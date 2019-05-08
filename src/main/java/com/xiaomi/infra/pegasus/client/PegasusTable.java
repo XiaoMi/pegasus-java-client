@@ -1388,7 +1388,7 @@ public class PegasusTable implements PegasusTableInterface {
         count++;
         if (sortKeys.size() == maxBatchDelCount) {
           asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
-          sortKeys = new ArrayList<byte[]>();
+          sortKeys.clear();
         }
       }
       asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
