@@ -1966,7 +1966,7 @@ public class TestBasic {
       Assert.fail();
     }
 
-    // multiDel exception handle
+    // delRange exception handle
     System.out.println("Test multidel exception handle");
     try {
       Future<Void> f = tb.asyncMultiDel(null, null, 0).await();
@@ -2356,5 +2356,26 @@ public class TestBasic {
     }
 
     PegasusClientFactory.closeSingletonClient();
+  }
+
+  @Test
+  public void delRange() throws PException {
+    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+    DelRangeOptions multiDelOptions = new DelRangeOptions();
+
+    List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
+    int count = 0;
+    while (count < 150) {
+      values.add(Pair.of(String.valueOf(count).getBytes(), String.valueOf(count).getBytes()));
+      count++;
+    }
+    client.multiSet("temp", "hashkey".getBytes(), values);
+
+    client.delRange(
+            "temp", "hashkey".getBytes(),
+            "0".getBytes(),
+            "89".getBytes(),
+            multiDelOptions);
+    System.out.println("OK");
   }
 }
