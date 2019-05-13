@@ -1377,6 +1377,7 @@ public class PegasusTable implements PegasusTableInterface {
     List<byte[]> sortKeys = new ArrayList<byte[]>();
     try {
       ScanOptions scanOptions = new ScanOptions();
+      scanOptions.noValue = true;
       scanOptions.startInclusive = options.startInclusive;
       scanOptions.stopInclusive = options.stopInclusive;
       scanOptions.sortKeyFilterType = options.sortKeyFilterType;
@@ -1393,7 +1394,9 @@ public class PegasusTable implements PegasusTableInterface {
           sortKeys.clear();
         }
       }
-      asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
+      if(!sortKeys.isEmpty()){
+        asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
+      }
     } catch (InterruptedException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
       throw new PException(

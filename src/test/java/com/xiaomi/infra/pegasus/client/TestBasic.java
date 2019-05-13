@@ -2368,7 +2368,7 @@ public class TestBasic {
     int count = 0;
     try {
       while (count < 150) {
-        values.add(Pair.of(String.valueOf(count).getBytes(), String.valueOf(count).getBytes()));
+        values.add(Pair.of(("k_"+count).getBytes(), ("v_"+count).getBytes()));
         count++;
       }
       client.multiSet("temp", "delRange".getBytes(), values);
@@ -2380,7 +2380,7 @@ public class TestBasic {
     // delRange with default delRangeOptions
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "0".getBytes(), "90".getBytes(), delRangeOptions);
+          "temp", "delRange".getBytes(), "k_0".getBytes(), "k_90".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2388,16 +2388,16 @@ public class TestBasic {
 
     List<byte[]> remainingSortKey = new ArrayList<byte[]>();
 
-    remainingSortKey.add("90".getBytes());
-    remainingSortKey.add("91".getBytes());
-    remainingSortKey.add("92".getBytes());
-    remainingSortKey.add("93".getBytes());
-    remainingSortKey.add("94".getBytes());
-    remainingSortKey.add("95".getBytes());
-    remainingSortKey.add("96".getBytes());
-    remainingSortKey.add("97".getBytes());
-    remainingSortKey.add("98".getBytes());
-    remainingSortKey.add("99".getBytes());
+    remainingSortKey.add("k_90".getBytes());
+    remainingSortKey.add("k_91".getBytes());
+    remainingSortKey.add("k_92".getBytes());
+    remainingSortKey.add("k_93".getBytes());
+    remainingSortKey.add("k_94".getBytes());
+    remainingSortKey.add("k_95".getBytes());
+    remainingSortKey.add("k_96".getBytes());
+    remainingSortKey.add("k_97".getBytes());
+    remainingSortKey.add("k_98".getBytes());
+    remainingSortKey.add("k_99".getBytes());
     List<Pair<byte[], byte[]>> remainingValue = new ArrayList<Pair<byte[], byte[]>>();
 
     try {
@@ -2412,23 +2412,23 @@ public class TestBasic {
       valueStr.add(new String(pair.getValue()));
     }
     Assert.assertEquals(10, valueStr.size());
-    Assert.assertTrue(valueStr.contains("90"));
-    Assert.assertTrue(valueStr.contains("91"));
-    Assert.assertTrue(valueStr.contains("92"));
-    Assert.assertTrue(valueStr.contains("93"));
-    Assert.assertTrue(valueStr.contains("94"));
-    Assert.assertTrue(valueStr.contains("95"));
-    Assert.assertTrue(valueStr.contains("96"));
-    Assert.assertTrue(valueStr.contains("97"));
-    Assert.assertTrue(valueStr.contains("98"));
-    Assert.assertTrue(valueStr.contains("99"));
+    Assert.assertTrue(valueStr.contains("k_90"));
+    Assert.assertTrue(valueStr.contains("k_91"));
+    Assert.assertTrue(valueStr.contains("k_92"));
+    Assert.assertTrue(valueStr.contains("k_93"));
+    Assert.assertTrue(valueStr.contains("k_94"));
+    Assert.assertTrue(valueStr.contains("k_95"));
+    Assert.assertTrue(valueStr.contains("k_96"));
+    Assert.assertTrue(valueStr.contains("k_97"));
+    Assert.assertTrue(valueStr.contains("k_98"));
+    Assert.assertTrue(valueStr.contains("k_99"));
 
     // delRange with FT_MATCH_POSTFIX option
     delRangeOptions.sortKeyFilterType = FilterType.FT_MATCH_POSTFIX;
-    delRangeOptions.sortKeyFilterPattern = "3".getBytes();
+    delRangeOptions.sortKeyFilterPattern = "k_3".getBytes();
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "90".getBytes(), "95".getBytes(), delRangeOptions);
+          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2447,7 +2447,7 @@ public class TestBasic {
     }
 
     Assert.assertEquals(9, valueStr.size());
-    Assert.assertTrue(!valueStr.contains("93"));
+    Assert.assertTrue(!valueStr.contains("k_93"));
 
     // delRange with "*Inclusive" option
     delRangeOptions.startInclusive = false;
@@ -2456,7 +2456,7 @@ public class TestBasic {
     delRangeOptions.sortKeyFilterPattern = null;
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "90".getBytes(), "95".getBytes(), delRangeOptions);
+          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2475,10 +2475,10 @@ public class TestBasic {
     }
 
     Assert.assertEquals(5, valueStr.size());
-    Assert.assertTrue(valueStr.contains("90"));
-    Assert.assertTrue(valueStr.contains("96"));
-    Assert.assertTrue(valueStr.contains("97"));
-    Assert.assertTrue(valueStr.contains("98"));
-    Assert.assertTrue(valueStr.contains("99"));
+    Assert.assertTrue(valueStr.contains("k_90"));
+    Assert.assertTrue(valueStr.contains("k_96"));
+    Assert.assertTrue(valueStr.contains("k_97"));
+    Assert.assertTrue(valueStr.contains("k_98"));
+    Assert.assertTrue(valueStr.contains("k_99"));
   }
 }
