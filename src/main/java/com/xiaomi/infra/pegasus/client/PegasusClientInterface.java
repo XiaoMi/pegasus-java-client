@@ -381,8 +381,8 @@ public interface PegasusClientInterface {
   public void multiDel(String tableName, byte[] hashKey, List<byte[]> sortKeys) throws PException;
 
   /**
-   * Delete key-values within range of startSortKey and stopSortKey under hashKey.
-   * Will terminate immediately if any error occurs.
+   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
+   * immediately if any error occurs.
    *
    * @param tableName table name
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
