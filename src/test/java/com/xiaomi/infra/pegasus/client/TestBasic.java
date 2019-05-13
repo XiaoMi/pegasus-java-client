@@ -2412,20 +2412,20 @@ public class TestBasic {
       valueStr.add(new String(pair.getValue()));
     }
     Assert.assertEquals(10, valueStr.size());
-    Assert.assertTrue(valueStr.contains("k_90"));
-    Assert.assertTrue(valueStr.contains("k_91"));
-    Assert.assertTrue(valueStr.contains("k_92"));
-    Assert.assertTrue(valueStr.contains("k_93"));
-    Assert.assertTrue(valueStr.contains("k_94"));
-    Assert.assertTrue(valueStr.contains("k_95"));
-    Assert.assertTrue(valueStr.contains("k_96"));
-    Assert.assertTrue(valueStr.contains("k_97"));
-    Assert.assertTrue(valueStr.contains("k_98"));
-    Assert.assertTrue(valueStr.contains("k_99"));
+    Assert.assertTrue(valueStr.contains("v_90"));
+    Assert.assertTrue(valueStr.contains("v_91"));
+    Assert.assertTrue(valueStr.contains("v_92"));
+    Assert.assertTrue(valueStr.contains("v_93"));
+    Assert.assertTrue(valueStr.contains("v_94"));
+    Assert.assertTrue(valueStr.contains("v_95"));
+    Assert.assertTrue(valueStr.contains("v_96"));
+    Assert.assertTrue(valueStr.contains("v_97"));
+    Assert.assertTrue(valueStr.contains("v_98"));
+    Assert.assertTrue(valueStr.contains("v_99"));
 
     // delRange with FT_MATCH_POSTFIX option
     delRangeOptions.sortKeyFilterType = FilterType.FT_MATCH_POSTFIX;
-    delRangeOptions.sortKeyFilterPattern = "k_3".getBytes();
+    delRangeOptions.sortKeyFilterPattern = "k_93".getBytes();
     try {
       client.delRange(
           "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
@@ -2447,7 +2447,7 @@ public class TestBasic {
     }
 
     Assert.assertEquals(9, valueStr.size());
-    Assert.assertTrue(!valueStr.contains("k_93"));
+    Assert.assertTrue(!valueStr.contains("v_93"));
 
     // delRange with "*Inclusive" option
     delRangeOptions.startInclusive = false;
@@ -2475,10 +2475,10 @@ public class TestBasic {
     }
 
     Assert.assertEquals(5, valueStr.size());
-    Assert.assertTrue(valueStr.contains("k_90"));
-    Assert.assertTrue(valueStr.contains("k_96"));
-    Assert.assertTrue(valueStr.contains("k_97"));
-    Assert.assertTrue(valueStr.contains("k_98"));
-    Assert.assertTrue(valueStr.contains("k_99"));
+    Assert.assertTrue(valueStr.contains("v_90"));
+    Assert.assertTrue(valueStr.contains("v_96"));
+    Assert.assertTrue(valueStr.contains("v_97"));
+    Assert.assertTrue(valueStr.contains("v_98"));
+    Assert.assertTrue(valueStr.contains("v_99"));
   }
 }
