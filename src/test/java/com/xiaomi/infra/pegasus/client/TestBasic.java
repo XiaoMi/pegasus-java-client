@@ -2368,7 +2368,7 @@ public class TestBasic {
     int count = 0;
     try {
       while (count < 150) {
-        values.add(Pair.of(("k_"+count).getBytes(), ("v_"+count).getBytes()));
+        values.add(Pair.of(("k_" + count).getBytes(), ("v_" + count).getBytes()));
         count++;
       }
       client.multiSet("temp", "delRange".getBytes(), values);
