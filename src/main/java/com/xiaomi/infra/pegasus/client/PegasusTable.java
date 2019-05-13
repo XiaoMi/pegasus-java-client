@@ -1394,7 +1394,7 @@ public class PegasusTable implements PegasusTableInterface {
           sortKeys.clear();
         }
       }
-      if(!sortKeys.isEmpty()){
+      if (!sortKeys.isEmpty()) {
         asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
       }
     } catch (InterruptedException e) {
