@@ -28,8 +28,14 @@ public class PegasusClientFactory {
 
   public static PegasusClientInterface createClient(ClientOptions options) throws PException {
     Properties pegasusConfig = new Properties();
-    pegasusConfig.setProperty("meta_servers", options.metaServers);
-    pegasusConfig.setProperty("operation_timeout", String.valueOf(options.timeout));
+    pegasusConfig.setProperty("meta_servers", options.getMetaServers());
+    pegasusConfig.setProperty(
+        "operation_timeout", String.valueOf(options.getOperationTimeout().toMillis()));
+    pegasusConfig.setProperty("async_workers", String.valueOf(options.getAsyncWorkers()));
+    pegasusConfig.setProperty("enable_perf_counter", String.valueOf(options.isEnablePerfCounter()));
+    pegasusConfig.setProperty("perf_counter_tags", String.valueOf(options.isEnablePerfCounter()));
+    pegasusConfig.setProperty(
+        "push_counter_interval_secs", String.valueOf(options.getFalconPushInterval().getSeconds()));
     return new PegasusClient(pegasusConfig);
   }
 

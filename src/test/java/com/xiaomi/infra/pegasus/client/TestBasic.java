@@ -2254,71 +2254,101 @@ public class TestBasic {
   @Test
   public void createClient() throws PException {
     System.out.println("test createClient with clientOptions");
-    ClientOptions clientOptions = new ClientOptions();
+    ClientOptions clientOptions = ClientOptions.create();
     byte[] value = null;
+
     // test createClient(clientOptions)
     PegasusClientInterface client = null;
     try {
       client = PegasusClientFactory.createClient(clientOptions);
-      client.set("temp", "createClient".getBytes(), "0".getBytes(), "0".getBytes());
-      value = client.get("temp", "createClient".getBytes(), "0".getBytes());
+      client.set(
+          "temp",
+          "createClient".getBytes(),
+          "createClient_0".getBytes(),
+          "createClient_0".getBytes());
+      value = client.get("temp", "createClient".getBytes(), "createClient_0".getBytes());
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
     }
 
-    Assert.assertTrue(new String(value).equals("0"));
+    Assert.assertTrue(new String(value).equals("createClient_0"));
 
     // test getSingletonClient(ClientOptions options)
     PegasusClientInterface singletonClient = null;
     try {
       singletonClient = PegasusClientFactory.getSingletonClient(clientOptions);
-      singletonClient.set("temp", "getSingletonClient".getBytes(), "0".getBytes(), "0".getBytes());
-      value = singletonClient.get("temp", "getSingletonClient".getBytes(), "0".getBytes());
+      singletonClient.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_1".getBytes(),
+          "createClient_1".getBytes());
+      value =
+          singletonClient.get("temp", "getSingletonClient".getBytes(), "createClient_1".getBytes());
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
     }
 
-    Assert.assertTrue(new String(value).equals("0"));
+    Assert.assertTrue(new String(value).equals("createClient_1"));
 
     // test getSingletonClient(ClientOptions options) --> same clientOptions
     PegasusClientInterface singletonClient1 = null;
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions);
-      singletonClient1.set("temp", "getSingletonClient".getBytes(), "1".getBytes(), "1".getBytes());
-      value = singletonClient1.get("temp", "getSingletonClient".getBytes(), "1".getBytes());
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_2".getBytes(),
+          "createClient_2".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_2".getBytes());
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
     }
 
-    Assert.assertTrue(new String(value).equals("1"));
+    Assert.assertTrue(new String(value).equals("createClient_2"));
     Assert.assertTrue(singletonClient1 == singletonClient);
 
     // test getSingletonClient(ClientOptions options) --> different clientOptions,but values of
     // clientOptions is same
-    ClientOptions clientOptions1 = new ClientOptions();
+    ClientOptions clientOptions1 = ClientOptions.create();
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions1);
-      singletonClient1.set("temp", "getSingletonClient".getBytes(), "2".getBytes(), "2".getBytes());
-      value = singletonClient1.get("temp", "getSingletonClient".getBytes(), "2".getBytes());
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_3".getBytes(),
+          "createClient_3".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_3".getBytes());
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
     }
 
-    Assert.assertTrue(new String(value).equals("2"));
+    Assert.assertTrue(new String(value).equals("createClient_3"));
     Assert.assertTrue(singletonClient1 == singletonClient);
 
     // test getSingletonClient(ClientOptions options) --> different clientOptions,and values of
     // clientOptions is different
-    ClientOptions clientOptions2 = new ClientOptions();
-    clientOptions2.timeout = 10000;
+    ClientOptions clientOptions2 =
+        ClientOptions.builder()
+            .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
+            .build();
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions2);
-      singletonClient1.set("temp", "getSingletonClient".getBytes(), "2".getBytes(), "2".getBytes());
-      value = singletonClient1.get("temp", "getSingletonClient".getBytes(), "2".getBytes());
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_4".getBytes(),
+          "createClient_4".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_4".getBytes());
     } catch (Exception e) {
       // if values of clientOptions is different,the code's right logic is "throw exception"
       Assert.assertTrue(true);
