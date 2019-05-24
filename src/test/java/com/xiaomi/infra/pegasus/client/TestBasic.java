@@ -2338,6 +2338,7 @@ public class TestBasic {
     ClientOptions clientOptions2 =
         ClientOptions.builder()
             .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
+            .asyncWorkers(5) // default value is 4,this set different value
             .build();
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions2);
