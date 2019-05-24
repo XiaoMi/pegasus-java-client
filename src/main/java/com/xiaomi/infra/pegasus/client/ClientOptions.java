@@ -21,50 +21,12 @@ import java.time.Duration;
  */
 public class ClientOptions {
 
-  /**
-   * The list of meta server addresses, separated by commas.
-   *
-   * <p>Required field.
-   */
   public static final String DEFAULT_META_SERVERS =
       "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
-
-  /**
-   * The timeout for failing to finish an operation.
-   *
-   * <p>Default: 1000ms
-   */
   public static final Duration DEFAULT_OPERATION_TIMEOUT = Duration.ofMillis(1000);
-
-  /**
-   * The number of background worker threads. Internally it is the number of Netty NIO threads for
-   * handling RPC events between client and Replica Servers.
-   *
-   * <p>Default: 4
-   */
   public static final int DEFAULT_ASYNC_WORKERS = 4;
-
-  /**
-   * Whether to enable performance statistics. If true, the client will periodically report metrics
-   * to local falcon agent (currently we only support falcon as monitoring system).
-   *
-   * <p>Default: false
-   */
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
-
-  /**
-   * Additional tags for falcon metrics. For example:
-   * "cluster=c3srv-ad,job=recommend-service-history"
-   *
-   * <p>Default: empty string.
-   */
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
-
-  /**
-   * The interval to report metrics to local falcon agent.
-   *
-   * <p>Default: 10s
-   */
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
 
   private final String metaServers;
@@ -168,31 +130,75 @@ public class ClientOptions {
 
     protected Builder() {}
 
+    /**
+     * the list of meta server addresses, separated by commas, See {@link #DEFAULT_META_SERVERS}
+     *
+     * @param metaServers required field,must be the right meta_servers
+     * @return {@code this}
+     */
     public Builder metaServers(String metaServers) {
       this.metaServers = metaServers;
       return this;
     }
 
+    /**
+     * The timeout for failing to finish an operation,Defaults to {@literal 1000ms}, see {@link
+     * #DEFAULT_OPERATION_TIMEOUT}
+     *
+     * @param operationTimeout operationTimeout
+     * @return {@code this}
+     */
     public Builder operationTimeout(Duration operationTimeout) {
       this.operationTimeout = operationTimeout;
       return this;
     }
 
+    /**
+     * The number of background worker threads. Internally it is the number of Netty NIO threads for
+     * handling RPC events between client and Replica Servers.Defaults to {@literal 4},see {@link
+     * #DEFAULT_ASYNC_WORKERS}
+     *
+     * @param asyncWorkers asyncWorkers thread number
+     * @return {@code this}
+     */
     public Builder asyncWorkers(int asyncWorkers) {
       this.asyncWorkers = asyncWorkers;
       return this;
     }
 
+    /**
+     * Whether to enable performance statistics. If true, the client will periodically report
+     * metrics to local falcon agent (currently we only support falcon as monitoring
+     * system).Defaults to {@literal true},see {@link #DEFAULT_ENABLE_PERF_COUNTER}
+     *
+     * @param enablePerfCounter enablePerfCounter
+     * @return {@code this}
+     */
     public Builder enablePerfCounter(boolean enablePerfCounter) {
       this.enablePerfCounter = enablePerfCounter;
       return this;
     }
 
+    /**
+     * Additional tags for falcon metrics. For example:
+     * "cluster=c3srv-ad,job=recommend-service-history",Default is empty string,see {@link
+     * #DEFAULT_FALCON_PERF_COUNTER_TAGS}
+     *
+     * @param falconPerfCounterTags falconPerfCounterTags
+     * @return {@code this}
+     */
     public Builder falconPerfCounterTags(String falconPerfCounterTags) {
       this.falconPerfCounterTags = falconPerfCounterTags;
       return this;
     }
 
+    /**
+     * The interval to report metrics to local falcon agent,Defaults to {@literal 10s},see {@link
+     * #DEFAULT_FALCON_PUSH_INTERVAL}
+     *
+     * @param falconPushInterval falconPushInterval
+     * @return {@code this}
+     */
     public Builder falconPushInterval(Duration falconPushInterval) {
       this.falconPushInterval = falconPushInterval;
       return this;
