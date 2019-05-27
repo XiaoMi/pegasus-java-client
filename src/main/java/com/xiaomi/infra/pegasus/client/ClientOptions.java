@@ -6,18 +6,27 @@ package com.xiaomi.infra.pegasus.client;
 import java.time.Duration;
 
 /**
- * @author jiashuo1
- *     <p>This class provides method to create an instance of {@link ClientOptions}.you can use
- *     <code>
- *         ClientOptions.create();
- *     </code>
- *     <p>to create a new instance of {@link ClientOptions} with default settings, or use such as
- *     <code>
- *         ClientOptions.builder().metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
- *  *     .operationTimeout(Duration.ofMillis(1000)).asyncWorkers(4).enablePerfCounter(false)
- *  *     .falconPerfCounterTags("").falconPushInterval(Duration.ofSeconds(10)).build();
- *     </code>
- *     <p>to create an instance {@link ClientOptions} with custom settings.
+ * Client Options to control the behavior of {@link PegasusClientInterface}.
+ *
+ * <p>To create a new instance with default settings:
+ *
+ * <pre>{@code
+ * ClientOptions.create();
+ * }</pre>
+ *
+ * To customize the settings:
+ *
+ * <pre>{@code
+ * ClientOptions opts =
+ *      ClientOptions.builder()
+ *          .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
+ *          .operationTimeout(Duration.ofMillis(1000))
+ *          .asyncWorkers(4)
+ *          .enablePerfCounter(false)
+ *          .falconPerfCounterTags("")
+ *          .falconPushInterval(Duration.ofSeconds(10))
+ *          .build();
+ * }</pre>
  */
 public class ClientOptions {
 
@@ -89,13 +98,11 @@ public class ClientOptions {
     }
     if (options instanceof ClientOptions) {
       ClientOptions clientOptions = (ClientOptions) options;
-      if (this.metaServers.equals(clientOptions.metaServers)
+      return this.metaServers.equals(clientOptions.metaServers)
           && this.operationTimeout == clientOptions.operationTimeout
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
-          && this.falconPushInterval == clientOptions.falconPushInterval) {
-        return true;
-      }
+          && this.falconPushInterval == clientOptions.falconPushInterval;
     }
     return false;
   }
@@ -120,6 +127,7 @@ public class ClientOptions {
         + '}';
   }
 
+  /** Builder for {@link ClientOptions}. */
   public static class Builder {
     private String metaServers = DEFAULT_META_SERVERS;
     private Duration operationTimeout = DEFAULT_OPERATION_TIMEOUT;
@@ -131,9 +139,9 @@ public class ClientOptions {
     protected Builder() {}
 
     /**
-     * the list of meta server addresses, separated by commas, See {@link #DEFAULT_META_SERVERS}
+     * The list of meta server addresses, separated by commas, See {@link #DEFAULT_META_SERVERS}.
      *
-     * @param metaServers required field,must be the right meta_servers
+     * @param metaServers must not be {@literal null} or empty.
      * @return {@code this}
      */
     public Builder metaServers(String metaServers) {
@@ -142,8 +150,8 @@ public class ClientOptions {
     }
 
     /**
-     * The timeout for failing to finish an operation,Defaults to {@literal 1000ms}, see {@link
-     * #DEFAULT_OPERATION_TIMEOUT}
+     * The timeout for failing to finish an operation. Defaults to {@literal 1000ms}, see {@link
+     * #DEFAULT_OPERATION_TIMEOUT}.
      *
      * @param operationTimeout operationTimeout
      * @return {@code this}
@@ -155,8 +163,8 @@ public class ClientOptions {
 
     /**
      * The number of background worker threads. Internally it is the number of Netty NIO threads for
-     * handling RPC events between client and Replica Servers.Defaults to {@literal 4},see {@link
-     * #DEFAULT_ASYNC_WORKERS}
+     * handling RPC events between client and Replica Servers. Defaults to {@literal 4}, see {@link
+     * #DEFAULT_ASYNC_WORKERS}.
      *
      * @param asyncWorkers asyncWorkers thread number
      * @return {@code this}
@@ -168,8 +176,8 @@ public class ClientOptions {
 
     /**
      * Whether to enable performance statistics. If true, the client will periodically report
-     * metrics to local falcon agent (currently we only support falcon as monitoring
-     * system).Defaults to {@literal true},see {@link #DEFAULT_ENABLE_PERF_COUNTER}
+     * metrics to local falcon agent (currently we only support falcon as monitoring system).
+     * Defaults to {@literal false}, see {@link #DEFAULT_ENABLE_PERF_COUNTER}.
      *
      * @param enablePerfCounter enablePerfCounter
      * @return {@code this}
@@ -181,8 +189,8 @@ public class ClientOptions {
 
     /**
      * Additional tags for falcon metrics. For example:
-     * "cluster=c3srv-ad,job=recommend-service-history",Default is empty string,see {@link
-     * #DEFAULT_FALCON_PERF_COUNTER_TAGS}
+     * "cluster=c3srv-ad,job=recommend-service-history". Defaults to empty string, see {@link
+     * #DEFAULT_FALCON_PERF_COUNTER_TAGS}.
      *
      * @param falconPerfCounterTags falconPerfCounterTags
      * @return {@code this}
@@ -193,8 +201,8 @@ public class ClientOptions {
     }
 
     /**
-     * The interval to report metrics to local falcon agent,Defaults to {@literal 10s},see {@link
-     * #DEFAULT_FALCON_PUSH_INTERVAL}
+     * The interval to report metrics to local falcon agent. Defaults to {@literal 10s}, see {@link
+     * #DEFAULT_FALCON_PUSH_INTERVAL}.
      *
      * @param falconPushInterval falconPushInterval
      * @return {@code this}
@@ -207,7 +215,7 @@ public class ClientOptions {
     /**
      * Create a new instance of {@link ClientOptions}.
      *
-     * @return new instance of {@link ClientOptions}
+     * @return new instance of {@link ClientOptions}.
      */
     public ClientOptions build() {
       return new ClientOptions(this);
@@ -233,26 +241,59 @@ public class ClientOptions {
     return builder;
   }
 
+  /**
+   * The list of meta server addresses, separated by commas.
+   *
+   * @return the list of meta server addresses.
+   */
   public String getMetaServers() {
     return metaServers;
   }
 
+  /**
+   * The timeout for failing to finish an operation. Defaults to {@literal 1000ms}.
+   *
+   * @return the timeout for failing to finish an operation.
+   */
   public Duration getOperationTimeout() {
     return operationTimeout;
   }
 
+  /**
+   * The number of background worker threads. Internally it is the number of Netty NIO threads for
+   * handling RPC events between client and Replica Servers. Defaults to {@literal 4}.
+   *
+   * @return The number of background worker threads.
+   */
   public int getAsyncWorkers() {
     return asyncWorkers;
   }
 
+  /**
+   * Whether to enable performance statistics. If true, the client will periodically report metrics
+   * to local falcon agent (currently we only support falcon as monitoring system). Defaults to
+   * {@literal false}.
+   *
+   * @return whether to enable performance statistics.
+   */
   public boolean isEnablePerfCounter() {
     return enablePerfCounter;
   }
 
+  /**
+   * Additional tags for falcon metrics. Defaults to empty string.
+   *
+   * @return additional tags for falcon metrics.
+   */
   public String getFalconPerfCounterTags() {
     return falconPerfCounterTags;
   }
 
+  /**
+   * The interval to report metrics to local falcon agent. Defaults to {@literal 10s}.
+   *
+   * @return the interval to report metrics to local falcon agent.
+   */
   public Duration getFalconPushInterval() {
     return falconPushInterval;
   }
