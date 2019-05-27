@@ -99,10 +99,11 @@ public class ClientOptions {
     if (options instanceof ClientOptions) {
       ClientOptions clientOptions = (ClientOptions) options;
       return this.metaServers.equals(clientOptions.metaServers)
-          && this.operationTimeout == clientOptions.operationTimeout
+          && this.operationTimeout.toMillis() == clientOptions.operationTimeout.toMillis()
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
-          && this.falconPushInterval == clientOptions.falconPushInterval;
+          && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
+          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis();
     }
     return false;
   }
