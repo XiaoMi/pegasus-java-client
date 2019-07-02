@@ -979,7 +979,8 @@ public interface PegasusTableInterface {
   public void multiDel(byte[] hashKey, List<byte[]> sortKeys, int timeout /*ms*/) throws PException;
 
   /**
-   * Del various key-values non-Atomically under the same hashKey with sortKey range limited
+   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
+   * immediately if any error occurs.
    *
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
