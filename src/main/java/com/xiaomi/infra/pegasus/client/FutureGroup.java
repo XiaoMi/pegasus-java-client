@@ -17,17 +17,17 @@ final class FutureGroup<Result> {
     asyncTasks.add(task);
   }
 
-  void waitAllCompleteOrOneFail() throws PException {
-    waitAllCompleteOrOneFail(null);
+  void waitAllCompleteOrOneFail(int timeoutMillis) throws PException {
+    waitAllCompleteOrOneFail(null, timeoutMillis);
   }
 
   // Waits until all future tasks complete but terminate if one fails.
   // `results` is nullable
-  void waitAllCompleteOrOneFail(List<Result> results) throws PException {
+  void waitAllCompleteOrOneFail(List<Result> results, int timeoutMillis) throws PException {
     for (int i = 0; i < asyncTasks.size(); i++) {
       Future<Result> fu = asyncTasks.get(i);
       try {
-        fu.awaitUninterruptibly();
+        fu.await(timeoutMillis);
       } catch (Exception e) {
         throw new PException("async task #[" + i + "] await failed: " + e.toString());
       }

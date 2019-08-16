@@ -43,7 +43,7 @@ public class TestFutureGroup {
           FutureGroup<Void> group = new FutureGroup<>(1);
           group.add(promise);
           try {
-            group.waitAllCompleteOrOneFail();
+            group.waitAllCompleteOrOneFail(10000);
           } catch (PException e) {
             success.set(false);
             System.err.println("TestFutureGroup.testInterrupt: " + e.toString());
