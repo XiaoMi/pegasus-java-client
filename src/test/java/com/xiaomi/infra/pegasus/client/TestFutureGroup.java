@@ -44,7 +44,7 @@ public class TestFutureGroup {
           group.add(promise);
           try {
             group.waitAllCompleteOrOneFail();
-          } catch (Exception e) {
+          } catch (PException e) {
             success.set(false);
             System.err.println("TestFutureGroup.testInterrupt: " + e.toString());
           }
