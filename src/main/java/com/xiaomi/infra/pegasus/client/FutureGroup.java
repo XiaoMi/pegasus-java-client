@@ -17,12 +17,13 @@ final class FutureGroup<Result> {
     asyncTasks.add(task);
   }
 
-  void waitUntilOneInBatchComplete() throws PException {
-    waitUntilOneInBatchComplete(null);
+  void waitAllCompleteOrOneFail() throws PException {
+    waitAllCompleteOrOneFail(null);
   }
 
-  // results is nullable
-  void waitUntilOneInBatchComplete(List<Result> results) throws PException {
+  // Waits until all future tasks complete but terminate if one fails.
+  // `results` is nullable
+  void waitAllCompleteOrOneFail(List<Result> results) throws PException {
     for (int i = 0; i < asyncTasks.size(); i++) {
       Future<Result> fu = asyncTasks.get(i);
       try {

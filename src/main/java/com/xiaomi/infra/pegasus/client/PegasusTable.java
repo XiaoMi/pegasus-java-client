@@ -1169,7 +1169,7 @@ public class PegasusTable implements PegasusTableInterface {
     for (SetItem i : items) {
       group.add(asyncSet(i.hashKey, i.sortKey, i.value, i.ttlSeconds, timeout));
     }
-    group.waitUntilOneInBatchComplete();
+    group.waitAllCompleteOrOneFail();
   }
 
   @Override
