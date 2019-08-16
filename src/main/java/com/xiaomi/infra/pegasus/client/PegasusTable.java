@@ -1165,6 +1165,7 @@ public class PegasusTable implements PegasusTableInterface {
     if (items == null) {
       throw new PException("Invalid parameter: items should not be null");
     }
+    if (timeout <= 0) timeout = defaultTimeout;
     FutureGroup<Void> group = new FutureGroup<>(items.size());
     for (SetItem i : items) {
       group.add(asyncSet(i.hashKey, i.sortKey, i.value, i.ttlSeconds, timeout));
