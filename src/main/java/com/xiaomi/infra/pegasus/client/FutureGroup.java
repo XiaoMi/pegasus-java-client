@@ -40,7 +40,7 @@ final class FutureGroup<Result> {
         if (cause == null) {
           throw new PException(
               String.format(
-                  "async task #[" + i + "] failed: timeout expired ({}ms)", timeoutMillis));
+                  "async task #[" + i + "] failed: timeout expired (%dms)", timeoutMillis));
         }
         throw new PException("async task #[" + i + "] failed: " + cause.getMessage(), cause);
       }
