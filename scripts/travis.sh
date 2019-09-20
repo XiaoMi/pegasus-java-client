@@ -26,13 +26,13 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
-PEGASUS_PKG="pegasus-1.11.3-b45cb06-linux-x86_64-release"
-PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus/releases/download/v1.11.3/pegasus-1.11.3-b45cb06-linux-x86_64-release.zip"
+PEGASUS_PKG="pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release"
+PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus/releases/download/v1.11.6/pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release.tar.gz"
 
 # start pegasus onebox environment
-if [ ! -f $PEGASUS_PKG.zip ]; then
+if [ ! -f $PEGASUS_PKG.tar.gz ]; then
     wget $PEGASUS_PKG_URL
-    unzip $PEGASUS_PKG.zip
+    tar xvf $PEGASUS_PKG.tar.gz
 fi
 cd $PEGASUS_PKG
 
@@ -41,7 +41,7 @@ cd ../
 
 if ! mvn clean test
 then
-    cd pegasus-1.11.3-b45cb06-linux-x86_64-release
+    cd $PEGASUS_PKG
     ./run.sh list_onebox
     exit 1
 fi
