@@ -36,7 +36,7 @@ if [ ! -f $PEGASUS_PKG.tar.gz ]; then
 fi
 cd $PEGASUS_PKG
 
-sed -i "s#https://github.com/xiaomi/pegasus-common/raw/master/zookeeper-3.4.6.tar.gz#https://github.com/XiaoMi/pegasus-common/releases/download/deps/zookeeper-3.4.6.tar.gz#" $PEGASUS_PKG/scripts/start_zk.sh
+sed -i "s#https://github.com/xiaomi/pegasus-common/raw/master/zookeeper-3.4.6.tar.gz#https://github.com/XiaoMi/pegasus-common/releases/download/deps/zookeeper-3.4.6.tar.gz#" scripts/start_zk.sh
 ./run.sh start_onebox -w
 cd ../
 
