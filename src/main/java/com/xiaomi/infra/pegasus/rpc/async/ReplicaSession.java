@@ -247,12 +247,11 @@ public class ReplicaSession {
             errno = error_types.ERR_SESSION_RESET;
           }
         }
-
-        entry.op.rpc_error.errno = errno;
-        entry.callback.run();
       } else {
         firstRecentTimedOutMs.set(0);
       }
+      entry.op.rpc_error.errno = errno;
+      entry.callback.run();
     } else {
       logger.warn(
           "{}: {} is removed by others, current error {}, isTimeoutTask {}",
