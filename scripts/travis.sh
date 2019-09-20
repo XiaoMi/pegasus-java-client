@@ -26,10 +26,15 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
+PEGASUS_PKG="pegasus-1.11.3-b45cb06-linux-x86_64-release"
+PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus/releases/download/v1.11.3/pegasus-1.11.3-b45cb06-linux-x86_64-release.zip"
+
 # start pegasus onebox environment
-wget https://github.com/XiaoMi/pegasus/releases/download/v1.11.3/pegasus-1.11.3-b45cb06-linux-x86_64-release.zip
-unzip pegasus-1.11.3-b45cb06-linux-x86_64-release.zip
-cd pegasus-1.11.3-b45cb06-linux-x86_64-release
+if [ ! -f $PEGASUS_PKG.zip ]; then
+    wget $PEGASUS_PKG_URL
+    unzip $PEGASUS_PKG.zip
+fi
+cd $PEGASUS_PKG
 
 ./run.sh start_onebox -w
 cd ../
