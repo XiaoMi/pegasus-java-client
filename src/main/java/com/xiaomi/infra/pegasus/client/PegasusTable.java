@@ -1383,8 +1383,18 @@ public class PegasusTable implements PegasusTableInterface {
       scanOptions.stopInclusive = options.stopInclusive;
       scanOptions.sortKeyFilterType = options.sortKeyFilterType;
       scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
+      long startGetScannerTime = System.currentTimeMillis();
       PegasusScannerInterface pegasusScanner =
           getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
+      long endGetScannerTimeTime = System.currentTimeMillis();
+      remainingTime = remainingTime - (int) (endGetScannerTimeTime - startGetScannerTime);
+      if (remainingTime <= 0) {
+        throw new PException(
+            "Get pegasusScanner is error when delete hashKey:" + new String(hashKey)
+                + ",startSortKey:"
+                + new String(startSortKey) + ",stopSortKey:" + new String(stopSortKey) + ":",
+            new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+      }
 
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null) {
@@ -1395,6 +1405,9 @@ public class PegasusTable implements PegasusTableInterface {
           asyncMultiDel(hashKey, sortKeys, remainingTime).get(timeout, TimeUnit.MILLISECONDS);
           long endTime = System.currentTimeMillis();
           remainingTime = remainingTime - (int) (endTime - startTime);
+          if (remainingTime <= 0) {
+            throw new TimeoutException();
+          }
           sortKeys.clear();
         }
       }
