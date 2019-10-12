@@ -1390,9 +1390,13 @@ public class PegasusTable implements PegasusTableInterface {
       remainingTime = remainingTime - (int) (endGetScannerTimeTime - startGetScannerTime);
       if (remainingTime <= 0) {
         throw new PException(
-            "Get pegasusScanner is error when delete hashKey:" + new String(hashKey)
+            "Get pegasusScanner is error when delete hashKey:"
+                + new String(hashKey)
                 + ",startSortKey:"
-                + new String(startSortKey) + ",stopSortKey:" + new String(stopSortKey) + ":",
+                + new String(startSortKey)
+                + ",stopSortKey:"
+                + new String(stopSortKey)
+                + ":",
             new ReplicationException(error_code.error_types.ERR_TIMEOUT));
       }
 
