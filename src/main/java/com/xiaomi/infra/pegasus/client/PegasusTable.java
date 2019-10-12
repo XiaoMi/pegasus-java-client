@@ -1376,37 +1376,38 @@ public class PegasusTable implements PegasusTableInterface {
     int count = 0;
     int maxBatchDelCount = 100;
     List<byte[]> sortKeys = new ArrayList<byte[]>();
-    try {
-      ScanOptions scanOptions = new ScanOptions();
-      scanOptions.noValue = true;
-      scanOptions.startInclusive = options.startInclusive;
-      scanOptions.stopInclusive = options.stopInclusive;
-      scanOptions.sortKeyFilterType = options.sortKeyFilterType;
-      scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
-      long startGetScannerTime = System.currentTimeMillis();
-      PegasusScannerInterface pegasusScanner =
-          getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
-      long endGetScannerTimeTime = System.currentTimeMillis();
-      remainingTime = remainingTime - (int) (endGetScannerTimeTime - startGetScannerTime);
-      if (remainingTime <= 0) {
-        throw new PException(
-            "Get pegasusScanner is error when delete hashKey:"
-                + new String(hashKey)
-                + ",startSortKey:"
-                + new String(startSortKey)
-                + ",stopSortKey:"
-                + new String(stopSortKey)
-                + ":",
-            new ReplicationException(error_code.error_types.ERR_TIMEOUT));
-      }
 
+    ScanOptions scanOptions = new ScanOptions();
+    scanOptions.noValue = true;
+    scanOptions.startInclusive = options.startInclusive;
+    scanOptions.stopInclusive = options.stopInclusive;
+    scanOptions.sortKeyFilterType = options.sortKeyFilterType;
+    scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
+    long startGetScannerTime = System.currentTimeMillis();
+    PegasusScannerInterface pegasusScanner =
+        getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
+    long endGetScannerTimeTime = System.currentTimeMillis();
+    remainingTime = remainingTime - (int) (endGetScannerTimeTime - startGetScannerTime);
+    if (remainingTime <= 0) {
+      throw new PException(
+          "Getting pegasusScanner failed when delete hashKey:"
+              + new String(hashKey)
+              + ",startSortKey:"
+              + new String(startSortKey)
+              + ",stopSortKey:"
+              + new String(stopSortKey)
+              + ":",
+          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    }
+
+    try {
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null) {
         sortKeys.add(pairs.getKey().getValue());
         count++;
         if (sortKeys.size() == maxBatchDelCount) {
           long startTime = System.currentTimeMillis();
-          asyncMultiDel(hashKey, sortKeys, remainingTime).get(timeout, TimeUnit.MILLISECONDS);
+          asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
           long endTime = System.currentTimeMillis();
           remainingTime = remainingTime - (int) (endTime - startTime);
           if (remainingTime <= 0) {
@@ -1416,21 +1417,22 @@ public class PegasusTable implements PegasusTableInterface {
         }
       }
       if (!sortKeys.isEmpty()) {
-        asyncMultiDel(hashKey, sortKeys, remainingTime).get(timeout, TimeUnit.MILLISECONDS);
+        asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
       }
-    } catch (InterruptedException e) {
+    } catch (InterruptedException | ExecutionException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
-      throw new PException(
-          "Delete the index " + count + " sortKey: " + sortKey + " is error:",
-          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+      throw new PException("Delete the index " + count + " sortKey: " + sortKey + " failed:", e);
     } catch (TimeoutException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
       throw new PException(
-          "Delete the index " + count + " sortKey: " + sortKey + " is error:",
+          "Delete the index "
+              + count
+              + " sortKey: "
+              + sortKey
+              + " failed,"
+              + "remainingTime:"
+              + remainingTime,
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
-    } catch (ExecutionException e) {
-      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
-      throw new PException("Delete the index " + count + " sortKey: " + sortKey + " is error:", e);
     }
   }
 
