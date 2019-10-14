@@ -1430,7 +1430,7 @@ public class PegasusTable implements PegasusTableInterface {
               + " from sortKey:"
               + sortKey
               + "[index:"
-              + (count * maxBatchDelCount + 1)
+              + count * maxBatchDelCount
               + "]"
               + " failed:",
           e);
@@ -1442,7 +1442,7 @@ public class PegasusTable implements PegasusTableInterface {
               + " from sortKey:"
               + sortKey
               + "[index:"
-              + (count * maxBatchDelCount + 1)
+              + count * maxBatchDelCount
               + "]"
               + " failed, remainingTime:"
               + remainingTime,
