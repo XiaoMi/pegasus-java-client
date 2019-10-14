@@ -1372,8 +1372,8 @@ public class PegasusTable implements PegasusTableInterface {
       byte[] hashKey, byte[] startSortKey, byte[] stopSortKey, DelRangeOptions options, int timeout)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    int remainingTime = timeout;
-    int timeUsed = 0;
+    long lastCheckTime = System.currentTimeMillis();
+    long deadlineTime = lastCheckTime + timeout;
     int count = 0;
     final int maxBatchDelCount = 100;
 
@@ -1383,12 +1383,12 @@ public class PegasusTable implements PegasusTableInterface {
     scanOptions.stopInclusive = options.stopInclusive;
     scanOptions.sortKeyFilterType = options.sortKeyFilterType;
     scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
-    long startGetScannerTime = System.currentTimeMillis();
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
-    long endGetScannerTimeTime = System.currentTimeMillis();
-    timeUsed = (int) (endGetScannerTimeTime - startGetScannerTime);
-    remainingTime = remainingTime - timeUsed;
+    long scannerTime = System.currentTimeMillis();
+    int timeUsed = (int) (scannerTime - lastCheckTime);
+    lastCheckTime = scannerTime;
+    int remainingTime = (int) (deadlineTime - lastCheckTime);
     if (remainingTime <= 0) {
       throw new PException(
           "Getting pegasusScanner takes too long time when delete hashKey:"
@@ -1410,10 +1410,9 @@ public class PegasusTable implements PegasusTableInterface {
         sortKeys.add(pairs.getKey().getValue());
         count++;
         if (sortKeys.size() == maxBatchDelCount) {
-          long startTime = System.currentTimeMillis();
           asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
-          long endTime = System.currentTimeMillis();
-          remainingTime = remainingTime - (int) (endTime - startTime);
+          lastCheckTime = System.currentTimeMillis();
+          remainingTime = (int) (deadlineTime - lastCheckTime);
           if (remainingTime <= 0) {
             throw new TimeoutException();
           }
