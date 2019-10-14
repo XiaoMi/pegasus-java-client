@@ -1408,7 +1408,6 @@ public class PegasusTable implements PegasusTableInterface {
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null) {
         sortKeys.add(pairs.getKey().getValue());
-        count++;
         if (sortKeys.size() == maxBatchDelCount) {
           asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
           lastCheckTime = System.currentTimeMillis();
@@ -1416,6 +1415,7 @@ public class PegasusTable implements PegasusTableInterface {
           if (remainingTime <= 0) {
             throw new TimeoutException();
           }
+          count++;
           sortKeys.clear();
         }
       }
@@ -1430,7 +1430,7 @@ public class PegasusTable implements PegasusTableInterface {
               + " from sortKey:"
               + sortKey
               + "[index:"
-              + count
+              + count * maxBatchDelCount
               + "]"
               + " failed:",
           e);
@@ -1442,7 +1442,7 @@ public class PegasusTable implements PegasusTableInterface {
               + " from sortKey:"
               + sortKey
               + "[index:"
-              + count
+              + count * maxBatchDelCount
               + "]"
               + " failed, remainingTime:"
               + remainingTime,
