@@ -1373,9 +1373,9 @@ public class PegasusTable implements PegasusTableInterface {
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
     int remainingTime = timeout;
+    int timeUsed = 0;
     int count = 0;
-    int maxBatchDelCount = 100;
-    List<byte[]> sortKeys = new ArrayList<byte[]>();
+    final int maxBatchDelCount = 100;
 
     ScanOptions scanOptions = new ScanOptions();
     scanOptions.noValue = true;
@@ -1387,19 +1387,23 @@ public class PegasusTable implements PegasusTableInterface {
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
     long endGetScannerTimeTime = System.currentTimeMillis();
-    remainingTime = remainingTime - (int) (endGetScannerTimeTime - startGetScannerTime);
+    timeUsed = (int) (endGetScannerTimeTime - startGetScannerTime);
+    remainingTime = remainingTime - timeUsed;
     if (remainingTime <= 0) {
       throw new PException(
-          "Getting pegasusScanner failed when delete hashKey:"
+          "Getting pegasusScanner takes too long time when delete hashKey:"
               + new String(hashKey)
               + ",startSortKey:"
               + new String(startSortKey)
               + ",stopSortKey:"
               + new String(stopSortKey)
+              + ",timeUsed:"
+              + timeUsed
               + ":",
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     }
 
+    List<byte[]> sortKeys = new ArrayList<byte[]>();
     try {
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null) {
@@ -1421,16 +1425,27 @@ public class PegasusTable implements PegasusTableInterface {
       }
     } catch (InterruptedException | ExecutionException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
-      throw new PException("Delete the index " + count + " sortKey: " + sortKey + " failed:", e);
+      throw new PException(
+          "delRange of hashKey:"
+              + new String(hashKey)
+              + " from sortKey:"
+              + sortKey
+              + "[index:"
+              + count
+              + "]"
+              + " failed:",
+          e);
     } catch (TimeoutException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
       throw new PException(
-          "Delete the index "
-              + count
-              + " sortKey: "
+          "delRange of hashKey:"
+              + new String(hashKey)
+              + " from sortKey:"
               + sortKey
-              + " failed,"
-              + "remainingTime:"
+              + "[index:"
+              + count
+              + "]"
+              + " failed, remainingTime:"
               + remainingTime,
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     }
