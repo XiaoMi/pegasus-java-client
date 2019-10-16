@@ -77,7 +77,7 @@ public class PegasusTable implements PegasusTableInterface {
     Table.ClientOPCallback callback =
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_sortkey_count_operator op = (rrdb_sortkey_count_operator) clientOP;
             if (op.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -104,7 +104,7 @@ public class PegasusTable implements PegasusTableInterface {
     Table.ClientOPCallback callback =
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_get_operator gop = (rrdb_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -143,7 +143,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_put_operator gop = (rrdb_put_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -225,7 +225,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -316,7 +316,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -428,7 +428,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_multi_put_operator op2 = (rrdb_multi_put_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -462,7 +462,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_remove_operator op2 = (rrdb_remove_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -514,7 +514,7 @@ public class PegasusTable implements PegasusTableInterface {
     table.asyncOperate(
         op,
         new Table.ClientOPCallback() {
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_multi_remove_operator op2 = (rrdb_multi_remove_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -551,7 +551,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_incr_operator op2 = (rrdb_incr_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -629,7 +629,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_check_and_set_operator op2 = (rrdb_check_and_set_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -713,7 +713,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_check_and_mutate_operator op2 = (rrdb_check_and_mutate_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -797,7 +797,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_check_and_set_operator op2 = (rrdb_check_and_set_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -838,7 +838,7 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws UnknownHostException {
+          public void onCompletion(client_operator clientOP) throws PException {
             rrdb_ttl_operator op2 = (rrdb_ttl_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
               handleReplicationException(promise, op, (TableHandler) table);
@@ -1645,12 +1645,17 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   private void handleReplicationException(
-      DefaultPromise promise, client_operator op, TableHandler table) throws UnknownHostException {
+      DefaultPromise promise, client_operator op, TableHandler table) throws PException {
     gpid gPid = op.get_gpid();
     String tableName = table.getTableName();
     ReplicaConfiguration replicaConfiguration = table.getReplicaConfig(gPid.get_pidx());
-    String replicaServer =
-        replicaConfiguration.primary.get_ip() + ":" + replicaConfiguration.primary.get_port();
+    String replicaServer = null;
+    try {
+      replicaServer =
+          replicaConfiguration.primary.get_ip() + ":" + replicaConfiguration.primary.get_port();
+    } catch (UnknownHostException e) {
+      throw new PException(new InternalError("Get replica server address error"));
+    }
     String operateName = op.name();
 
     String message;
