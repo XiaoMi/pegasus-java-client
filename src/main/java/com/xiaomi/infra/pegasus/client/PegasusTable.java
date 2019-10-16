@@ -1425,6 +1425,7 @@ public class PegasusTable implements PegasusTableInterface {
       }
     } catch (InterruptedException | ExecutionException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
+      options.nextSortKey = sortKey;
       throw new PException(
           "delRange of hashKey:"
               + new String(hashKey)
