@@ -1667,27 +1667,27 @@ public class PegasusTable implements PegasusTableInterface {
             + "]";
     switch (op.rpc_error.errno) {
       case ERR_SESSION_RESET:
-        message = "The replica server address is error, please confirm the address!";
+        message = " The replica can't be access, please confirm the address!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_TIMEOUT:
-        message = "The operation is time out!";
+        message = " The operation is time out!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_OBJECT_NOT_FOUND:
-        message = "The replica server doesn't serve this gPid!";
+        message = " The replica server doesn't serve this gPid!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_BUSY:
-        message = "The replica server is busy, maybe your table sets write_throttling!";
+        message = " The replica server is busy, maybe your table sets write_throttling!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_INVALID_STATE:
-        message = "The replica server is not primary!";
+        message = " The replica server is not primary!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;

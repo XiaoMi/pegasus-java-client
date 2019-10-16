@@ -433,13 +433,13 @@ public class TableHandler extends Table {
     switch (err_type) {
       case ERR_OBJECT_NOT_FOUND:
         message =
-            "The table is not existed under the meta_server, please confirm the meta_server url or table name!";
+            " The table is not existed under the meta_server, please confirm the meta_server url or table name!";
         throw new ReplicationException(err_type, header + message);
       case ERR_BUSY_CREATING:
-        message = "The table is creating, please wait a moment and retry it!";
+        message = " The table is creating, please wait a moment and retry it!";
         throw new ReplicationException(err_type, header + message);
       case ERR_BUSY_DROPPING:
-        message = "The table is dropping, please confirm the table name!";
+        message = " The table is dropping, please confirm the table name!";
         throw new ReplicationException(err_type, header + message);
       default:
         throw new ReplicationException(err_type);
