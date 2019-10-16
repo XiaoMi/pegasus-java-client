@@ -1657,7 +1657,7 @@ public class PegasusTable implements PegasusTableInterface {
     String header =
         "[table="
             + tableName
-            + ",operateName="
+            + ",operation="
             + operateName
             + ",replicaServer="
             + replicaServer
