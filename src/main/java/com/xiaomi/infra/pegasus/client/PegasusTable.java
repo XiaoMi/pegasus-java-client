@@ -1410,6 +1410,7 @@ public class PegasusTable implements PegasusTableInterface {
       while ((pairs = pegasusScanner.next()) != null) {
         sortKeys.add(pairs.getKey().getValue());
         if (sortKeys.size() == maxBatchDelCount) {
+          options.nextSortKey = new String(sortKeys.get(0));
           asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
           lastCheckTime = System.currentTimeMillis();
           remainingTime = (int) (deadlineTime - lastCheckTime);
@@ -1424,13 +1425,11 @@ public class PegasusTable implements PegasusTableInterface {
         asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
       }
     } catch (InterruptedException | ExecutionException e) {
-      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
-      options.nextSortKey = sortKey;
       throw new PException(
           "delRange of hashKey:"
               + new String(hashKey)
               + " from sortKey:"
-              + sortKey
+              + options.nextSortKey
               + "[index:"
               + count * maxBatchDelCount
               + "]"
