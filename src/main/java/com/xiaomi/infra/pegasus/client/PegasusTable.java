@@ -77,10 +77,10 @@ public class PegasusTable implements PegasusTableInterface {
     Table.ClientOPCallback callback =
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_sortkey_count_operator op = (rrdb_sortkey_count_operator) clientOP;
             if (op.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + op.get_response().error));
             } else {
@@ -104,10 +104,10 @@ public class PegasusTable implements PegasusTableInterface {
     Table.ClientOPCallback callback =
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_get_operator gop = (rrdb_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (gop.get_response().error == 1) { // rocksdb::kNotFound
               promise.setSuccess(null);
             } else if (gop.get_response().error != 0) {
@@ -143,10 +143,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_put_operator gop = (rrdb_put_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (gop.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
             } else {
@@ -225,10 +225,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (gop.get_response().error != 0 && gop.get_response().error != 7) {
               // rocksdb::Status::kOk && rocksdb::Status::kIncomplete
               promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
@@ -316,10 +316,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
             if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (gop.get_response().error != 0 && gop.get_response().error != 7) {
               // rocksdb::Status::kOk && rocksdb::Status::kIncomplete
               promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
@@ -428,10 +428,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_multi_put_operator op2 = (rrdb_multi_put_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
             } else {
@@ -462,10 +462,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_remove_operator op2 = (rrdb_remove_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
             } else {
@@ -514,10 +514,10 @@ public class PegasusTable implements PegasusTableInterface {
     table.asyncOperate(
         op,
         new Table.ClientOPCallback() {
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_multi_remove_operator op2 = (rrdb_multi_remove_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
             } else {
@@ -551,10 +551,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_incr_operator op2 = (rrdb_incr_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0) {
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
             } else {
@@ -629,10 +629,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_check_and_set_operator op2 = (rrdb_check_and_set_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0
                 && op2.get_response().error != 13) { // 13 : kTryAgain
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
@@ -713,10 +713,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_check_and_mutate_operator op2 = (rrdb_check_and_mutate_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0
                 && op2.get_response().error != 13) { // 13 : kTryAgain
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
@@ -797,10 +797,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_check_and_set_operator op2 = (rrdb_check_and_set_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0
                 && op2.get_response().error != 13) { // 13 : kTryAgain
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
@@ -838,10 +838,10 @@ public class PegasusTable implements PegasusTableInterface {
         op,
         new Table.ClientOPCallback() {
           @Override
-          public void onCompletion(client_operator clientOP) throws PException {
+          public void onCompletion(client_operator clientOP) {
             rrdb_ttl_operator op2 = (rrdb_ttl_operator) clientOP;
             if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
-              handleReplicationException(promise, op, (TableHandler) table);
+              handleReplicaException(promise, op, table, timeout);
             } else if (op2.get_response().error != 0 && op2.get_response().error != 1) {
               promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
             } else {
@@ -1644,26 +1644,26 @@ public class PegasusTable implements PegasusTableInterface {
     return ret;
   }
 
-  private void handleReplicationException(
-      DefaultPromise promise, client_operator op, TableHandler table) throws PException {
+  private void handleReplicaException(
+      DefaultPromise promise, client_operator op, Table table, int timeout) {
     gpid gPid = op.get_gpid();
-    String tableName = table.getTableName();
-    ReplicaConfiguration replicaConfiguration = table.getReplicaConfig(gPid.get_pidx());
+    ReplicaConfiguration replicaConfiguration =
+        ((TableHandler) table).getReplicaConfig(gPid.get_pidx());
     String replicaServer = null;
     try {
       replicaServer =
           replicaConfiguration.primary.get_ip() + ":" + replicaConfiguration.primary.get_port();
     } catch (UnknownHostException e) {
-      throw new PException(new InternalError("Get replica server address error"));
+      promise.setFailure(new PException(e));
+      return;
     }
-    String operateName = op.name();
 
     String message;
     String header =
         "[table="
-            + tableName
+            + table.getTableName()
             + ",operation="
-            + operateName
+            + op.name()
             + ",replicaServer="
             + replicaServer
             + ",gPid=("
@@ -1677,22 +1677,22 @@ public class PegasusTable implements PegasusTableInterface {
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_TIMEOUT:
-        message = " The operation is time out!";
+        message = " The operationTimeout is " + timeout + "ms";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_OBJECT_NOT_FOUND:
-        message = " The replica server doesn't serve this gPid!";
+        message = " The replica server doesn't serve this partition!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_BUSY:
-        message = " The replica server is busy, maybe your table sets write_throttling!";
+        message = " Rate of requests exceeds the throughput limit!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_INVALID_STATE:
-        message = " The replica server is not primary!";
+        message = " The target replica is not primary!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;

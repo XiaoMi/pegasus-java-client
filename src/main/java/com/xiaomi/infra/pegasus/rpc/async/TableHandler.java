@@ -74,6 +74,7 @@ public class TableHandler extends Table {
     error_types err = MetaSession.getMetaServiceError(op);
     if (err != error_types.ERR_OK) {
       handleMetaException(err, mgr, name);
+      return;
     }
 
     query_cfg_response resp = op.get_response();
@@ -433,7 +434,7 @@ public class TableHandler extends Table {
     switch (err_type) {
       case ERR_OBJECT_NOT_FOUND:
         message =
-            " The table is not existed under the meta_server, please confirm the meta_server url or table name!";
+            " No such table. Please make sure your meta addresses and table name are correct!";
         throw new ReplicationException(err_type, header + message);
       case ERR_BUSY_CREATING:
         message = " The table is creating, please wait a moment and retry it!";
