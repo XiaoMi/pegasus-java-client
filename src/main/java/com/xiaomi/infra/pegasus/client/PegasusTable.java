@@ -1677,7 +1677,7 @@ public class PegasusTable implements PegasusTableInterface {
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_TIMEOUT:
-        message = " The operationTimeout is " + timeout + "ms";
+        message = " The operationTimeout is " + timeout + "ms!";
         promise.setFailure(
             new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
