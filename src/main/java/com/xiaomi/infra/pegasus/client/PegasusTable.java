@@ -1649,7 +1649,7 @@ public class PegasusTable implements PegasusTableInterface {
     gpid gPid = op.get_gpid();
     ReplicaConfiguration replicaConfiguration =
         ((TableHandler) table).getReplicaConfig(gPid.get_pidx());
-    String replicaServer = null;
+    String replicaServer;
     try {
       replicaServer =
           replicaConfiguration.primary.get_ip() + ":" + replicaConfiguration.primary.get_port();
@@ -1666,13 +1666,13 @@ public class PegasusTable implements PegasusTableInterface {
             + op.name()
             + ",replicaServer="
             + replicaServer
-            + ",gPid=("
+            + ",gpid=("
             + gPid.toString()
             + ")"
             + "]";
     switch (op.rpc_error.errno) {
       case ERR_SESSION_RESET:
-        message = " The replica can't be access, please confirm the address!";
+        message = " Disconnected from the replica-server due to internal error!";
         break;
       case ERR_TIMEOUT:
         message = " The operationTimeout is " + timeout + "ms!";
