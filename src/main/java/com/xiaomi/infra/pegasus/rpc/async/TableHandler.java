@@ -429,21 +429,20 @@ public class TableHandler extends Table {
   private void handleMetaException(error_types err_type, ClusterManager mgr, String name)
       throws ReplicationException {
     String metaServer = Arrays.toString(mgr.getMetaList());
-    String message;
+    String message = "";
     String header = "[metaServer=" + metaServer + ",tableName=" + name + "]";
     switch (err_type) {
       case ERR_OBJECT_NOT_FOUND:
         message =
             " No such table. Please make sure your meta addresses and table name are correct!";
-        throw new ReplicationException(err_type, header + message);
+        break;
       case ERR_BUSY_CREATING:
         message = " The table is creating, please wait a moment and retry it!";
-        throw new ReplicationException(err_type, header + message);
+        break;
       case ERR_BUSY_DROPPING:
         message = " The table is dropping, please confirm the table name!";
-        throw new ReplicationException(err_type, header + message);
-      default:
-        throw new ReplicationException(err_type);
+        break;
     }
+    throw new ReplicationException(err_type, header + message);
   }
 }

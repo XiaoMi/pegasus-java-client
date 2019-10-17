@@ -1658,7 +1658,7 @@ public class PegasusTable implements PegasusTableInterface {
       return;
     }
 
-    String message;
+    String message = "";
     String header =
         "[table="
             + table.getTableName()
@@ -1673,31 +1673,21 @@ public class PegasusTable implements PegasusTableInterface {
     switch (op.rpc_error.errno) {
       case ERR_SESSION_RESET:
         message = " The replica can't be access, please confirm the address!";
-        promise.setFailure(
-            new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_TIMEOUT:
         message = " The operationTimeout is " + timeout + "ms!";
-        promise.setFailure(
-            new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_OBJECT_NOT_FOUND:
         message = " The replica server doesn't serve this partition!";
-        promise.setFailure(
-            new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_BUSY:
         message = " Rate of requests exceeds the throughput limit!";
-        promise.setFailure(
-            new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
       case ERR_INVALID_STATE:
         message = " The target replica is not primary!";
-        promise.setFailure(
-            new PException(new ReplicationException(op.rpc_error.errno, header + message)));
         break;
-      default:
-        promise.setFailure(new PException(new ReplicationException(op.rpc_error.errno, header)));
     }
+    promise.setFailure(
+        new PException(new ReplicationException(op.rpc_error.errno, header + message)));
   }
 }
