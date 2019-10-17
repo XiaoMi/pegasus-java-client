@@ -1375,7 +1375,6 @@ public class PegasusTable implements PegasusTableInterface {
     long startTime = System.currentTimeMillis();
     long lastCheckTime = startTime;
     long deadlineTime = startTime + timeout;
-    long timeUsed = 0;
     int count = 0;
     final int maxBatchDelCount = 100;
 
@@ -1385,11 +1384,12 @@ public class PegasusTable implements PegasusTableInterface {
     scanOptions.stopInclusive = options.stopInclusive;
     scanOptions.sortKeyFilterType = options.sortKeyFilterType;
     scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
+
+    options.nextSortKey = new String(startSortKey);
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
     lastCheckTime = System.currentTimeMillis();
     if (lastCheckTime >= deadlineTime) {
-      timeUsed = lastCheckTime - startTime;
       throw new PException(
           "Getting pegasusScanner takes too long time when delete hashKey:"
               + new String(hashKey)
@@ -1398,7 +1398,7 @@ public class PegasusTable implements PegasusTableInterface {
               + ",stopSortKey:"
               + new String(stopSortKey)
               + ",timeUsed:"
-              + timeUsed
+              + (lastCheckTime - startTime)
               + ":",
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     }
@@ -1423,6 +1423,7 @@ public class PegasusTable implements PegasusTableInterface {
       }
       if (!sortKeys.isEmpty()) {
         asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
+        options.nextSortKey = null;
       }
     } catch (InterruptedException | ExecutionException e) {
       throw new PException(
@@ -1437,7 +1438,7 @@ public class PegasusTable implements PegasusTableInterface {
           e);
     } catch (TimeoutException e) {
       String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
-      timeUsed = System.currentTimeMillis() - startTime;
+      int timeUsed = (int) (System.currentTimeMillis() - startTime);
       throw new PException(
           "delRange of hashKey:"
               + new String(hashKey)
@@ -1447,8 +1448,7 @@ public class PegasusTable implements PegasusTableInterface {
               + count * maxBatchDelCount
               + "]"
               + " failed, timeUsed:"
-              + timeUsed
-              + ":",
+              + timeUsed,
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     }
   }

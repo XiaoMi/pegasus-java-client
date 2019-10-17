@@ -2386,6 +2386,7 @@ public class TestBasic {
       Assert.assertTrue(false);
     }
 
+    Assert.assertTrue(delRangeOptions.nextSortKey == null);
     List<byte[]> remainingSortKey = new ArrayList<byte[]>();
 
     remainingSortKey.add("k_90".getBytes());
