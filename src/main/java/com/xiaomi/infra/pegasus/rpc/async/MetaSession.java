@@ -76,6 +76,8 @@ public class MetaSession extends HostNameResolver {
     if (maxQueryCount == 0) {
       maxQueryCount = defaultMaxQueryCount;
     }
+    this.maxQueryCount = maxQueryCount;
+    this.maxResolveCount = maxQueryCount;
     MetaRequestRound round;
     synchronized (this) {
       round = new MetaRequestRound(op, callbackFunc, maxQueryCount, metaList.get(curLeader));
@@ -132,7 +134,7 @@ public class MetaSession extends HostNameResolver {
     boolean needSwitchLeader = false;
     rpc_address forwardAddress = null;
 
-    --round.maxQueryCount;
+    --maxQueryCount;
 
     error_types metaError = error_types.ERR_UNKNOWN;
     if (op.rpc_error.errno == error_types.ERR_OK) {
@@ -186,9 +188,10 @@ public class MetaSession extends HostNameResolver {
           }
         } else if (metaList.get(curLeader) == round.lastSession) {
           curLeader = (curLeader + 1) % metaList.size();
-
           // try refresh the meta list from DNS
-          if (curLeader == 0 && hostPort != null) {
+          if (curLeader == 0 && hostPort != null && maxResolveCount != 0) {
+            maxResolveCount--;
+            maxQueryCount = round.maxQueryCount;
             resolveHost(hostPort);
           }
         }
@@ -196,7 +199,7 @@ public class MetaSession extends HostNameResolver {
       round.lastSession = metaList.get(curLeader);
     }
 
-    if (round.maxQueryCount == 0) {
+    if (maxQueryCount == 0) {
       round.callbackFunc.run();
       return;
     }
@@ -233,8 +236,8 @@ public class MetaSession extends HostNameResolver {
   /*
    * Resolves hostname:port into a set of ip addresses.
    */
-  void resolveHost(String hostPort) {
-    rpc_address[] addrs = resolve(hostPort);
+  void resolveHost(String hostPort) throws IllegalArgumentException {
+    rpc_address[] addrs = resolve(hostPort, 2);
     if (addrs == null) {
       logger.error("failed to resolve address \"{}\" as host:port", hostPort);
       return;
@@ -285,6 +288,8 @@ public class MetaSession extends HostNameResolver {
   private int defaultMaxQueryCount;
   private EventLoopGroup group;
   private String hostPort;
+  private int maxQueryCount;
+  private int maxResolveCount;
 
   private static final org.slf4j.Logger logger =
       org.slf4j.LoggerFactory.getLogger(MetaSession.class);

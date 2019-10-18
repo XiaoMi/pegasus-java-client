@@ -4,28 +4,34 @@
 
 package com.xiaomi.infra.pegasus.base;
 
+import com.xiaomi.infra.pegasus.rpc.async.HostNameResolver;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestRpcAddress {
   @Test
   public void testResolveFromHostPort() throws Exception {
-    rpc_address[] addrs = rpc_address.resolveFromHostPort("127.0.0.1:34601");
+    HostNameResolver hostNameResolver = new HostNameResolver();
+    rpc_address[] addrs = hostNameResolver.resolve("127.0.0.1:34601");
 
     Assert.assertNotNull(addrs);
     Assert.assertEquals(addrs.length, 1);
     Assert.assertEquals(addrs[0].get_ip(), "127.0.0.1");
     Assert.assertEquals(addrs[0].get_port(), 34601);
 
-    addrs = rpc_address.resolveFromHostPort("www.baidu.com:80");
+    addrs = hostNameResolver.resolve("www.baidu.com:80");
     Assert.assertNotNull(addrs);
     Assert.assertTrue(addrs.length >= 1);
 
-    addrs = rpc_address.resolveFromHostPort("abcabcabcabc:34601");
+    addrs = hostNameResolver.resolve("abcabcabcabc:34601");
     Assert.assertNull(addrs);
 
-    addrs = rpc_address.resolveFromHostPort("localhost");
-    Assert.assertNull(addrs);
+    try {
+      addrs = hostNameResolver.resolve("localhost");
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+      Assert.assertNull(addrs);
+    }
   }
 
   @Test

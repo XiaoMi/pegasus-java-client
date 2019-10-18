@@ -4,13 +4,48 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.base.rpc_address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /*
  * Resolves host:port into a set of ip addresses.
  * The intention of this class is to mock DNS.
  */
-abstract class HostNameResolver {
-  rpc_address[] resolve(String hostPort) {
-    return rpc_address.resolveFromHostPort(hostPort);
+public class HostNameResolver {
+
+  public rpc_address[] resolve(String hostPort, int maxResolveCount)
+      throws IllegalArgumentException {
+
+    rpc_address[] rpc_addresses = null;
+    while (maxResolveCount != 0 && rpc_addresses == null) {
+      rpc_addresses = resolve(hostPort);
+      maxResolveCount--;
+    }
+    return rpc_addresses;
+  }
+
+  public rpc_address[] resolve(String hostPort) throws IllegalArgumentException {
+    String[] pairs = hostPort.split(":");
+    if (pairs.length != 2) {
+      throw new IllegalArgumentException("Meta server host name format error");
+    }
+    Integer port = Integer.valueOf(pairs[1]);
+
+    try {
+      InetAddress[] resolvedAddresses = InetAddress.getAllByName(pairs[0]);
+      rpc_address[] results = new rpc_address[resolvedAddresses.length];
+      int size = 0;
+      for (InetAddress addr : resolvedAddresses) {
+        rpc_address rpcAddr = new rpc_address();
+        int ip = ByteBuffer.wrap(addr.getAddress()).order(ByteOrder.BIG_ENDIAN).getInt();
+        rpcAddr.address = ((long) ip << 32) + ((long) port << 16) + 1;
+        results[size++] = rpcAddr;
+      }
+      return results;
+    } catch (UnknownHostException e) {
+      return null;
+    }
   }
 }

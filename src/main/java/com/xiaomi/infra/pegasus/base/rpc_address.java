@@ -132,33 +132,9 @@ public final class rpc_address
     return true;
   }
 
-
   public static rpc_address fromIpPort(String ipPort) {
     rpc_address addr = new rpc_address();
     return addr.fromString(ipPort) ? addr : null;
-  }
-
-  public static rpc_address[] resolveFromHostPort(String hostPort) {
-    String[] pairs = hostPort.split(":");
-    if (pairs.length != 2) {
-      return null;
-    }
-    Integer port = Integer.valueOf(pairs[1]);
-
-    try {
-      InetAddress[] resolvedAddresses = InetAddress.getAllByName(pairs[0]);
-      rpc_address[] results = new rpc_address[resolvedAddresses.length];
-      int size = 0;
-      for (InetAddress addr : resolvedAddresses) {
-        rpc_address rpcAddr = new rpc_address();
-        int ip = ByteBuffer.wrap(addr.getAddress()).order(ByteOrder.BIG_ENDIAN).getInt();
-        rpcAddr.address = ((long) ip << 32) + ((long) port << 16) + 1;
-        results[size++] = rpcAddr;
-      }
-      return results;
-    } catch (UnknownHostException e) {
-      return null;
-    }
   }
 
   /** Performs a deep copy on <i>other</i>. */
