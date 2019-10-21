@@ -15,13 +15,12 @@ import java.nio.ByteOrder;
  */
 public class HostNameResolver {
 
-  public rpc_address[] resolve(String hostPort, int maxResolveCount)
-      throws IllegalArgumentException {
+  public rpc_address[] resolve(String hostPort, int retryCount) throws IllegalArgumentException {
 
     rpc_address[] rpc_addresses = null;
-    while (maxResolveCount != 0 && rpc_addresses == null) {
+    while (retryCount != 0 && rpc_addresses == null) {
       rpc_addresses = resolve(hostPort);
-      maxResolveCount--;
+      retryCount--;
     }
     return rpc_addresses;
   }

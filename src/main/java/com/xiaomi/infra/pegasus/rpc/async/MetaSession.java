@@ -72,20 +72,23 @@ public class MetaSession extends HostNameResolver {
     return addr;
   }
 
-  public final void asyncQuery(client_operator op, Runnable callbackFunc, int maxQueryCount) {
+  public final void asyncQuery(
+      client_operator op, Runnable callbackFunc, int maxQueryCount, int maxResolveCount) {
     if (maxQueryCount == 0) {
       maxQueryCount = defaultMaxQueryCount;
     }
     this.maxQueryCount = maxQueryCount;
-    this.maxResolveCount = maxQueryCount;
+    this.maxResolveCount = maxResolveCount;
     MetaRequestRound round;
     synchronized (this) {
-      round = new MetaRequestRound(op, callbackFunc, maxQueryCount, metaList.get(curLeader));
+      round =
+          new MetaRequestRound(
+              op, callbackFunc, maxQueryCount, maxResolveCount, metaList.get(curLeader));
     }
     asyncCall(round);
   }
 
-  public final void query(client_operator op, int maxQueryCount) {
+  public final void query(client_operator op, int maxQueryCount, int maxResolveCount) {
     FutureTask<Void> v =
         new FutureTask<Void>(
             new Callable<Void>() {
@@ -94,7 +97,7 @@ public class MetaSession extends HostNameResolver {
                 return null;
               }
             });
-    asyncQuery(op, v, maxQueryCount);
+    asyncQuery(op, v, maxQueryCount, maxResolveCount);
     while (true) {
       try {
         v.get();
@@ -134,7 +137,7 @@ public class MetaSession extends HostNameResolver {
     boolean needSwitchLeader = false;
     rpc_address forwardAddress = null;
 
-    --maxQueryCount;
+    --round.maxQueryCount;
 
     error_types metaError = error_types.ERR_UNKNOWN;
     if (op.rpc_error.errno == error_types.ERR_OK) {
@@ -189,9 +192,9 @@ public class MetaSession extends HostNameResolver {
         } else if (metaList.get(curLeader) == round.lastSession) {
           curLeader = (curLeader + 1) % metaList.size();
           // try refresh the meta list from DNS
-          if (curLeader == 0 && hostPort != null && maxResolveCount != 0) {
-            maxResolveCount--;
-            maxQueryCount = round.maxQueryCount;
+          if (curLeader == 0 && hostPort != null && round.maxResolveCount != 0) {
+            round.maxResolveCount--;
+            round.maxQueryCount = maxQueryCount;
             resolveHost(hostPort);
           }
         }
@@ -199,7 +202,7 @@ public class MetaSession extends HostNameResolver {
       round.lastSession = metaList.get(curLeader);
     }
 
-    if (maxQueryCount == 0) {
+    if (round.maxQueryCount == 0) {
       round.callbackFunc.run();
       return;
     }
@@ -223,12 +226,14 @@ public class MetaSession extends HostNameResolver {
     public client_operator op;
     public Runnable callbackFunc;
     public int maxQueryCount;
+    public int maxResolveCount;
     public ReplicaSession lastSession;
 
-    public MetaRequestRound(client_operator o, Runnable r, int q, ReplicaSession l) {
+    public MetaRequestRound(client_operator o, Runnable r, int qc, int rc, ReplicaSession l) {
       op = o;
       callbackFunc = r;
-      maxQueryCount = q;
+      maxQueryCount = qc;
+      maxResolveCount = rc;
       lastSession = l;
     }
   }
@@ -279,6 +284,11 @@ public class MetaSession extends HostNameResolver {
   // Only for test.
   List<ReplicaSession> getMetaList() {
     return metaList;
+  }
+
+  // only for test
+  void setMaxQueryCount(int count) {
+    this.maxQueryCount = count;
   }
 
   private ClusterManager clusterManager;
