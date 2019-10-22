@@ -15,16 +15,6 @@ import java.nio.ByteOrder;
  */
 public class HostNameResolver {
 
-  public rpc_address[] resolve(String hostPort, int retryCount) throws IllegalArgumentException {
-
-    rpc_address[] rpc_addresses = null;
-    while (retryCount != 0 && rpc_addresses == null) {
-      rpc_addresses = resolve(hostPort);
-      retryCount--;
-    }
-    return rpc_addresses;
-  }
-
   public rpc_address[] resolve(String hostPort) throws IllegalArgumentException {
     String[] pairs = hostPort.split(":");
     if (pairs.length != 2) {
@@ -46,7 +36,7 @@ public class HostNameResolver {
     } catch (UnknownHostException e) {
       return null;
     } catch (NumberFormatException e) {
-      throw new NumberFormatException("Meta server port format error!");
+      throw new IllegalArgumentException("Meta server port format error!");
     }
   }
 }

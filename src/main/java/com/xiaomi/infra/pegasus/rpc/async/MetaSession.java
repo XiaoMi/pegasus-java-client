@@ -240,7 +240,7 @@ public class MetaSession extends HostNameResolver {
    * Resolves hostname:port into a set of ip addresses.
    */
   void resolveHost(String hostPort) throws IllegalArgumentException {
-    rpc_address[] addrs = resolve(hostPort, 2);
+    rpc_address[] addrs = resolve(hostPort);
     if (addrs == null) {
       logger.error("failed to resolve address \"{}\" as host:port", hostPort);
       return;
