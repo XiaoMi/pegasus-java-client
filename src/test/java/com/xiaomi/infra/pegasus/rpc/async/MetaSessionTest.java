@@ -212,7 +212,6 @@ public class MetaSessionTest {
     Integer curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
     Assert.assertEquals(curLeader.intValue(), 1);
 
-    meta.setMaxQueryCount(round.maxQueryCount);
     // failed again
     meta.onFinishQueryMeta(round);
     // switch curLeader to 0, meta list updated

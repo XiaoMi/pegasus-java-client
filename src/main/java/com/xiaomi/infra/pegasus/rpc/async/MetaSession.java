@@ -77,8 +77,6 @@ public class MetaSession extends HostNameResolver {
     if (maxQueryCount == 0) {
       maxQueryCount = defaultMaxQueryCount;
     }
-    this.maxQueryCount = maxQueryCount;
-    this.maxResolveCount = maxResolveCount;
     MetaRequestRound round;
     synchronized (this) {
       round =
@@ -194,7 +192,7 @@ public class MetaSession extends HostNameResolver {
           // try refresh the meta list from DNS
           if (curLeader == 0 && hostPort != null && round.maxResolveCount != 0) {
             round.maxResolveCount--;
-            round.maxQueryCount = maxQueryCount;
+            round.maxQueryCount = (metaList.size() * 2 - 1);
             resolveHost(hostPort);
           }
         }
@@ -286,11 +284,6 @@ public class MetaSession extends HostNameResolver {
     return metaList;
   }
 
-  // only for test
-  void setMaxQueryCount(int count) {
-    this.maxQueryCount = count;
-  }
-
   private ClusterManager clusterManager;
   private List<ReplicaSession> metaList;
   private int curLeader;
@@ -298,8 +291,6 @@ public class MetaSession extends HostNameResolver {
   private int defaultMaxQueryCount;
   private EventLoopGroup group;
   private String hostPort;
-  private int maxQueryCount;
-  private int maxResolveCount;
 
   private static final org.slf4j.Logger logger =
       org.slf4j.LoggerFactory.getLogger(MetaSession.class);

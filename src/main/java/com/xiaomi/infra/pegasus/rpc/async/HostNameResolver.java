@@ -28,11 +28,11 @@ public class HostNameResolver {
   public rpc_address[] resolve(String hostPort) throws IllegalArgumentException {
     String[] pairs = hostPort.split(":");
     if (pairs.length != 2) {
-      throw new IllegalArgumentException("Meta server host name format error");
+      throw new IllegalArgumentException("Meta server host name format error!");
     }
-    Integer port = Integer.valueOf(pairs[1]);
 
     try {
+      Integer port = Integer.valueOf(pairs[1]);
       InetAddress[] resolvedAddresses = InetAddress.getAllByName(pairs[0]);
       rpc_address[] results = new rpc_address[resolvedAddresses.length];
       int size = 0;
@@ -45,6 +45,8 @@ public class HostNameResolver {
       return results;
     } catch (UnknownHostException e) {
       return null;
+    } catch (NumberFormatException e) {
+      throw new NumberFormatException("Meta server port format error!");
     }
   }
 }
