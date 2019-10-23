@@ -69,7 +69,7 @@ public class TableHandler extends Table {
     query_cfg_request req = new query_cfg_request(name, new ArrayList<Integer>());
     query_cfg_operator op = new query_cfg_operator(new gpid(-1, -1), req);
 
-    mgr.getMetaSession().query(op, 5, 2);
+    mgr.getMetaSession().query(op, 5);
 
     error_types err = MetaSession.getMetaServiceError(op);
     if (err != error_types.ERR_OK) {
@@ -235,8 +235,7 @@ public class TableHandler extends Table {
                 onUpdateConfiguration(query_op);
               }
             },
-            (manager_.getMetaList().length * 2 - 1),
-            2);
+            5);
 
     return true;
   }
@@ -397,6 +396,7 @@ public class TableHandler extends Table {
     } catch (ExecutionException e) {
       logger.info("got exception: " + e);
       throw new ReplicationException(e);
+
     } catch (TimeoutException e) {
       op.rpc_error.errno = error_types.ERR_TIMEOUT;
     }

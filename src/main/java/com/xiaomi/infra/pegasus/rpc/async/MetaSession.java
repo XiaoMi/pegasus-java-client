@@ -72,21 +72,18 @@ public class MetaSession extends HostNameResolver {
     return addr;
   }
 
-  public final void asyncQuery(
-      client_operator op, Runnable callbackFunc, int maxQueryCount, int maxResolveCount) {
+  public final void asyncQuery(client_operator op, Runnable callbackFunc, int maxQueryCount) {
     if (maxQueryCount == 0) {
       maxQueryCount = defaultMaxQueryCount;
     }
     MetaRequestRound round;
     synchronized (this) {
-      round =
-          new MetaRequestRound(
-              op, callbackFunc, maxQueryCount, maxResolveCount, metaList.get(curLeader));
+      round = new MetaRequestRound(op, callbackFunc, maxQueryCount, metaList.get(curLeader));
     }
     asyncCall(round);
   }
 
-  public final void query(client_operator op, int maxQueryCount, int maxResolveCount) {
+  public final void query(client_operator op, int maxQueryCount) {
     FutureTask<Void> v =
         new FutureTask<Void>(
             new Callable<Void>() {
@@ -95,7 +92,7 @@ public class MetaSession extends HostNameResolver {
                 return null;
               }
             });
-    asyncQuery(op, v, maxQueryCount, maxResolveCount);
+    asyncQuery(op, v, maxQueryCount);
     while (true) {
       try {
         v.get();
@@ -190,10 +187,15 @@ public class MetaSession extends HostNameResolver {
         } else if (metaList.get(curLeader) == round.lastSession) {
           curLeader = (curLeader + 1) % metaList.size();
           // try refresh the meta list from DNS
+          // maxResolveCount and "maxQueryCount refresh" is necessary:
+          // for example, maxQueryCount=5, the first error metalist size = 3, when trigger dns
+          // refresh, the "maxQueryCount" may change to 2, the client may can't choose the right
+          // leader when the new metaList size > 2 after retry 2 time. but if the "maxQueryCount"
+          // refresh, the retry will not stop if no maxResolveCount when the meta is error.
           if (curLeader == 0 && hostPort != null && round.maxResolveCount != 0) {
-            round.maxResolveCount--;
-            round.maxQueryCount = (metaList.size() * 2 - 1);
             resolveHost(hostPort);
+            round.maxResolveCount--;
+            round.maxQueryCount = metaList.size();
           }
         }
       }
@@ -221,17 +223,17 @@ public class MetaSession extends HostNameResolver {
   }
 
   static final class MetaRequestRound {
+    public int maxResolveCount = 2;
+
     public client_operator op;
     public Runnable callbackFunc;
     public int maxQueryCount;
-    public int maxResolveCount;
     public ReplicaSession lastSession;
 
-    public MetaRequestRound(client_operator o, Runnable r, int qc, int rc, ReplicaSession l) {
+    public MetaRequestRound(client_operator o, Runnable r, int c, ReplicaSession l) {
       op = o;
       callbackFunc = r;
-      maxQueryCount = qc;
-      maxResolveCount = rc;
+      maxQueryCount = c;
       lastSession = l;
     }
   }
