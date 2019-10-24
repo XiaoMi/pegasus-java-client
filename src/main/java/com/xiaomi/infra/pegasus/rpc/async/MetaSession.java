@@ -244,7 +244,7 @@ public class MetaSession extends HostNameResolver {
   void resolveHost(String hostPort) throws IllegalArgumentException {
     rpc_address[] addrs = resolve(hostPort);
     if (addrs == null) {
-      logger.error("failed to resolve address \"{}\" as host:port", hostPort);
+      logger.error("failed to resolve address {} as host:port", hostPort);
       return;
     }
 

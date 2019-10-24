@@ -63,7 +63,6 @@ public class MetaSessionTest {
     // test: first connect to a wrong server
     // then it forward to the right server
     // then the wrong server crashed
-    System.out.println("test meta connection");
     String[] addr_list = {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"};
     ClusterManager manager = new ClusterManager(1000, 4, false, null, 60, addr_list);
     MetaSession session = manager.getMetaSession();
@@ -113,7 +112,6 @@ public class MetaSessionTest {
   @Test
   public void testDNSResolveHost() throws Exception {
     // ensure meta list keeps consistent with dns.
-    System.out.println("test resolve host");
     ClusterManager manager =
         new ClusterManager(
             1000,
@@ -160,7 +158,6 @@ public class MetaSessionTest {
 
   @Test
   public void testDNSMetaAllDead() throws Exception {
-    System.out.println("test meta all dead");
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
@@ -178,6 +175,7 @@ public class MetaSessionTest {
 
     query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
     client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
+    op.rpc_error.errno = error_code.error_types.ERR_SESSION_RESET;
     MetaSession.MetaRequestRound round =
         new MetaSession.MetaRequestRound(
             op,
@@ -219,7 +217,6 @@ public class MetaSessionTest {
 
   @Test
   public void testDNSMetaForwardRealLeader() throws Exception {
-    System.out.println("test meta forward real leader");
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
@@ -270,7 +267,6 @@ public class MetaSessionTest {
 
   @Test
   public void testDNSMetaAllChanged1() {
-    System.out.println("test meta all changed and can auto fresh");
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
@@ -315,7 +311,6 @@ public class MetaSessionTest {
     // when trigger dns refresh, the "maxQueryCount" may change to 1,
     // the client may can't choose the right leader when the new metaList size > 1,
     // the test shows "maxQueryCount" refresh is necessary
-    System.out.println("test meta all changed and can auto fresh with \"maxQueryCount refresh\" ");
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
@@ -366,7 +361,6 @@ public class MetaSessionTest {
     // if the "maxQueryCount" refresh, the retry will not stop if the meta error,
     // so "MetaRequestRound class" add "maxResolveCount"
     // the test shows "maxResolveCount" is necessary
-    System.out.println("test meta all changed and can auto fresh with \"maxResolveCount\"");
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
