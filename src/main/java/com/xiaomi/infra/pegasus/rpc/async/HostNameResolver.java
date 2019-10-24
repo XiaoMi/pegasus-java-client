@@ -35,8 +35,6 @@ public class HostNameResolver {
       return results;
     } catch (UnknownHostException e) {
       return null;
-    } catch (NumberFormatException e) {
-      throw new IllegalArgumentException("Meta server port format error!");
     }
   }
 }
