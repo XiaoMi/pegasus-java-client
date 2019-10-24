@@ -230,10 +230,10 @@ public class MetaSession extends HostNameResolver {
     public int maxQueryCount;
     public ReplicaSession lastSession;
 
-    public MetaRequestRound(client_operator o, Runnable r, int c, ReplicaSession l) {
+    public MetaRequestRound(client_operator o, Runnable r, int q, ReplicaSession l) {
       op = o;
       callbackFunc = r;
-      maxQueryCount = c;
+      maxQueryCount = q;
       lastSession = l;
     }
   }

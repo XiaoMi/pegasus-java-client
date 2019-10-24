@@ -396,7 +396,6 @@ public class TableHandler extends Table {
     } catch (ExecutionException e) {
       logger.info("got exception: " + e);
       throw new ReplicationException(e);
-
     } catch (TimeoutException e) {
       op.rpc_error.errno = error_types.ERR_TIMEOUT;
     }
