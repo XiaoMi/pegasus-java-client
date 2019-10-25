@@ -122,7 +122,7 @@ public class MetaSessionTest {
             new String[] {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
-    ReplicaSession meta2 = meta.getMetaList().get(0);
+    ReplicaSession meta2 = meta.getMetaList().get(0); // 127.0.0.1:34602
     meta2.doConnect();
     while (meta2.getState() != ReplicaSession.ConnState.CONNECTED) {
       Thread.sleep(1);
@@ -136,7 +136,7 @@ public class MetaSessionTest {
     // simulating DNS resolution:localhost:34601->{172.0.0.1:34601,172.0.0.2:34601}
     Mockito.when(meta.resolve(("localhost:34601"))).thenReturn(addrs);
     Assert.assertArrayEquals(meta.resolve("localhost:34601"), addrs);
-    meta.resolveHost("localhost:34601");
+    meta.resolveHost("localhost:34601"); // update local meta list
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs);
     while (meta2.getState() != ReplicaSession.ConnState.DISCONNECTED) {
       Thread.sleep(1);
@@ -144,7 +144,7 @@ public class MetaSessionTest {
     // ensure MetaSession#resolveHost will close unused sessions.
     Assert.assertEquals(meta2.getState(), ReplicaSession.ConnState.DISCONNECTED);
 
-    // DNS refreshed
+    // DNS refreshed again
     addrs = new rpc_address[2];
     addrs[0] = rpc_address.fromIpPort("172.0.0.1:34601");
     addrs[1] = rpc_address.fromIpPort("172.0.0.3:34601");
@@ -157,7 +157,7 @@ public class MetaSessionTest {
   }
 
   @Test
-  public void testDNSMetaAllDead() throws Exception {
+  public void testDNSMetaAllChanged() throws Exception {
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
@@ -186,7 +186,7 @@ public class MetaSessionTest {
             10,
             meta.getMetaList().get(0));
 
-    // do not retry after a failed QueryMeta.
+    // simulate a failed query meta, but ensure it will not retry after a failure.
     Mockito.doNothing().when(meta).retryQueryMeta(round, false);
 
     // DNS updated.
@@ -196,7 +196,7 @@ public class MetaSessionTest {
     // simulating DNS resolution:localhost:34601->{172.0.0.3:34601,172.0.0.4:34601}
     Mockito.when(meta.resolve(("localhost:34601"))).thenReturn(addrs2);
 
-    // failed to query meta
+    // meta all dead, query failed.
     meta.onFinishQueryMeta(round);
     // switch curLeader to 1, meta list unchanged.
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs);
@@ -216,7 +216,10 @@ public class MetaSessionTest {
   }
 
   @Test
-  public void testDNSMetaForwardRealLeader() throws Exception {
+  public void testMetaForwardUnknownPrimary() throws Exception {
+    // ensures that client will accept the forwarded meta
+    // into local meta list, and set it to current leader.
+
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
@@ -266,135 +269,60 @@ public class MetaSessionTest {
   }
 
   @Test
-  public void testDNSMetaAllChanged1() {
+  public void testDNSMetaMaxResolveCount() {
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
 
-    // first the url is error
-    rpc_address[] errorAddrs = new rpc_address[3];
-    errorAddrs[0] = rpc_address.fromIpPort("172.0.0.1:34602");
-    errorAddrs[1] = rpc_address.fromIpPort("172.0.0.1:34603");
-    errorAddrs[2] = rpc_address.fromIpPort("172.0.0.1:34601");
-
     List<ReplicaSession> metaList = metaMock.getMetaList();
-    // del the "localhost:34601"
-    metaList.remove(0);
-    // add the error url
-    metaList.add(manager.getReplicaSession(errorAddrs[0]));
-    metaList.add(manager.getReplicaSession(errorAddrs[1]));
-    metaList.add(manager.getReplicaSession(errorAddrs[2]));
+    metaList.remove(0); // del the "localhost:34601"
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34602")));
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34603")));
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34601")));
 
-    // right url
-    rpc_address[] rightAddrs = new rpc_address[3];
-    rightAddrs[0] = rpc_address.fromIpPort("127.0.0.1:34602");
-    rightAddrs[1] = rpc_address.fromIpPort("127.0.0.1:34603");
-    rightAddrs[2] = rpc_address.fromIpPort("127.0.0.1:34601");
-
-    // dns fresh and return right url
-    Mockito.when(metaMock.resolve("localhost:34601")).thenReturn(rightAddrs);
-
-    query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
-    client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
-
-    // "query(op, 5)" will first use meta_list with error url, then resolve host(dns fresh) to
-    // refresh the meta_list when failed
-    metaMock.query(op, 5);
-    error_types err = MetaSession.getMetaServiceError(op);
-    Assert.assertEquals(error_code.error_types.ERR_OK, err);
-  }
-
-  @Test
-  public void testDNSMetaAllChanged2() {
-    // Test case:
-    // for example,maxQueryCount=4,the first error metalist size = 3
-    // when trigger dns refresh, the "maxQueryCount" may change to 1,
-    // the client may can't choose the right leader when the new metaList size > 1,
-    // the test shows "maxQueryCount" refresh is necessary
-    ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
-    MetaSession metaMock = Mockito.spy(manager.getMetaSession());
-
-    // first the url is error
-    rpc_address[] errorAddrs = new rpc_address[3];
-    errorAddrs[0] = rpc_address.fromIpPort("172.0.0.1:34602");
-    errorAddrs[1] = rpc_address.fromIpPort("172.0.0.1:34603");
-    errorAddrs[2] = rpc_address.fromIpPort("172.0.0.1:34601");
-
-    List<ReplicaSession> metaList = metaMock.getMetaList();
-    // del the right resolve result:127.0.0.1:34601
-    metaList.remove(0);
-    // add the error urls
-    metaList.add(manager.getReplicaSession(errorAddrs[0]));
-    metaList.add(manager.getReplicaSession(errorAddrs[1]));
-    metaList.add(manager.getReplicaSession(errorAddrs[2]));
-
-    // new urls, the front is not leader or is error
-    rpc_address[] newAddrs = new rpc_address[7];
-
+    rpc_address[] newAddrs = new rpc_address[5];
     newAddrs[0] = rpc_address.fromIpPort("137.0.0.1:34602");
     newAddrs[1] = rpc_address.fromIpPort("137.0.0.1:34603");
-    newAddrs[2] = rpc_address.fromIpPort("137.0.0.1:34601");
-    newAddrs[3] = rpc_address.fromIpPort("137.0.0.1:34602");
-
+    // one of the followings is the real primary.
+    newAddrs[2] = rpc_address.fromIpPort("127.0.0.1:34602");
+    newAddrs[3] = rpc_address.fromIpPort("127.0.0.1:34603");
     newAddrs[4] = rpc_address.fromIpPort("127.0.0.1:34601");
-    newAddrs[5] = rpc_address.fromIpPort("127.0.0.1:34602");
-    newAddrs[6] = rpc_address.fromIpPort("127.0.0.1:34603");
 
+    // DNS refreshed
     Mockito.when(metaMock.resolve("localhost:34601")).thenReturn(newAddrs);
 
     query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
     client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
 
-    // "query(op, 5)" will first use meta_list with error url, then resolve host(dns fresh) to
-    // refresh the meta_list when failed, if "maxQueryCount" can't fresh after dns refresh, the
-    // client can't choose the right leader after the retryCount, the test show it will choose the
-    // right leader because "maxQueryCount refresh"
-    metaMock.query(op, 4);
+    // `MetaSession#query` will first query the 3 old addresses (and failed), then resolve the DNS
+    // and find the 5 new addresses.
+    // Even though the given maxQueryCount is given 3, the total query count is at least 6.
+    metaMock.query(op, metaList.size());
     error_types err = MetaSession.getMetaServiceError(op);
     Assert.assertEquals(error_code.error_types.ERR_OK, err);
   }
 
   @Test
-  public void testDNSMetaAllChanged3() {
-    // Test case:
-    // if the "maxQueryCount" refresh, the retry will not stop if the meta error,
-    // so "MetaRequestRound class" add "maxResolveCount"
-    // the test shows "maxResolveCount" is necessary
+  public void testDNSMetaUnavailable() {
+    // Ensures when the DNS returns meta all unavailable, finally the query will timeout.
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
-
-    // first the url is error
-    rpc_address[] errorAddrs = new rpc_address[3];
-    errorAddrs[0] = rpc_address.fromIpPort("172.0.0.1:34602");
-    errorAddrs[1] = rpc_address.fromIpPort("172.0.0.1:34603");
-    errorAddrs[2] = rpc_address.fromIpPort("172.0.0.1:34601");
-
     List<ReplicaSession> metaList = metaMock.getMetaList();
-    // del the "localhost:34601"
-    metaList.remove(0);
-    metaList.add(manager.getReplicaSession(errorAddrs[0]));
-    metaList.add(manager.getReplicaSession(errorAddrs[1]));
-    metaList.add(manager.getReplicaSession(errorAddrs[2]));
-
-    // new urls, all is not leader or is error
-    rpc_address[] newAddrs = new rpc_address[4];
-    newAddrs[0] = rpc_address.fromIpPort("137.0.0.1:34602");
-    newAddrs[1] = rpc_address.fromIpPort("137.0.0.1:34603");
-    newAddrs[2] = rpc_address.fromIpPort("137.0.0.1:34601");
-    newAddrs[3] = rpc_address.fromIpPort("137.0.0.1:34602");
-
+    metaList.remove(0); // del the "localhost:34601"
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34602")));
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34603")));
+    metaList.add(manager.getReplicaSession(rpc_address.fromIpPort("172.0.0.1:34601")));
+    rpc_address[] newAddrs =
+        new rpc_address[] {
+          rpc_address.fromIpPort("137.0.0.1:34602"),
+          rpc_address.fromIpPort("137.0.0.1:34603"),
+          rpc_address.fromIpPort("137.0.0.1:34601")
+        };
     Mockito.when(metaMock.resolve("localhost:34601")).thenReturn(newAddrs);
-
     query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
     client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
-
-    // "query(op, 4)" will first use meta_list with error url, then resolve host(dns fresh) to
-    // refresh the meta_list when failed, if "maxQueryCount" fresh but no "maxResolveCount", the
-    // client will not stop, the test show it will stop because the "maxResolveCount"
-    metaMock.query(op, 4);
-    error_types err = MetaSession.getMetaServiceError(op);
-    Assert.assertEquals(error_code.error_types.ERR_TIMEOUT, err);
+    metaMock.query(op, metaList.size());
+    Assert.assertEquals(error_types.ERR_TIMEOUT, MetaSession.getMetaServiceError(op));
   }
 }
