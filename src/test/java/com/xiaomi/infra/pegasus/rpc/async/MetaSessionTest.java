@@ -269,7 +269,7 @@ public class MetaSessionTest {
   }
 
   @Test
-  public void testDNSMetaResetMaxQueryCount() {
+  public void testDNSResetMetaMaxQueryCount() {
     ClusterManager manager =
         new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
