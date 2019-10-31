@@ -37,6 +37,7 @@ public class FutureGroup<Result> {
         throw new PException("async task #[" + i + "] await failed: " + e.toString());
       }
 
+      timeLimit -= duration;
       if (fu.isSuccess() && timeLimit >= 0) {
         if (results != null) {
           results.set(i, fu.getNow());
