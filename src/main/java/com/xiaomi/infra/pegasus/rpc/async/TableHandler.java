@@ -47,11 +47,8 @@ public class TableHandler extends Table {
   AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  int sessionConnectTimeoutInMills;
 
-  public TableHandler(
-      ClusterManager mgr, String name, KeyHasher h, int sessionConnectTimeoutInMills)
-      throws ReplicationException {
+  public TableHandler(ClusterManager mgr, String name, KeyHasher h) throws ReplicationException {
     int i = 0;
     for (; i < name.length(); i++) {
       char c = name.charAt(i);
@@ -98,7 +95,6 @@ public class TableHandler extends Table {
     // members of this
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
-    this.sessionConnectTimeoutInMills = sessionConnectTimeoutInMills;
 
     tableConfig_ = new AtomicReference<TableConfiguration>(null);
     initTableConfiguration(resp);
@@ -199,7 +195,7 @@ public class TableHandler extends Table {
     // Warm up the connections during client.openTable, so RPCs thereafter can
     // skip the connect process.
     try {
-      futureGroup.waitAllCompleteOrOneFail(sessionConnectTimeoutInMills);
+      futureGroup.waitAllCompleteOrOneFail(manager_.getTimeout());
     } catch (PException e) {
       logger.warn("failed to connect with some replica servers!");
     }
