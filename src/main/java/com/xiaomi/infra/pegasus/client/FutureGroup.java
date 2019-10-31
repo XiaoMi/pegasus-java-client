@@ -25,22 +25,19 @@ public class FutureGroup<Result> {
   // `results` is nullable
   public void waitAllCompleteOrOneFail(List<Result> results, int timeoutMillis) throws PException {
     int timeLimit = timeoutMillis;
+    long duration = 0;
     for (int i = 0; i < asyncTasks.size(); i++) {
       Future<Result> fu = asyncTasks.get(i);
       try {
         long startTs = System.currentTimeMillis();
         fu.await(timeLimit);
-        long duration = System.currentTimeMillis() - startTs;
+        duration = System.currentTimeMillis() - startTs;
         assert duration >= 0;
-
-        timeLimit -= duration;
-        if (timeLimit <= 0) {
-          break;
-        }
       } catch (Exception e) {
         throw new PException("async task #[" + i + "] await failed: " + e.toString());
       }
-      if (fu.isSuccess()) {
+
+      if (fu.isSuccess() && timeLimit <= 0) {
         if (results != null) {
           results.set(i, fu.getNow());
         }
