@@ -6,6 +6,8 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
+import com.xiaomi.infra.pegasus.client.FutureGroup;
+import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
 import com.xiaomi.infra.pegasus.replication.partition_configuration;
@@ -18,7 +20,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,8 +47,11 @@ public class TableHandler extends Table {
   AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
+  int sessionConnectTimeoutInMills;
 
-  public TableHandler(ClusterManager mgr, String name, KeyHasher h) throws ReplicationException {
+  public TableHandler(
+      ClusterManager mgr, String name, KeyHasher h, int sessionConnectTimeoutInMills)
+      throws ReplicationException {
     int i = 0;
     for (; i < name.length(); i++) {
       char c = name.charAt(i);
@@ -94,6 +98,7 @@ public class TableHandler extends Table {
     // members of this
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
+    this.sessionConnectTimeoutInMills = sessionConnectTimeoutInMills;
 
     tableConfig_ = new AtomicReference<TableConfiguration>(null);
     initTableConfiguration(resp);
@@ -140,7 +145,7 @@ public class TableHandler extends Table {
       newConfig.replicas.add(newReplicaConfig);
     }
 
-    List<ChannelFuture> rsFutures = new ArrayList<ChannelFuture>();
+    FutureGroup futureGroup = new FutureGroup(resp.getPartition_count());
     for (partition_configuration pc : resp.getPartitions()) {
       ReplicaConfiguration s = newConfig.replicas.get(pc.getPid().get_pidx());
       if (s.ballot != pc.ballot) {
@@ -181,7 +186,7 @@ public class TableHandler extends Table {
           s.session = manager_.getReplicaSession(pc.primary);
           ChannelFuture fut = s.session.doConnect();
           if (fut != null) {
-            rsFutures.add(fut);
+            futureGroup.add(fut);
           }
         }
       }
@@ -193,20 +198,10 @@ public class TableHandler extends Table {
 
     // Warm up the connections during client.openTable, so RPCs thereafter can
     // skip the connect process.
-    int timeLimit = 10; // await for at maximum 10 milliseconds.
-    for (ChannelFuture fut : rsFutures) {
-      try {
-        long startTs = System.currentTimeMillis();
-        fut.await(timeLimit);
-        long duration = System.currentTimeMillis() - startTs;
-        assert duration >= 0;
-        timeLimit -= duration;
-        if (timeLimit <= 0) {
-          break;
-        }
-      } catch (InterruptedException e) {
-        break;
-      }
+    try {
+      futureGroup.waitAllCompleteOrOneFail(sessionConnectTimeoutInMills);
+    } catch (PException e) {
+      logger.warn("failed to connect with some replica servers!");
     }
   }
 
