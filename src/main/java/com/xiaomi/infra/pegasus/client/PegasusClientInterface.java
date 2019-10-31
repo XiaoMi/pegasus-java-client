@@ -281,7 +281,7 @@ public interface PegasusClientInterface {
    *
    * @param tableName table name
    * @param hashKey used to decide which partition to put this k-v, should not be null or empty.
-   * @param values all (sortkey,value) pairs to be set, should not be null or empty.
+   * @param values all {@literal <sortkey,value>} pairs to be set, should not be null or empty.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
    * @throws PException throws exception if any error occurs.
    */
@@ -381,6 +381,25 @@ public interface PegasusClientInterface {
    * @throws PException throws exception if any error occurs.
    */
   public void multiDel(String tableName, byte[] hashKey, List<byte[]> sortKeys) throws PException;
+
+  /**
+   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
+   * immediately if any error occurs.
+   *
+   * @param tableName table name
+   * @param hashKey used to decide which partition the key may exist should not be null or empty.
+   * @param startSortKey the start sort key. null means "".
+   * @param stopSortKey the stop sort key. null or "" means fetch to the last sort key.
+   * @param options del range options.
+   * @throws PException throws exception if any error occurs.
+   */
+  public void delRange(
+      String tableName,
+      byte[] hashKey,
+      byte[] startSortKey,
+      byte[] stopSortKey,
+      DelRangeOptions options)
+      throws PException;
 
   /**
    * Batch delete specified sort keys under the same hash key. Will terminate immediately if any

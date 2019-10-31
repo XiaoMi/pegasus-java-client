@@ -2250,4 +2250,236 @@ public class TestBasic {
 
     PegasusClientFactory.closeSingletonClient();
   }
+
+  @Test
+  public void createClient() throws PException {
+    System.out.println("test createClient with clientOptions");
+    ClientOptions clientOptions = ClientOptions.create();
+    byte[] value = null;
+
+    // test createClient(clientOptions)
+    PegasusClientInterface client = null;
+    try {
+      client = PegasusClientFactory.createClient(clientOptions);
+      client.set(
+          "temp",
+          "createClient".getBytes(),
+          "createClient_0".getBytes(),
+          "createClient_0".getBytes());
+      value = client.get("temp", "createClient".getBytes(), "createClient_0".getBytes());
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    Assert.assertTrue(new String(value).equals("createClient_0"));
+
+    // test getSingletonClient(ClientOptions options)
+    PegasusClientInterface singletonClient = null;
+    try {
+      singletonClient = PegasusClientFactory.getSingletonClient(clientOptions);
+      singletonClient.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_1".getBytes(),
+          "createClient_1".getBytes());
+      value =
+          singletonClient.get("temp", "getSingletonClient".getBytes(), "createClient_1".getBytes());
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    Assert.assertTrue(new String(value).equals("createClient_1"));
+
+    // test getSingletonClient(ClientOptions options) --> same clientOptions
+    PegasusClientInterface singletonClient1 = null;
+    try {
+      singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions);
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_2".getBytes(),
+          "createClient_2".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_2".getBytes());
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    Assert.assertTrue(new String(value).equals("createClient_2"));
+    Assert.assertTrue(singletonClient1 == singletonClient);
+
+    // test getSingletonClient(ClientOptions options) --> different clientOptions,but values of
+    // clientOptions is same
+    ClientOptions clientOptions1 = ClientOptions.create();
+    try {
+      singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions1);
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_3".getBytes(),
+          "createClient_3".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_3".getBytes());
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    Assert.assertTrue(new String(value).equals("createClient_3"));
+    Assert.assertTrue(singletonClient1 == singletonClient);
+
+    // test getSingletonClient(ClientOptions options) --> different clientOptions,and values of
+    // clientOptions is different
+    ClientOptions clientOptions2 =
+        ClientOptions.builder()
+            .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
+            .asyncWorkers(5) // default value is 4,this set different value
+            .build();
+    try {
+      singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions2);
+      singletonClient1.set(
+          "temp",
+          "getSingletonClient".getBytes(),
+          "createClient_4".getBytes(),
+          "createClient_4".getBytes());
+      value =
+          singletonClient1.get(
+              "temp", "getSingletonClient".getBytes(), "createClient_4".getBytes());
+    } catch (Exception e) {
+      // if values of clientOptions is different,the code's right logic is "throw exception"
+      Assert.assertTrue(true);
+    }
+
+    PegasusClientFactory.closeSingletonClient();
+  }
+
+  @Test
+  public void delRange() throws PException {
+    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+    DelRangeOptions delRangeOptions = new DelRangeOptions();
+
+    // multi set values
+    List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
+    int count = 0;
+    try {
+      while (count < 150) {
+        values.add(Pair.of(("k_" + count).getBytes(), ("v_" + count).getBytes()));
+        count++;
+      }
+      client.multiSet("temp", "delRange".getBytes(), values);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    // delRange with default delRangeOptions
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "k_0".getBytes(), "k_90".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    Assert.assertTrue(delRangeOptions.nextSortKey == null);
+    List<byte[]> remainingSortKey = new ArrayList<byte[]>();
+
+    remainingSortKey.add("k_90".getBytes());
+    remainingSortKey.add("k_91".getBytes());
+    remainingSortKey.add("k_92".getBytes());
+    remainingSortKey.add("k_93".getBytes());
+    remainingSortKey.add("k_94".getBytes());
+    remainingSortKey.add("k_95".getBytes());
+    remainingSortKey.add("k_96".getBytes());
+    remainingSortKey.add("k_97".getBytes());
+    remainingSortKey.add("k_98".getBytes());
+    remainingSortKey.add("k_99".getBytes());
+    List<Pair<byte[], byte[]>> remainingValue = new ArrayList<Pair<byte[], byte[]>>();
+
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    List<String> valueStr = new ArrayList<String>();
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+    Assert.assertEquals(10, valueStr.size());
+    Assert.assertTrue(valueStr.contains("v_90"));
+    Assert.assertTrue(valueStr.contains("v_91"));
+    Assert.assertTrue(valueStr.contains("v_92"));
+    Assert.assertTrue(valueStr.contains("v_93"));
+    Assert.assertTrue(valueStr.contains("v_94"));
+    Assert.assertTrue(valueStr.contains("v_95"));
+    Assert.assertTrue(valueStr.contains("v_96"));
+    Assert.assertTrue(valueStr.contains("v_97"));
+    Assert.assertTrue(valueStr.contains("v_98"));
+    Assert.assertTrue(valueStr.contains("v_99"));
+
+    // delRange with FT_MATCH_POSTFIX option
+    delRangeOptions.sortKeyFilterType = FilterType.FT_MATCH_POSTFIX;
+    delRangeOptions.sortKeyFilterPattern = "k_93".getBytes();
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    remainingValue.clear();
+    valueStr.clear();
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+
+    Assert.assertEquals(9, valueStr.size());
+    Assert.assertTrue(!valueStr.contains("v_93"));
+
+    // delRange with "*Inclusive" option
+    delRangeOptions.startInclusive = false;
+    delRangeOptions.stopInclusive = true;
+    delRangeOptions.sortKeyFilterType = FilterType.FT_NO_FILTER;
+    delRangeOptions.sortKeyFilterPattern = null;
+    try {
+      client.delRange(
+          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    remainingValue.clear();
+    valueStr.clear();
+    try {
+      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+
+    Assert.assertEquals(5, valueStr.size());
+    Assert.assertTrue(valueStr.contains("v_90"));
+    Assert.assertTrue(valueStr.contains("v_96"));
+    Assert.assertTrue(valueStr.contains("v_97"));
+    Assert.assertTrue(valueStr.contains("v_98"));
+    Assert.assertTrue(valueStr.contains("v_99"));
+  }
 }

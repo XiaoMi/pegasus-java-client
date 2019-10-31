@@ -2,7 +2,7 @@
 
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 PROJECT_DIR=$(dirname "${SCRIPT_DIR}")
-cd "${PROJECT_DIR}" || exit -1
+cd "${PROJECT_DIR}" || exit 1
 
 SRC_FILES=(src/main/java/com/xiaomi/infra/pegasus/client/*.java
            src/main/java/com/xiaomi/infra/pegasus/metrics/*.java
@@ -15,6 +15,7 @@ SRC_FILES=(src/main/java/com/xiaomi/infra/pegasus/client/*.java
            src/test/java/com/xiaomi/infra/pegasus/metrics/*.java
            src/test/java/com/xiaomi/infra/pegasus/rpc/async/*.java
            src/test/java/com/xiaomi/infra/pegasus/tools/*.java
+           src/test/java/com/xiaomi/infra/pegasus/base/*.java
            )
 
 if [ ! -f "${PROJECT_DIR}"/google-java-format-1.7-all-deps.jar ]; then

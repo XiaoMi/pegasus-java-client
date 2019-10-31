@@ -4,7 +4,7 @@ set -e
 
 SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 PROJECT_DIR=$(dirname "${SCRIPT_DIR}")
-cd "${PROJECT_DIR}" || exit -1
+cd "${PROJECT_DIR}" || exit 1
 
 # lint all scripts, abort if there's any warning.
 function shellcheck_must_pass()
@@ -26,25 +26,23 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
+PEGASUS_PKG="pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release"
+PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus/releases/download/v1.11.6/pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release.tar.gz"
+
 # start pegasus onebox environment
-wget https://github.com/XiaoMi/pegasus/releases/download/v1.11.2/pegasus-tools-1.11.2-a186d38-ubuntu-18.04-release.tar.gz
-tar xvf pegasus-tools-1.11.2-a186d38-ubuntu-18.04-release.tar.gz
-cd pegasus-tools-1.11.2-a186d38-ubuntu-release
+if [ ! -f $PEGASUS_PKG.tar.gz ]; then
+    wget $PEGASUS_PKG_URL
+    tar xvf $PEGASUS_PKG.tar.gz
+fi
+cd $PEGASUS_PKG
 
-# download zookeeper
-# TODO(wutao1): remove this when upgrading the server to latest version
-mkdir -p .zk_install && cd .zk_install
-wget "https://github.com/xiaomi/pegasus-common/raw/master/zookeeper-3.4.6.tar.gz"
-cd ..
-
-./run.sh start_onebox -m 2 -r 3
-sleep 4
-./run.sh list_onebox
+sed -i "s#https://github.com/xiaomi/pegasus-common/raw/master/zookeeper-3.4.6.tar.gz#https://github.com/XiaoMi/pegasus-common/releases/download/deps/zookeeper-3.4.6.tar.gz#" scripts/start_zk.sh
+./run.sh start_onebox -w
 cd ../
 
 if ! mvn clean test
 then
-    cd pegasus-tools-1.11.2-a186d38-ubuntu-release
+    cd $PEGASUS_PKG
     ./run.sh list_onebox
     exit 1
 fi
