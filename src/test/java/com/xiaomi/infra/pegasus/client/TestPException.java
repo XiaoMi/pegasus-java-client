@@ -13,7 +13,7 @@ public class TestPException {
   public void testThreadInterrupted() throws Exception {
     PException ex = PException.threadInterrupted("test", new InterruptedException("intxxx"));
     Assert.assertEquals(
-        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [table=test] Thread was interrupted: intxxx",
+        "{version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [table=test] Thread was interrupted: intxxx",
         ex.getMessage());
   }
 
@@ -21,7 +21,16 @@ public class TestPException {
   public void testTimeout() throws Exception {
     PException ex = PException.timeout("test", 1000, new TimeoutException("tmxxx"));
     Assert.assertEquals(
-        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=test, timeout=1000ms] Timeout on Future await: tmxxx",
+        "{version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=test, timeout=1000ms] Timeout on Future await: tmxxx",
         ex.getMessage());
+  }
+
+  @Test
+  public void testVersion() {
+    PException ex = new PException("test");
+    Assert.assertEquals("{version}: test", ex.getMessage());
+
+    ex = new PException("test", new TimeoutException());
+    Assert.assertEquals("{version}: test", ex.getMessage());
   }
 }
