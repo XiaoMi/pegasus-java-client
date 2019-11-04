@@ -30,7 +30,7 @@ public class PException extends Exception {
   }
 
   public PException(Throwable cause) {
-    super(versionPrefix + cause.getMessage(), cause);
+    super(versionPrefix + cause.toString(), cause);
   }
 
   static PException threadInterrupted(String tableName, InterruptedException e) {
@@ -50,7 +50,7 @@ public class PException extends Exception {
   }
 
   private static String loadVersion() {
-    String ver = ReplicationException.class.getPackage().getImplementationVersion();
+    String ver = PException.class.getPackage().getImplementationVersion();
     if (ver == null) {
       return "{version}";
     }
