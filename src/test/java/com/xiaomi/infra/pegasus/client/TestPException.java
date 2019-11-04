@@ -4,23 +4,24 @@
 
 package com.xiaomi.infra.pegasus.client;
 
+import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class TestPException {
   @Test
   public void testThreadInterrupted() throws Exception {
-    PException ex = PException.threadInterrupted("test");
+    PException ex = PException.threadInterrupted("test", new InterruptedException("intxxx"));
     Assert.assertEquals(
-        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [table=test] Thread is interrupted!",
+        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [table=test] Thread was interrupted: intxxx",
         ex.getMessage());
   }
 
   @Test
   public void testTimeout() throws Exception {
-    PException ex = PException.timeout("test", 1000);
+    PException ex = PException.timeout("test", 1000, new TimeoutException("tmxxx"));
     Assert.assertEquals(
-        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=test, timeout=1000ms] Timeout on Future await!",
+        "com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=test, timeout=1000ms] Timeout on Future await: tmxxx",
         ex.getMessage());
   }
 }
