@@ -37,6 +37,8 @@ public class TestPException {
 
   @Test
   public void testVersion() {
+    // Test the constructors of PException
+
     PException ex = new PException("test");
     Assert.assertEquals("{version}: test", ex.getMessage());
 
