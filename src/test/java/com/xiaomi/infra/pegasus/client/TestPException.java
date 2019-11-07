@@ -81,6 +81,8 @@ public class TestPException {
 
   @Test
   public void testTimeOutIsZero() throws Exception {
+    // ensure "PException ERR_TIMEOUT" is thrown with the real timeout value, when user given
+    // timeout is 0.
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
     ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
     TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT);
