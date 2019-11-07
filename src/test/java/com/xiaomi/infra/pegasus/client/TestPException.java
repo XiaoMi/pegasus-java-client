@@ -58,7 +58,8 @@ public class TestPException {
     op.rpc_error.errno = error_code.error_types.ERR_OBJECT_NOT_FOUND;
 
     // set failure in promise, the exception is thrown as ExecutionException.
-    PegasusTable.handleReplicaException(promise, op, table, 1000);
+    PegasusTable pegasusTable = new PegasusTable(null, table);
+    pegasusTable.handleReplicaException(promise, op, table, 1000);
     try {
       promise.get();
     } catch (ExecutionException e) {
