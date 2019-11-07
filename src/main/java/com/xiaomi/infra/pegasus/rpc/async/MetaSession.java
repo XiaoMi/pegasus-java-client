@@ -279,7 +279,6 @@ public class MetaSession extends HostNameResolver {
       metaList.add(clusterManager.getReplicaSession(addr));
       logger.info("add {} as meta server", addr);
     }
-    logger.info("resolve host completed!");
   }
 
   // Only for test.
