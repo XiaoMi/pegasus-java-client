@@ -86,6 +86,7 @@
     </plugins>
   </reporting>
   <properties>
+    <pegasus.shade.name>com.xiaomi.infra.pegasus.thirdparty</pegasus.shade.name>
   </properties>
   <build>
     <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
@@ -112,7 +113,7 @@
               <relocations>
                 <relocation>
                   <pattern>io.netty</pattern>
-                  <shadedPattern>shaded.io.netty</shadedPattern>
+                  <shadedPattern>${pegasus.shade.name}.io.netty</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
