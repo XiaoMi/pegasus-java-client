@@ -6,8 +6,8 @@ package com.xiaomi.infra.pegasus.operator;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
-import com.xiaomi.infra.pegasus.thrift.TException;
 import com.xiaomi.infra.pegasus.tools.Tools;
+import org.apache.thrift.TException;
 
 public abstract class client_operator {
   public client_operator(gpid gpid, String tableName) {
@@ -72,11 +72,10 @@ public abstract class client_operator {
 
   public abstract String name();
 
-  public abstract void send_data(
-      com.xiaomi.infra.pegasus.thrift.protocol.TProtocol oprot, int sequence_id) throws TException;
-
-  public abstract void recv_data(com.xiaomi.infra.pegasus.thrift.protocol.TProtocol iprot)
+  public abstract void send_data(org.apache.thrift.protocol.TProtocol oprot, int sequence_id)
       throws TException;
+
+  public abstract void recv_data(org.apache.thrift.protocol.TProtocol iprot) throws TException;
 
   public ThriftHeader header;
   public gpid pid;
