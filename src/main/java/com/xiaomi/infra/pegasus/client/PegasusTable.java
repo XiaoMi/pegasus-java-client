@@ -599,11 +599,7 @@ public class PegasusTable implements PegasusTableInterface {
           new PException("Invalid parameter: hashKey length should be less than UINT16_MAX"));
       return promise;
     }
-    int expireSeconds =
-        (options.setValueTTLSeconds == 0
-            ? 0
-            : options.setValueTTLSeconds + (int) Tools.epoch_now());
-    if (expireSeconds < 0) {
+    if (options.setValueTTLSeconds < 0) {
       promise.setFailure(new PException("Invalid parameter: ttlSeconds should be no less than 0"));
       return promise;
     }
@@ -619,6 +615,10 @@ public class PegasusTable implements PegasusTableInterface {
       setSortKeyBlob = (setSortKey == null ? null : new blob(setSortKey));
     }
     blob setValueBlob = (setValue == null ? null : new blob(setValue));
+    int expireSeconds =
+        (options.setValueTTLSeconds == 0
+            ? 0
+            : options.setValueTTLSeconds + (int) Tools.epoch_now());
 
     check_and_set_request request =
         new check_and_set_request(
