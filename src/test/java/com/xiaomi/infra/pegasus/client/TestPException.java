@@ -104,7 +104,7 @@ public class TestPException {
 
       String msg =
           String.format(
-              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=%d] The operation timeout is 1000ms!",
+              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=%d] The operation is timed out!",
               server, gpid.toString(), timeout);
       Assert.assertEquals(e.getMessage(), msg);
     }
