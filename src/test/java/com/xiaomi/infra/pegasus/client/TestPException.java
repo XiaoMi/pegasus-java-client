@@ -93,9 +93,8 @@ public class TestPException {
     rrdb_put_operator op = new rrdb_put_operator(gpid, table.getTableName(), req, 0);
     op.rpc_error.errno = error_types.ERR_TIMEOUT;
 
-    int timeout = 0;
     PegasusTable pegasusTable = new PegasusTable(null, table);
-    pegasusTable.handleReplicaException(promise, op, table, timeout);
+    pegasusTable.handleReplicaException(promise, op, table, 0);
     try {
       promise.get();
     } catch (Exception e) {
@@ -104,8 +103,8 @@ public class TestPException {
 
       String msg =
           String.format(
-              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=%d] The operation is timed out!",
-              server, gpid.toString(), timeout);
+              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=100] The operation is timed out!",
+              server, gpid.toString());
       Assert.assertEquals(e.getMessage(), msg);
     }
   }
