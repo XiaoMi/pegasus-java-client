@@ -1776,6 +1776,7 @@ public class PegasusTable implements PegasusTableInterface {
             + ")"
             + ",timeout="
             + timeout
+            + "ms"
             + "]";
     switch (op.rpc_error.errno) {
       case ERR_SESSION_RESET:

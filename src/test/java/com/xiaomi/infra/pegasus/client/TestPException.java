@@ -70,7 +70,7 @@ public class TestPException {
 
       String msg =
           String.format(
-              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_OBJECT_NOT_FOUND: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=%d] The replica server doesn't serve this partition!",
+              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_OBJECT_NOT_FOUND: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=%dms] The replica server doesn't serve this partition!",
               server, gpid.toString(), timeout);
       Assert.assertEquals(e.getMessage(), msg);
       return;
@@ -103,7 +103,7 @@ public class TestPException {
 
       String msg =
           String.format(
-              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=100] The operation is timed out!",
+              "com.xiaomi.infra.pegasus.client.PException: {version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_TIMEOUT: [table=temp,operation=put,replicaServer=%s,gpid=(%s),timeout=1000ms] The operation is timed out!",
               server, gpid.toString());
       Assert.assertEquals(e.getMessage(), msg);
     }
