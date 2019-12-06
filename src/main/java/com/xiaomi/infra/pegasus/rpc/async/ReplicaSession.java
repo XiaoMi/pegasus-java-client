@@ -367,12 +367,14 @@ public class ReplicaSession {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, final RequestEntry msg) {
       logger.debug("{}: handle response with seqid({})", name(), msg.sequenceId);
+      msg.rpcTrace.channelRead0 = System.nanoTime() / 1000;
+      msg.rpcTrace.writeComplete2channelRead0 = msg.rpcTrace.channelRead0 - msg.rpcTrace.writeComplete;
       if (msg.callback != null) {
         msg.callback.run();
 
         msg.rpcTrace.onCompletion = System.nanoTime() / 1000;
-        msg.rpcTrace.writeComplete2onCompletion =
-            msg.rpcTrace.onCompletion - msg.rpcTrace.writeComplete;
+        msg.rpcTrace.channelRead02onCompletion =
+            msg.rpcTrace.onCompletion - msg.rpcTrace.channelRead0;
         msg.rpcTrace.allTimeUsed = msg.rpcTrace.onCompletion - msg.rpcTrace.startAsyncRequest;
         msg.rpcTrace.rpcState = msg.op.rpc_error.errno.toString();
         if (msg.rpcTrace.allTimeUsed > 500) {

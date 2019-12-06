@@ -19,6 +19,7 @@ public class RpcTrace {
   public long startAsyncSend;
   public long startWrite;
   public long writeComplete;
+  public long channelRead0;
   public long startTryNotifyError;
   public long onRpcReply;
   public long onCompletion;
@@ -29,7 +30,8 @@ public class RpcTrace {
   // success trace
   public long asyncSend2write;
   public long write2writeComplete;
-  public long writeComplete2onCompletion;
+  public long writeComplete2channelRead0;
+  public long channelRead02onCompletion;
 
   // failed trace
   public long asyncSend2notifyError;
@@ -63,7 +65,8 @@ public class RpcTrace {
         .append(asyncRequest2asyncSend + " asyncRequest2asyncSend")
         .append(asyncSend2write + " asyncSend2write")
         .append(write2writeComplete + " write2writeComplete")
-        .append(writeComplete2onCompletion + " writeComplete2onCompletion")
+        .append(writeComplete2channelRead0 + " writeComplete2channelRead0")
+        .append(channelRead02onCompletion + " channelRead02onCompletion")
         .append(asyncSend2notifyError + " asyncSend2notifyError[isTimerTask=" + isTimeOutTask + "]")
         .append(write2notifyError + " write2notifyError[isTimerTask=" + isTimeOutTask + "]")
         .append(notifyError2onCompletion + " notifyError2onCompletion")
