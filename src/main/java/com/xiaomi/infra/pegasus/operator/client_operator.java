@@ -11,8 +11,8 @@ import com.xiaomi.infra.pegasus.tools.Tools;
 
 public abstract class client_operator {
 
-  public long rpcStartTime = System.currentTimeMillis();
-  public String rpcId = "T" + rpcStartTime;
+  public long rpcStartTime = System.nanoTime() / 1000;
+  public String rpcId = "T" + System.nanoTime();
 
   public client_operator(gpid gpid, String tableName) {
     this.header = new ThriftHeader();

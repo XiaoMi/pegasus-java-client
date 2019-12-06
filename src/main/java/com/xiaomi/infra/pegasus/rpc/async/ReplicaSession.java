@@ -91,7 +91,7 @@ public class ReplicaSession {
     entry.sequenceId = seqId.getAndIncrement();
 
     entry.rpcTrace = new RpcTrace(op.rpcId, op.tableName, op.rpcStartTime, timeoutInMilliseconds);
-    entry.rpcTrace.startAsyncSend = System.currentTimeMillis();
+    entry.rpcTrace.startAsyncSend = System.nanoTime() / 1000;
     entry.rpcTrace.asyncRequest2asyncSend = entry.rpcTrace.startAsyncSend - op.rpcStartTime;
     entry.rpcTrace.rpcSeqId = entry.sequenceId;
     entry.rpcTrace.rpcOperation = op.name();
@@ -253,7 +253,7 @@ public class ReplicaSession {
         isTimeoutTask);
     RequestEntry entry = pendingResponse.remove(seqID);
 
-    entry.rpcTrace.startTryNotifyError = System.currentTimeMillis();
+    entry.rpcTrace.startTryNotifyError = System.nanoTime() / 1000;
     entry.rpcTrace.isTimeOutTask = isTimeoutTask;
     // may be failed before write
     if (entry.rpcTrace.startWrite == 0) {
@@ -288,7 +288,7 @@ public class ReplicaSession {
       entry.op.rpc_error.errno = errno;
       entry.callback.run();
 
-      entry.rpcTrace.onCompletion = System.currentTimeMillis();
+      entry.rpcTrace.onCompletion = System.nanoTime() / 1000;
       entry.rpcTrace.notifyError2onCompletion =
           entry.rpcTrace.onCompletion - entry.rpcTrace.startTryNotifyError;
       entry.rpcTrace.allTimeUsed = entry.rpcTrace.onCompletion - entry.rpcTrace.startAsyncRequest;
@@ -307,7 +307,7 @@ public class ReplicaSession {
 
   private void write(final RequestEntry entry, VolatileFields cache) {
 
-    entry.rpcTrace.startWrite = System.currentTimeMillis();
+    entry.rpcTrace.startWrite = System.nanoTime() / 1000;
     entry.rpcTrace.asyncSend2write = entry.rpcTrace.startWrite - entry.rpcTrace.startAsyncSend;
 
     cache
@@ -320,7 +320,7 @@ public class ReplicaSession {
                 // NOTICE: we never do the connection things, this should be the duty of
                 // ChannelHandler, we only notify the request
 
-                entry.rpcTrace.writeComplete = System.currentTimeMillis();
+                entry.rpcTrace.writeComplete = System.nanoTime() / 1000;
                 entry.rpcTrace.write2writeComplete =
                     entry.rpcTrace.writeComplete - entry.rpcTrace.startWrite;
 
@@ -370,7 +370,7 @@ public class ReplicaSession {
       if (msg.callback != null) {
         msg.callback.run();
 
-        msg.rpcTrace.onCompletion = System.currentTimeMillis();
+        msg.rpcTrace.onCompletion = System.nanoTime() / 1000;
         msg.rpcTrace.writeComplete2onCompletion =
             msg.rpcTrace.onCompletion - msg.rpcTrace.writeComplete;
         msg.rpcTrace.allTimeUsed = msg.rpcTrace.onCompletion - msg.rpcTrace.startAsyncRequest;
