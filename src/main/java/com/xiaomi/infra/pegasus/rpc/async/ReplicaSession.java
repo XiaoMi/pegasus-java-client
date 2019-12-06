@@ -375,7 +375,9 @@ public class ReplicaSession {
             msg.rpcTrace.onCompletion - msg.rpcTrace.writeComplete;
         msg.rpcTrace.allTimeUsed = msg.rpcTrace.onCompletion - msg.rpcTrace.startAsyncRequest;
         msg.rpcTrace.rpcState = msg.op.rpc_error.errno.toString();
-        RPC_TRACE_SUCCESS_LOG.info(msg.rpcTrace.toString());
+        if (msg.rpcTrace.allTimeUsed > 500) {
+          RPC_TRACE_SUCCESS_LOG.info(msg.rpcTrace.toString());
+        }
 
       } else {
         logger.warn(

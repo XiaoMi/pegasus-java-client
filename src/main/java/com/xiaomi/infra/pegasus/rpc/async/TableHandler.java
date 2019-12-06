@@ -3,7 +3,6 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
-import com.xiaomi.infra.pegasus.base.RpcTrace;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
@@ -19,7 +18,6 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
@@ -30,8 +28,6 @@ import org.slf4j.Logger;
 
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {
-  private org.apache.log4j.Logger RPC_TRACE_LOG = org.apache.log4j.Logger.getLogger("rpcTrace");
-
   public static final class ReplicaConfiguration {
     public gpid pid = new gpid();
     public long ballot = 0;
@@ -263,10 +259,6 @@ public class TableHandler extends Table {
       ReplicaConfiguration cachedHandle,
       long cachedConfigVersion) {
     client_operator operator = round.getOperator();
-
-    RpcTrace rpcTrace =
-        new RpcTrace(operator.rpcId, operator.tableName, operator.rpcStartTime, round.timeoutMs);
-    rpcTrace.onRpcReply = System.currentTimeMillis();
 
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
