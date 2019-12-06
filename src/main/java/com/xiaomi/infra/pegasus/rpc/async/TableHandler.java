@@ -359,17 +359,6 @@ public class TableHandler extends Table {
 
   void call(final ClientRequestRound round, final int tryId) {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
-
-    RpcTrace rpcTrace =
-        new RpcTrace(
-            round.operator.rpcId,
-            round.operator.tableName,
-            round.operator.rpcStartTime,
-            round.timeoutMs);
-    rpcTrace.rpcOperation = round.operator.name();
-    rpcTrace.rpcTryId = tryId;
-    rpcTrace.startCall = System.currentTimeMillis();
-
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
@@ -379,16 +368,6 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              rpcTrace.onRpcReply = System.currentTimeMillis();
-              rpcTrace.call2onRpcReply = rpcTrace.onRpcReply - rpcTrace.startCall;
-              try {
-                rpcTrace.rpcRemoteAddress = handle.session.getAddress().get_ip();
-              } catch (UnknownHostException e) {
-
-              }
-              rpcTrace.allTimeUsed = rpcTrace.onRpcReply - rpcTrace.startAsyncRequest;
-              // RPC_TRACE_LOG.info(rpcTrace.toString());
-
               onRpcReply(round, tryId, handle, tableConfig.updateVersion);
             }
           },

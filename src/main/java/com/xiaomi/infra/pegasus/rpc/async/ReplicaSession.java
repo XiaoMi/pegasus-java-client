@@ -145,7 +145,7 @@ public class ReplicaSession {
       try {
         // close().sync() means calling system API `close()` synchronously,
         // but the connection may not be completely closed then, that is,
-        // the rpcState may not be marked as DISCONNECTED immediately.
+        // the state may not be marked as DISCONNECTED immediately.
         f.nettyChannel.close().sync();
         logger.info("channel to {} closed", address.toString());
       } catch (Exception ex) {
@@ -338,7 +338,7 @@ public class ReplicaSession {
 
   // Notify the RPC caller when times out. If the RPC finishes in time,
   // this task will be cancelled.
-  // TODO(wutao1): startCall it addTimeoutTicker
+  // TODO(wutao1): call it addTimeoutTicker
   private ScheduledFuture addTimer(final int seqID, long timeoutInMillseconds) {
     return rpcGroup.schedule(
         new Runnable() {
