@@ -68,11 +68,6 @@ public class RpcTrace {
         .append(write2notifyError + " write2notifyError[isTimerTask=" + isTimeOutTask + "]")
         .append(notifyError2onCompletion + " notifyError2onCompletion")
         .append(onCompletion + " onCompletion")
-        /*.append("==============================")
-        .append("rpcTryId:" + rpcTryId)
-        .append(startAsyncRequest + " startAsyncRequest")
-        .append(call2onRpcReply + " call2onRpcReply")
-        .append(onRpcReply + " onRpcReply")*/
         .toString();
   }
 }
