@@ -24,8 +24,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 
 public class ReplicaSession {
-  private org.apache.log4j.Logger RPC_TRACE_FAILED_LOG = org.apache.log4j.Logger.getLogger("rpcTraceFailed");
-  private org.apache.log4j.Logger RPC_TRACE_SUCCESS_LOG = org.apache.log4j.Logger.getLogger("rpcTraceSuccess");
+  private org.apache.log4j.Logger RPC_TRACE_FAILED_LOG =
+      org.apache.log4j.Logger.getLogger("rpcTraceFailed");
+  private org.apache.log4j.Logger RPC_TRACE_SUCCESS_LOG =
+      org.apache.log4j.Logger.getLogger("rpcTraceSuccess");
 
   public static class RequestEntry {
     public int sequenceId;
