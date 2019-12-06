@@ -13,7 +13,7 @@ import java.util.UUID;
 public abstract class client_operator {
 
   public long rpcStartTime = System.currentTimeMillis();
-  public String rpcId = UUID.randomUUID().toString();
+  public String rpcId = "T" + rpcStartTime;
 
   public client_operator(gpid gpid, String tableName) {
     this.header = new ThriftHeader();

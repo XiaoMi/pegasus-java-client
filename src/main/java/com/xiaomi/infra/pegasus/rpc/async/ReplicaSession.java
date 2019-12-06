@@ -24,7 +24,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 
 public class ReplicaSession {
-  private org.apache.log4j.Logger RPC_TRACE_LOG = org.apache.log4j.Logger.getLogger("rpcTrace");
+  private org.apache.log4j.Logger RPC_TRACE_FAILED_LOG = org.apache.log4j.Logger.getLogger("rpcTraceFailed");
+  private org.apache.log4j.Logger RPC_TRACE_SUCCESS_LOG = org.apache.log4j.Logger.getLogger("rpcTraceSuccess");
 
   public static class RequestEntry {
     public int sequenceId;
@@ -89,7 +90,7 @@ public class ReplicaSession {
 
     entry.rpcTrace = new RpcTrace(op.rpcId, op.tableName, op.rpcStartTime, timeoutInMilliseconds);
     entry.rpcTrace.startAsyncSend = System.currentTimeMillis();
-    entry.rpcTrace.asyncRequest2asyncSend = System.currentTimeMillis() - op.rpcStartTime;
+    entry.rpcTrace.asyncRequest2asyncSend = entry.rpcTrace.startAsyncSend - op.rpcStartTime;
     entry.rpcTrace.rpcSeqId = entry.sequenceId;
     entry.rpcTrace.rpcOperation = op.name();
     try {
@@ -251,6 +252,7 @@ public class ReplicaSession {
     RequestEntry entry = pendingResponse.remove(seqID);
 
     entry.rpcTrace.startTryNotifyError = System.currentTimeMillis();
+    entry.rpcTrace.isTimeOutTask = isTimeoutTask;
     // may be failed before write
     if (entry.rpcTrace.startWrite == 0) {
       entry.rpcTrace.asyncSend2notifyError =
@@ -289,7 +291,7 @@ public class ReplicaSession {
           entry.rpcTrace.onCompletion - entry.rpcTrace.startTryNotifyError;
       entry.rpcTrace.allTimeUsed = entry.rpcTrace.onCompletion - entry.rpcTrace.startAsyncRequest;
       entry.rpcTrace.rpcState = entry.op.rpc_error.errno.toString();
-      RPC_TRACE_LOG.info(entry.rpcTrace.toString());
+      RPC_TRACE_FAILED_LOG.info(entry.rpcTrace.toString());
 
     } else {
       logger.warn(
@@ -371,7 +373,7 @@ public class ReplicaSession {
             msg.rpcTrace.onCompletion - msg.rpcTrace.writeComplete;
         msg.rpcTrace.allTimeUsed = msg.rpcTrace.onCompletion - msg.rpcTrace.startAsyncRequest;
         msg.rpcTrace.rpcState = msg.op.rpc_error.errno.toString();
-        RPC_TRACE_LOG.info(msg.rpcTrace.toString());
+        RPC_TRACE_SUCCESS_LOG.info(msg.rpcTrace.toString());
 
       } else {
         logger.warn(

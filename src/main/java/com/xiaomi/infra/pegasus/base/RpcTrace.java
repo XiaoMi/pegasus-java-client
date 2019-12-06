@@ -37,6 +37,7 @@ public class RpcTrace {
   public long notifyError2onCompletion;
 
   public long call2onRpcReply;
+  public boolean isTimeOutTask;
 
   public RpcTrace(String rpcId, String rpcTable, long startAsyncRequest, long timeUsed) {
     this.rpcId = rpcId;
@@ -63,8 +64,8 @@ public class RpcTrace {
         .append(asyncSend2write + " asyncSend2write")
         .append(write2writeComplete + " write2writeComplete")
         .append(writeComplete2onCompletion + " writeComplete2onCompletion")
-        .append(asyncSend2notifyError + " asyncSend2notifyError")
-        .append(write2notifyError + " write2notifyError")
+        .append(asyncSend2notifyError + " asyncSend2notifyError[isTimerTask=" + isTimeOutTask + "]")
+        .append(write2notifyError + " write2notifyError[isTimerTask=" + isTimeOutTask + "]")
         .append(notifyError2onCompletion + " notifyError2onCompletion")
         .append(onCompletion + " onCompletion")
         /*.append("==============================")
