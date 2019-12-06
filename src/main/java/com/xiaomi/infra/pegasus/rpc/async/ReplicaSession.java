@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.base.RpcTrace;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
@@ -23,12 +24,15 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 
 public class ReplicaSession {
+  private org.apache.log4j.Logger RPC_TRACE_LOG = org.apache.log4j.Logger.getLogger("rpcTrace");
+
   public static class RequestEntry {
     public int sequenceId;
     public com.xiaomi.infra.pegasus.operator.client_operator op;
     public Runnable callback;
     public ScheduledFuture timeoutTask;
     public long timeoutMs;
+    public RpcTrace rpcTrace;
   }
 
   public enum ConnState {
@@ -82,6 +86,18 @@ public class ReplicaSession {
   public int asyncSend(client_operator op, Runnable callbackFunc, long timeoutInMilliseconds) {
     RequestEntry entry = new RequestEntry();
     entry.sequenceId = seqId.getAndIncrement();
+
+    entry.rpcTrace = new RpcTrace(op.rpcId, op.tableName, op.rpcStartTime, timeoutInMilliseconds);
+    entry.rpcTrace.startAsyncSend = System.currentTimeMillis();
+    entry.rpcTrace.asyncRequest2asyncSend = System.currentTimeMillis() - op.rpcStartTime;
+    entry.rpcTrace.rpcSeqId = entry.sequenceId;
+    entry.rpcTrace.rpcOperation = op.name();
+    try {
+      entry.rpcTrace.rpcRemoteAddress = this.address.get_ip();
+    } catch (UnknownHostException e) {
+      logger.warn("UnknownHostException!");
+    }
+
     entry.op = op;
     entry.callback = callbackFunc;
     // NOTICE: must make sure the msg is put into the pendingResponse map BEFORE
@@ -126,7 +142,7 @@ public class ReplicaSession {
       try {
         // close().sync() means calling system API `close()` synchronously,
         // but the connection may not be completely closed then, that is,
-        // the state may not be marked as DISCONNECTED immediately.
+        // the rpcState may not be marked as DISCONNECTED immediately.
         f.nettyChannel.close().sync();
         logger.info("channel to {} closed", address.toString());
       } catch (Exception ex) {
@@ -233,6 +249,17 @@ public class ReplicaSession {
         errno.toString(),
         isTimeoutTask);
     RequestEntry entry = pendingResponse.remove(seqID);
+
+    entry.rpcTrace.startTryNotifyError = System.currentTimeMillis();
+    // may be failed before write
+    if (entry.rpcTrace.startWrite == 0) {
+      entry.rpcTrace.asyncSend2notifyError =
+          entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startAsyncSend;
+    } else {
+      entry.rpcTrace.write2notifyError =
+          entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startWrite;
+    }
+
     if (entry != null) {
       if (!isTimeoutTask) entry.timeoutTask.cancel(true);
       if (errno == error_types.ERR_TIMEOUT) {
@@ -256,6 +283,14 @@ public class ReplicaSession {
       }
       entry.op.rpc_error.errno = errno;
       entry.callback.run();
+
+      entry.rpcTrace.onCompletion = System.currentTimeMillis();
+      entry.rpcTrace.notifyError2onCompletion =
+          entry.rpcTrace.onCompletion - entry.rpcTrace.startTryNotifyError;
+      entry.rpcTrace.allTimeUsed = entry.rpcTrace.onCompletion - entry.rpcTrace.startAsyncRequest;
+      entry.rpcTrace.rpcState = entry.op.rpc_error.errno.toString();
+      RPC_TRACE_LOG.info(entry.rpcTrace.toString());
+
     } else {
       logger.warn(
           "{}: {} is removed by others, current error {}, isTimeoutTask {}",
@@ -267,6 +302,10 @@ public class ReplicaSession {
   }
 
   private void write(final RequestEntry entry, VolatileFields cache) {
+
+    entry.rpcTrace.startWrite = System.currentTimeMillis();
+    entry.rpcTrace.asyncSend2write = entry.rpcTrace.startWrite - entry.rpcTrace.startAsyncSend;
+
     cache
         .nettyChannel
         .writeAndFlush(entry)
@@ -276,6 +315,11 @@ public class ReplicaSession {
               public void operationComplete(ChannelFuture channelFuture) throws Exception {
                 // NOTICE: we never do the connection things, this should be the duty of
                 // ChannelHandler, we only notify the request
+
+                entry.rpcTrace.writeComplete = System.currentTimeMillis();
+                entry.rpcTrace.write2writeComplete =
+                    entry.rpcTrace.writeComplete - entry.rpcTrace.startWrite;
+
                 if (!channelFuture.isSuccess()) {
                   logger.info(
                       "{} write seqid {} failed: ",
@@ -290,7 +334,7 @@ public class ReplicaSession {
 
   // Notify the RPC caller when times out. If the RPC finishes in time,
   // this task will be cancelled.
-  // TODO(wutao1): call it addTimeoutTicker
+  // TODO(wutao1): startCall it addTimeoutTicker
   private ScheduledFuture addTimer(final int seqID, long timeoutInMillseconds) {
     return rpcGroup.schedule(
         new Runnable() {
@@ -321,6 +365,14 @@ public class ReplicaSession {
       logger.debug("{}: handle response with seqid({})", name(), msg.sequenceId);
       if (msg.callback != null) {
         msg.callback.run();
+
+        msg.rpcTrace.onCompletion = System.currentTimeMillis();
+        msg.rpcTrace.writeComplete2onCompletion =
+            msg.rpcTrace.onCompletion - msg.rpcTrace.writeComplete;
+        msg.rpcTrace.allTimeUsed = msg.rpcTrace.onCompletion - msg.rpcTrace.startAsyncRequest;
+        msg.rpcTrace.rpcState = msg.op.rpc_error.errno.toString();
+        RPC_TRACE_LOG.info(msg.rpcTrace.toString());
+
       } else {
         logger.warn(
             "{}: seqid({}) has no callback, just ignore the response", name(), msg.sequenceId);

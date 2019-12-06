@@ -8,8 +8,13 @@ import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
 import com.xiaomi.infra.pegasus.thrift.TException;
 import com.xiaomi.infra.pegasus.tools.Tools;
+import java.util.UUID;
 
 public abstract class client_operator {
+
+  public long rpcStartTime = System.currentTimeMillis();
+  public String rpcId = UUID.randomUUID().toString();
+
   public client_operator(gpid gpid, String tableName) {
     this.header = new ThriftHeader();
     this.header.app_id = gpid.get_app_id();

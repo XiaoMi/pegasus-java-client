@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.base.RpcTrace;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.base.rpc_address;
@@ -18,6 +19,7 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
@@ -28,6 +30,8 @@ import org.slf4j.Logger;
 
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {
+  private org.apache.log4j.Logger RPC_TRACE_LOG = org.apache.log4j.Logger.getLogger("rpcTrace");
+
   public static final class ReplicaConfiguration {
     public gpid pid = new gpid();
     public long ballot = 0;
@@ -260,6 +264,10 @@ public class TableHandler extends Table {
       long cachedConfigVersion) {
     client_operator operator = round.getOperator();
 
+    RpcTrace rpcTrace =
+        new RpcTrace(operator.rpcId, operator.tableName, operator.rpcStartTime, round.timeoutMs);
+    rpcTrace.onRpcReply = System.currentTimeMillis();
+
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
@@ -351,6 +359,17 @@ public class TableHandler extends Table {
 
   void call(final ClientRequestRound round, final int tryId) {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
+
+    RpcTrace rpcTrace =
+        new RpcTrace(
+            round.operator.rpcId,
+            round.operator.tableName,
+            round.operator.rpcStartTime,
+            round.timeoutMs);
+    rpcTrace.rpcOperation = round.operator.name();
+    rpcTrace.rpcTryId = tryId;
+    rpcTrace.startCall = System.currentTimeMillis();
+
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
@@ -360,6 +379,16 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
+              rpcTrace.onRpcReply = System.currentTimeMillis();
+              rpcTrace.call2onRpcReply = rpcTrace.onRpcReply - rpcTrace.startCall;
+              try {
+                rpcTrace.rpcRemoteAddress = handle.session.getAddress().get_ip();
+              } catch (UnknownHostException e) {
+
+              }
+              rpcTrace.allTimeUsed = rpcTrace.onRpcReply - rpcTrace.startAsyncRequest;
+              // RPC_TRACE_LOG.info(rpcTrace.toString());
+
               onRpcReply(round, tryId, handle, tableConfig.updateVersion);
             }
           },
