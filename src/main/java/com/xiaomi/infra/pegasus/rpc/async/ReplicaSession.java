@@ -27,7 +27,7 @@ public class ReplicaSession {
     public int sequenceId;
     public com.xiaomi.infra.pegasus.operator.client_operator op;
     public Runnable callback;
-    public ScheduledFuture timeoutTask;
+    public ScheduledFuture<?> timeoutTask;
     public long timeoutMs;
   }
 
@@ -234,7 +234,10 @@ public class ReplicaSession {
         isTimeoutTask);
     RequestEntry entry = pendingResponse.remove(seqID);
     if (entry != null) {
-      if (!isTimeoutTask) entry.timeoutTask.cancel(true);
+      if (!isTimeoutTask && entry.timeoutTask != null) {
+        entry.timeoutTask.cancel(true);
+        entry.timeoutTask = null;
+      }
       if (errno == error_types.ERR_TIMEOUT) {
         long firstTs = firstRecentTimedOutMs.get();
         if (firstTs == 0) {
@@ -291,7 +294,7 @@ public class ReplicaSession {
   // Notify the RPC caller when times out. If the RPC finishes in time,
   // this task will be cancelled.
   // TODO(wutao1): call it addTimeoutTicker
-  private ScheduledFuture addTimer(final int seqID, long timeoutInMillseconds) {
+  private ScheduledFuture<?> addTimer(final int seqID, long timeoutInMillseconds) {
     return rpcGroup.schedule(
         new Runnable() {
           @Override
