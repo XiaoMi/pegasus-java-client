@@ -253,18 +253,19 @@ public class ReplicaSession {
         isTimeoutTask);
     RequestEntry entry = pendingResponse.remove(seqID);
 
-    entry.rpcTrace.startTryNotifyError = System.nanoTime() / 1000;
-    entry.rpcTrace.isTimeOutTask = isTimeoutTask;
-    // may be failed before write
-    if (entry.rpcTrace.startWrite == 0) {
-      entry.rpcTrace.asyncSend2notifyError =
-          entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startAsyncSend;
-    } else {
-      entry.rpcTrace.write2notifyError =
-          entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startWrite;
-    }
-
     if (entry != null) {
+
+      entry.rpcTrace.startTryNotifyError = System.nanoTime() / 1000;
+      entry.rpcTrace.isTimeOutTask = isTimeoutTask;
+      // may be failed before write
+      if (entry.rpcTrace.startWrite == 0) {
+        entry.rpcTrace.asyncSend2notifyError =
+            entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startAsyncSend;
+      } else {
+        entry.rpcTrace.write2notifyError =
+            entry.rpcTrace.startTryNotifyError - entry.rpcTrace.startWrite;
+      }
+
       if (!isTimeoutTask) entry.timeoutTask.cancel(true);
       if (errno == error_types.ERR_TIMEOUT) {
         long firstTs = firstRecentTimedOutMs.get();
