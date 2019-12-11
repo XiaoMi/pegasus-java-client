@@ -235,15 +235,13 @@ public class ReplicaSessionTest {
     ReplicaSession.RequestEntry entry = new ReplicaSession.RequestEntry();
     entry.sequenceId = 100;
     entry.callback = () -> passed.set(true);
-
-    // simulate the timeoutTask has been null
-    entry.timeoutTask = null;
+    entry.timeoutTask = null; // simulate the timeoutTask has been null
     entry.op = new rrdb_put_operator(new gpid(1, 1), null, null, 0);
     rs.pendingResponse.put(100, entry);
     rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
     Assert.assertTrue(passed.get());
 
-    // simulate the entry has been removed
+    // simulate the entry has been removed, ensure no NPE thrown
     rs.getAndRemoveEntry(entry.sequenceId);
     rs.tryNotifyWithSequenceID(entry.sequenceId, entry.op.rpc_error.errno, true);
 
