@@ -368,7 +368,7 @@ public class ReplicaSession {
       new ConcurrentHashMap<Integer, RequestEntry>();
   private final AtomicInteger seqId = new AtomicInteger(0);
 
-  public final Queue<RequestEntry> pendingSend = new LinkedList<RequestEntry>();
+  final Queue<RequestEntry> pendingSend = new LinkedList<RequestEntry>();
 
   public static final class VolatileFields {
     public ConnState state = ConnState.DISCONNECTED;
