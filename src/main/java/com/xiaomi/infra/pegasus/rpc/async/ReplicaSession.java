@@ -215,7 +215,10 @@ public class ReplicaSession {
             tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
           }
         } catch (Exception e) {
-          logger.warn("try notify with sequenceId exception!");
+          logger.error(
+              "failed to notify callers due to unexpected exception [state={}]: ",
+              cache.state.toString(),
+              e);
         } finally {
           // ensure the state must be set DISCONNECTED
           cache = new VolatileFields();
