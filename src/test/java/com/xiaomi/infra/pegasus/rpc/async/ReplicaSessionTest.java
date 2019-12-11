@@ -216,7 +216,7 @@ public class ReplicaSessionTest {
   }
 
   @Test
-  public void testTryNotifyWithSequenceID() {
+  public void testTryNotifyWithSequenceID() throws Exception {
     rpc_address addr = new rpc_address();
     addr.fromString("127.0.0.1:34801");
     ReplicaSession rs = manager.getReplicaSession(addr);
