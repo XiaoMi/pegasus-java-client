@@ -310,8 +310,7 @@ public class ReplicaSession {
             try {
               tryNotifyWithSequenceID(seqID, error_types.ERR_TIMEOUT, true);
             } catch (Exception e) {
-              logger.warn(
-                  "try notify with sequenceID {} exception!", seqID, e);
+              logger.warn("try notify with sequenceID {} exception!", seqID, e);
             }
           }
         },
