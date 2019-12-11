@@ -202,22 +202,26 @@ public class ReplicaSession {
         // 2. It's likely that when the session is disconnecting
         // but the caller of the api query/asyncQuery didn't notice
         // this. In this case, we are relying on the timeout task.
-        while (!pendingSend.isEmpty()) {
-          RequestEntry e = pendingSend.poll();
-          tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+        try {
+          while (!pendingSend.isEmpty()) {
+            RequestEntry e = pendingSend.poll();
+            tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+          }
+          List<RequestEntry> l = new LinkedList<RequestEntry>();
+          for (Map.Entry<Integer, RequestEntry> entry : pendingResponse.entrySet()) {
+            l.add(entry.getValue());
+          }
+          for (RequestEntry e : l) {
+            tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+          }
+        } catch (Exception e) {
+          logger.warn("try notify with sequenceId exception!");
+        } finally {
+          cache = new VolatileFields();
+          cache.state = ConnState.DISCONNECTED;
+          cache.nettyChannel = null;
+          fields = cache;
         }
-        List<RequestEntry> l = new LinkedList<RequestEntry>();
-        for (Map.Entry<Integer, RequestEntry> entry : pendingResponse.entrySet()) {
-          l.add(entry.getValue());
-        }
-        for (RequestEntry e : l) {
-          tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
-        }
-
-        cache = new VolatileFields();
-        cache.state = ConnState.DISCONNECTED;
-        cache.nettyChannel = null;
-        fields = cache;
       } else {
         logger.warn("{}: session is closed already", name());
       }

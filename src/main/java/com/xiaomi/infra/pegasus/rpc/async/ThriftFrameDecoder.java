@@ -50,7 +50,10 @@ public class ThriftFrameDecoder extends ByteToMessageDecoder {
       } else {
         ReplicaSession.RequestEntry e = session.getAndRemoveEntry(msgHeader.seqid);
         if (e != null) {
-          e.timeoutTask.cancel(true);
+          if (e.timeoutTask != null) {
+            e.timeoutTask.cancel(true);
+            e.timeoutTask = null;
+          }
           e.op.rpc_error.errno = ec.errno;
           if (e.op.rpc_error.errno == error_code.error_types.ERR_OK) {
             try {
