@@ -13,6 +13,7 @@ import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_get_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_put_operator;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession.ConnState;
 import com.xiaomi.infra.pegasus.thrift.TException;
 import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
 import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
@@ -27,6 +28,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 /**
@@ -229,10 +231,27 @@ public class ReplicaSessionTest {
     ReplicaSession.RequestEntry entry = new ReplicaSession.RequestEntry();
     entry.sequenceId = 100;
     entry.callback = () -> passed.set(true);
+
+    // simulate the timeoutTask has been null
     entry.timeoutTask = null;
     entry.op = new rrdb_put_operator(new gpid(1, 1), null, null, 0);
     rs.pendingResponse.put(100, entry);
     rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
     Assert.assertTrue(passed.get());
+
+    // simulate the entry has been removed
+    rs.getAndRemoveEntry(entry.sequenceId);
+    rs.tryNotifyWithSequenceID(entry.sequenceId, entry.op.rpc_error.errno, true);
+
+    // ensure must be marked session state to disconnect when TryNotifyWithSequenceID happen any
+    // exception
+    ReplicaSession mockRs = Mockito.spy(rs);
+    mockRs.pendingSend.offer(entry);
+    mockRs.fields.state = ConnState.CONNECTED;
+    Mockito.doThrow(new Exception())
+        .when(mockRs)
+        .tryNotifyWithSequenceID(entry.sequenceId, entry.op.rpc_error.errno, false);
+    mockRs.markSessionDisconnect();
+    Assert.assertEquals(mockRs.getState(), ConnState.DISCONNECTED);
   }
 }

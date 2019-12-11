@@ -192,7 +192,7 @@ public class ReplicaSession {
     }
   }
 
-  private void markSessionDisconnect() {
+  void markSessionDisconnect() {
     VolatileFields cache = fields;
     synchronized (pendingSend) {
       if (cache.state != ConnState.DISCONNECTED) {
@@ -230,7 +230,8 @@ public class ReplicaSession {
   }
 
   // Notify the RPC sender if failure occurred.
-  void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask) {
+  void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask)
+      throws Exception {
     logger.debug(
         "{}: {} is notified with error {}, isTimeoutTask {}",
         name(),
@@ -303,7 +304,12 @@ public class ReplicaSession {
         new Runnable() {
           @Override
           public void run() {
-            tryNotifyWithSequenceID(seqID, error_types.ERR_TIMEOUT, true);
+            try {
+              tryNotifyWithSequenceID(seqID, error_types.ERR_TIMEOUT, true);
+            } catch (Exception e) {
+              logger.warn(
+                  "try notify with sequenceID {} exception! message: {}", seqID, e.getMessage());
+            }
           }
         },
         timeoutInMillseconds,
@@ -360,14 +366,14 @@ public class ReplicaSession {
       new ConcurrentHashMap<Integer, RequestEntry>();
   private final AtomicInteger seqId = new AtomicInteger(0);
 
-  private final Queue<RequestEntry> pendingSend = new LinkedList<RequestEntry>();
+  public final Queue<RequestEntry> pendingSend = new LinkedList<RequestEntry>();
 
-  private static final class VolatileFields {
+  public static final class VolatileFields {
     public ConnState state = ConnState.DISCONNECTED;
     public Channel nettyChannel = null;
   }
 
-  private volatile VolatileFields fields = new VolatileFields();
+  public volatile VolatileFields fields = new VolatileFields();
 
   private final rpc_address address;
   private Bootstrap boot;
