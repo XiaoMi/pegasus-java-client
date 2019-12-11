@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -210,5 +211,28 @@ public class ReplicaSessionTest {
       rs.asyncSend(op, cb, 2000);
       Tools.waitUninterruptable(cb, Integer.MAX_VALUE);
     }
+  }
+
+  @Test
+  public void testTryNotifyWithSequenceID() throws Exception {
+    rpc_address addr = new rpc_address();
+    addr.fromString("127.0.0.1:34801");
+    ReplicaSession rs = manager.getReplicaSession(addr);
+
+    // no pending RequestEntry, ensure no NPE thrown
+    Assert.assertTrue(rs.pendingResponse.isEmpty());
+    rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
+
+    // Edge case (this is not yet confirmed to happen)
+    // seqId=100 in wait-queue, but entry.timeoutTask is set null because some sort of bug in netty.
+    AtomicBoolean passed = new AtomicBoolean(false);
+    ReplicaSession.RequestEntry entry = new ReplicaSession.RequestEntry();
+    entry.sequenceId = 100;
+    entry.callback = () -> passed.set(true);
+    entry.timeoutTask = null;
+    entry.op = new rrdb_put_operator(new gpid(1, 1), null, null, 0);
+    rs.pendingResponse.put(100, entry);
+    rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
+    Assert.assertTrue(passed.get());
   }
 }

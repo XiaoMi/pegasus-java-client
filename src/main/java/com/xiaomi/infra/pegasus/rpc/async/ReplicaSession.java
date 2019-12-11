@@ -225,7 +225,7 @@ public class ReplicaSession {
   }
 
   // Notify the RPC sender if failure occurred.
-  private void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask) {
+  void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask) {
     logger.debug(
         "{}: {} is notified with error {}, isTimeoutTask {}",
         name(),
@@ -236,7 +236,6 @@ public class ReplicaSession {
     if (entry != null) {
       if (!isTimeoutTask && entry.timeoutTask != null) {
         entry.timeoutTask.cancel(true);
-        entry.timeoutTask = null;
       }
       if (errno == error_types.ERR_TIMEOUT) {
         long firstTs = firstRecentTimedOutMs.get();
@@ -352,7 +351,7 @@ public class ReplicaSession {
 
   MessageResponseFilter filter = null;
 
-  private final ConcurrentHashMap<Integer, RequestEntry> pendingResponse =
+  final ConcurrentHashMap<Integer, RequestEntry> pendingResponse =
       new ConcurrentHashMap<Integer, RequestEntry>();
   private final AtomicInteger seqId = new AtomicInteger(0);
 
