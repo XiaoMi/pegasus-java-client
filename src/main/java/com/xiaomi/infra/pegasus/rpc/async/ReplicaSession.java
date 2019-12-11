@@ -370,12 +370,12 @@ public class ReplicaSession {
 
   final Queue<RequestEntry> pendingSend = new LinkedList<RequestEntry>();
 
-  public static final class VolatileFields {
+  static final class VolatileFields {
     public ConnState state = ConnState.DISCONNECTED;
     public Channel nettyChannel = null;
   }
 
-  public volatile VolatileFields fields = new VolatileFields();
+  volatile VolatileFields fields = new VolatileFields();
 
   private final rpc_address address;
   private Bootstrap boot;
