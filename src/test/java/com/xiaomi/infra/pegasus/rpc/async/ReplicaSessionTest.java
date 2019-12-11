@@ -245,8 +245,7 @@ public class ReplicaSessionTest {
     rs.getAndRemoveEntry(entry.sequenceId);
     rs.tryNotifyWithSequenceID(entry.sequenceId, entry.op.rpc_error.errno, true);
 
-    // ensure must be marked session state to disconnect when TryNotifyWithSequenceID happen any
-    // exception
+    // ensure mark session state to disconnect when TryNotifyWithSequenceID incur any exception
     ReplicaSession mockRs = Mockito.spy(rs);
     mockRs.pendingSend.offer(entry);
     mockRs.fields.state = ConnState.CONNECTED;
