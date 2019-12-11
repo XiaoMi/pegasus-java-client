@@ -214,14 +214,18 @@ public class ReplicaSessionTest {
   }
 
   @Test
-  public void testTryNotifyWithSequenceID() throws Exception {
+  public void testTryNotifyWithSequenceID() {
     rpc_address addr = new rpc_address();
     addr.fromString("127.0.0.1:34801");
     ReplicaSession rs = manager.getReplicaSession(addr);
 
     // no pending RequestEntry, ensure no NPE thrown
     Assert.assertTrue(rs.pendingResponse.isEmpty());
-    rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
+    try {
+      rs.tryNotifyWithSequenceID(100, error_code.error_types.ERR_TIMEOUT, false);
+    } catch (Exception e) {
+      Assert.assertNull(e);
+    }
 
     // Edge case (this is not yet confirmed to happen)
     // seqId=100 in wait-queue, but entry.timeoutTask is set null because some sort of bug in netty.
