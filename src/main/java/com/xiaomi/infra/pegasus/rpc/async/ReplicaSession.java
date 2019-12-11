@@ -217,6 +217,7 @@ public class ReplicaSession {
         } catch (Exception e) {
           logger.warn("try notify with sequenceId exception!");
         } finally {
+          // ensure the state must be set DISCONNECTED
           cache = new VolatileFields();
           cache.state = ConnState.DISCONNECTED;
           cache.nettyChannel = null;
