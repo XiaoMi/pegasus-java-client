@@ -286,4 +286,15 @@ public class ReplicaSessionTest {
     Thread.sleep(100);
     Assert.assertEquals(rs.getState(), ConnState.DISCONNECTED);
   }
+
+  @Test
+  public void testSessionTryConnectWhenConnected() throws InterruptedException {
+    rpc_address addr = new rpc_address();
+    addr.fromString("127.0.0.1:34801");
+    ReplicaSession rs = manager.getReplicaSession(addr);
+    rs.tryConnect().awaitUninterruptibly();
+    Thread.sleep(100);
+    Assert.assertEquals(rs.getState(), ConnState.CONNECTED);
+    Assert.assertNull(rs.tryConnect()); // do not connect again
+  }
 }
