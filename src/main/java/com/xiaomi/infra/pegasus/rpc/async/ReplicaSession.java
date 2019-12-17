@@ -99,7 +99,12 @@ public class ReplicaSession {
       write(entry, cache);
     } else {
       synchronized (pendingSend) {
-        pendingSend.offer(entry);
+        cache = fields;
+        if (cache.state == ConnState.CONNECTED) {
+          write(entry, cache);
+        } else {
+          pendingSend.offer(entry);
+        }
       }
       tryConnect();
     }
