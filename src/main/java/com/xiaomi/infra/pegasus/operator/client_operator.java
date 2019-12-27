@@ -25,9 +25,9 @@ public abstract class client_operator {
     this.meta.setPartition_hash(partitionHash);
   }
 
-  public final byte[] prepare_thrift_header(int body_length, int meta_length) {
-    this.header.body_length = body_length;
+  public final byte[] prepare_thrift_header(int meta_length, int body_length) {
     this.header.meta_length = meta_length;
+    this.header.body_length = body_length;
     return header.toByteArray();
   }
 

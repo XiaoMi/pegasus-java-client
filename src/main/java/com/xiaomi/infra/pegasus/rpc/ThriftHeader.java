@@ -6,16 +6,18 @@ package com.xiaomi.infra.pegasus.rpc;
 import java.nio.ByteBuffer;
 
 public class ThriftHeader {
-  public static final int HEADER_LENGTH = 12;
+  public static final int HEADER_LENGTH = 16;
   static final byte[] HEADER_TYPE = {'T', 'H', 'F', 'T'};
-  public int body_length;
+  public int version = 1;
   public int meta_length;
+  public int body_length;
 
   public byte[] toByteArray() {
     ByteBuffer bf = ByteBuffer.allocate(HEADER_LENGTH);
     bf.put(HEADER_TYPE);
-    bf.putInt(body_length);
+    bf.putInt(version);
     bf.putInt(meta_length);
+    bf.putInt(body_length);
     return bf.array();
   }
 }

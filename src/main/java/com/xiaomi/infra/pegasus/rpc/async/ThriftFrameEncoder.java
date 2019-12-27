@@ -40,10 +40,8 @@ public class ThriftFrameEncoder extends MessageToByteEncoder<ReplicaSession.Requ
     e.op.send_data(protocol, e.sequenceId);
 
     // write header
-    out.setBytes(
-        initIndex,
-        e.op.prepare_thrift_header(
-            out.readableBytes() - ThriftHeader.HEADER_LENGTH - meta_length, meta_length));
+    out.setBytes(initIndex, e.op.prepare_thrift_header(meta_length,
+            out.readableBytes() - ThriftHeader.HEADER_LENGTH - meta_length));
   }
 
   @Override
