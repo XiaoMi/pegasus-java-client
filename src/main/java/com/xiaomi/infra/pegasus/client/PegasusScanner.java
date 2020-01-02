@@ -80,6 +80,47 @@ public class PegasusScanner implements PegasusScannerInterface {
     }
   }
 
+  public void nextBatch(List<Pair<Pair<byte[], byte[]>, byte[]>> results) throws PException {
+    if (results == null) {
+      throw new PException(new NullPointerException("results can't be null!"));
+    }
+
+    int remainingTime = _options.timeoutMillis;
+    long startTime = System.currentTimeMillis();
+    long lastCheckTime = startTime;
+    long deadlineTime = startTime + _options.timeoutMillis;
+
+    try {
+      results.clear();
+      Pair<Pair<byte[], byte[]>, byte[]> result;
+      int batchSize = _options.batchSize;
+      while (batchSize-- > 0
+          && (result = asyncNext().get(remainingTime, TimeUnit.MILLISECONDS)) != null) {
+        results.add(result);
+        lastCheckTime = System.currentTimeMillis();
+        if ((remainingTime = (int) (deadlineTime - lastCheckTime)) <= 0) {
+          throw new PException(
+              "Getting hashKey:"
+                  + new String(result.getKey().getLeft())
+                  + ",sortKey:"
+                  + new String(result.getKey().getRight())
+                  + ",value:"
+                  + new String(result.getRight())
+                  + " timeUsed:"
+                  + (lastCheckTime - startTime)
+                  + ":",
+              new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+        }
+      }
+    } catch (InterruptedException e) {
+      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (TimeoutException e) {
+      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
   public Future<Pair<Pair<byte[], byte[]>, byte[]>> asyncNext() {
     final DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> promise = _table.newPromise();
     synchronized (_promisesLock) {

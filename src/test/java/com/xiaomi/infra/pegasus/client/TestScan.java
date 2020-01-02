@@ -218,10 +218,11 @@ public class TestScan {
   }
 
   @Test
-  public void testOverallScan() throws PException {
+  public void testOverallScan() throws PException, InterruptedException {
     System.out.println("TEST OVERALL_SCAN...");
 
     ScanOptions options = new ScanOptions();
+    options.batchSize = 1000;
     TreeMap<String, TreeMap<String, String>> data = new TreeMap<String, TreeMap<String, String>>();
     List<PegasusScannerInterface> scanners = client.getUnorderedScanners(tableName, 3, options);
     Assert.assertTrue(scanners.size() <= 3);
@@ -239,6 +240,28 @@ public class TestScan {
       }
       scanner.close();
     }
+    compare(data, base);
+  }
+
+  @Test
+  public void testScanNextBatch() throws PException {
+    ScanOptions options = new ScanOptions();
+    options.batchSize = 1000;
+    TreeMap<String, TreeMap<String, String>> data = new TreeMap<>();
+    PegasusScannerInterface scanner = client.getUnorderedScanners(tableName, options);
+    List<Pair<Pair<byte[], byte[]>, byte[]>> results = new ArrayList<>();
+    scanner.nextBatch(results);
+    while (results.size() != 0) {
+      for (Pair<Pair<byte[], byte[]>, byte[]> item : results) {
+        checkAndPut(
+            data,
+            new String(item.getLeft().getLeft()),
+            new String(item.getLeft().getRight()),
+            new String(item.getRight()));
+      }
+      scanner.nextBatch(results);
+    }
+    scanner.close();
     compare(data, base);
   }
 
