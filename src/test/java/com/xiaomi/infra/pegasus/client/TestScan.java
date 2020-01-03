@@ -218,11 +218,10 @@ public class TestScan {
   }
 
   @Test
-  public void testOverallScan() throws PException, InterruptedException {
+  public void testOverallScan() throws PException {
     System.out.println("TEST OVERALL_SCAN...");
 
     ScanOptions options = new ScanOptions();
-    options.batchSize = 1000;
     TreeMap<String, TreeMap<String, String>> data = new TreeMap<String, TreeMap<String, String>>();
     List<PegasusScannerInterface> scanners = client.getUnorderedScanners(tableName, 3, options);
     Assert.assertTrue(scanners.size() <= 3);
