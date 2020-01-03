@@ -586,7 +586,7 @@ public interface PegasusClientInterface {
    * @param tableName TableHandler name
    * @param options scan options like batchSize
    * @return scanner
-   * @throws PException throws exception if any error occurs.
+   * @throws PException throws exception if any error occur.
    */
   public PegasusScannerInterface getUnorderedScanners(String tableName, ScanOptions options)
       throws PException;

@@ -538,7 +538,6 @@ public class PegasusClient implements PegasusClientInterface {
   @Override
   public PegasusScannerInterface getUnorderedScanners(String tableName, ScanOptions options)
       throws PException {
-    PegasusTable tb = getTable(tableName);
-    return tb.getUnorderedScanners(1, options).get(0);
+    return getUnorderedScanners(tableName, 1, options).get(0);
   }
 }
