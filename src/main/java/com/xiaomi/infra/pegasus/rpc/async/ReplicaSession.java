@@ -59,7 +59,7 @@ public class ReplicaSession {
               }
             });
 
-    this.firstRecentTimedOutMs = new AtomicLong(0);
+    failureDetector = new SessionFailureDetector();
   }
 
   // You can specify a message response filter with constructor or with "setMessageResponseFilter"
@@ -238,14 +238,14 @@ public class ReplicaSession {
         try {
           while (!pendingSend.isEmpty()) {
             RequestEntry e = pendingSend.poll();
-            tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+            tryNotifyFailureWithSeqID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
           }
           List<RequestEntry> l = new LinkedList<RequestEntry>();
           for (Map.Entry<Integer, RequestEntry> entry : pendingResponse.entrySet()) {
             l.add(entry.getValue());
           }
           for (RequestEntry e : l) {
-            tryNotifyWithSequenceID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
+            tryNotifyFailureWithSeqID(e.sequenceId, error_types.ERR_SESSION_RESET, false);
           }
         } catch (Exception e) {
           logger.error(
@@ -267,7 +267,7 @@ public class ReplicaSession {
   }
 
   // Notify the RPC sender if failure occurred.
-  void tryNotifyWithSequenceID(int seqID, error_types errno, boolean isTimeoutTask)
+  void tryNotifyFailureWithSeqID(int seqID, error_types errno, boolean isTimeoutTask)
       throws Exception {
     logger.debug(
         "{}: {} is notified with error {}, isTimeoutTask {}",
@@ -275,29 +275,22 @@ public class ReplicaSession {
         seqID,
         errno.toString(),
         isTimeoutTask);
+    assert errno == error_types.ERR_TIMEOUT || errno == error_types.ERR_SESSION_RESET;
     RequestEntry entry = pendingResponse.remove(seqID);
     if (entry != null) {
       if (!isTimeoutTask && entry.timeoutTask != null) {
         entry.timeoutTask.cancel(true);
       }
+      // The error must be ERR_TIMEOUT or ERR_SESSION_RESET
       if (errno == error_types.ERR_TIMEOUT) {
-        long firstTs = firstRecentTimedOutMs.get();
-        if (firstTs == 0) {
-          // it is the first timeout in the window.
-          firstRecentTimedOutMs.set(System.currentTimeMillis());
-        } else if (System.currentTimeMillis() - firstTs >= sessionResetTimeWindowMs) {
-          // ensure that closeSession() will be invoked only once.
-          if (firstRecentTimedOutMs.compareAndSet(firstTs, 0)) {
-            logger.warn(
-                "{}: actively close the session because it's not responding for {} seconds",
-                name(),
-                sessionResetTimeWindowMs / 1000);
-            closeSession(); // maybe fail when the session is already disconnected.
-            errno = error_types.ERR_SESSION_RESET;
-          }
+        if (failureDetector.markTimeout()) {
+          logger.warn(
+              "{}: actively close the session because it's not responding for {} seconds",
+              name(),
+              SessionFailureDetector.FAILURE_DETECT_WINDOW_MS / 1000);
+          closeSession(); // maybe fail when the session is already disconnected.
+          errno = error_types.ERR_SESSION_RESET;
         }
-      } else {
-        firstRecentTimedOutMs.set(0);
       }
       entry.op.rpc_error.errno = errno;
       entry.callback.run();
@@ -327,7 +320,7 @@ public class ReplicaSession {
                       name(),
                       entry.sequenceId,
                       channelFuture.cause());
-                  tryNotifyWithSequenceID(entry.sequenceId, error_types.ERR_TIMEOUT, false);
+                  tryNotifyFailureWithSeqID(entry.sequenceId, error_types.ERR_TIMEOUT, false);
                 }
               }
             });
@@ -342,7 +335,7 @@ public class ReplicaSession {
           @Override
           public void run() {
             try {
-              tryNotifyWithSequenceID(seqID, error_types.ERR_TIMEOUT, true);
+              tryNotifyFailureWithSeqID(seqID, error_types.ERR_TIMEOUT, true);
             } catch (Exception e) {
               logger.warn("try notify with sequenceID {} exception!", seqID, e);
             }
@@ -368,6 +361,7 @@ public class ReplicaSession {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, final RequestEntry msg) {
       logger.debug("{}: handle response with seqid({})", name(), msg.sequenceId);
+      failureDetector.markOK(); // This session is currently healthy.
       if (msg.callback != null) {
         msg.callback.run();
       } else {
@@ -415,12 +409,7 @@ public class ReplicaSession {
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
 
-  // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
-  // are timed out, in that case we suspect that the server is unavailable.
-
-  // Timestamp of the first timed out rpc.
-  private AtomicLong firstRecentTimedOutMs;
-  private static final long sessionResetTimeWindowMs = 10 * 1000; // 10s
+  private SessionFailureDetector failureDetector;
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ReplicaSession.class);
 }
