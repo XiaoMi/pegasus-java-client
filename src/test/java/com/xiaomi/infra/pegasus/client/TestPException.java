@@ -66,7 +66,8 @@ public class TestPException {
       promise.get();
     } catch (ExecutionException e) {
       TableHandler.ReplicaConfiguration replicaConfig = table.getReplicaConfig(gpid.get_pidx());
-      String server = replicaConfig.primary.get_ip() + ":" + replicaConfig.primary.get_port();
+      String server =
+          replicaConfig.primaryAddress.get_ip() + ":" + replicaConfig.primaryAddress.get_port();
 
       String msg =
           String.format(
@@ -99,7 +100,8 @@ public class TestPException {
       promise.get();
     } catch (Exception e) {
       TableHandler.ReplicaConfiguration replicaConfig = table.getReplicaConfig(gpid.get_pidx());
-      String server = replicaConfig.primary.get_ip() + ":" + replicaConfig.primary.get_port();
+      String server =
+          replicaConfig.primaryAddress.get_ip() + ":" + replicaConfig.primaryAddress.get_port();
 
       String msg =
           String.format(

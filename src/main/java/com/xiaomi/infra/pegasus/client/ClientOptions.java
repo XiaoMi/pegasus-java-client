@@ -37,6 +37,7 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
+  public static final boolean DEFAULT_ENABLE_BACKUP_REQUEST = false;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -44,6 +45,7 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
+  private final boolean enableBackupRequest;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -52,6 +54,7 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
+    this.enableBackupRequest = builder.enableBackupRequest;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -61,6 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
+    this.enableBackupRequest = original.enableBackupRequest;
   }
 
   /**
@@ -103,7 +107,8 @@ public class ClientOptions {
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
-          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis();
+          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
+          && this.enableBackupRequest == clientOptions.enableBackupRequest;
     }
     return false;
   }
@@ -114,8 +119,8 @@ public class ClientOptions {
         + "metaServers='"
         + metaServers
         + '\''
-        + ", operationTimeout(ms)="
-        + operationTimeout.toMillis()
+        + ", operationTimeout="
+        + operationTimeout
         + ", asyncWorkers="
         + asyncWorkers
         + ", enablePerfCounter="
@@ -123,8 +128,10 @@ public class ClientOptions {
         + ", falconPerfCounterTags='"
         + falconPerfCounterTags
         + '\''
-        + ", falconPushInterval(s)="
-        + falconPushInterval.getSeconds()
+        + ", falconPushInterval="
+        + falconPushInterval
+        + ", enableBackupRequest="
+        + enableBackupRequest
         + '}';
   }
 
@@ -136,6 +143,7 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
+    private boolean enableBackupRequest = DEFAULT_ENABLE_BACKUP_REQUEST;
 
     protected Builder() {}
 
@@ -214,6 +222,19 @@ public class ClientOptions {
     }
 
     /**
+     * Whether to enable backup request. If true, the client will call all of the primary and
+     * secondarys, and get the fastest response. Defaults to {@literal false}, see {@link
+     * #DEFAULT_ENABLE_BACKUP_REQUEST}.
+     *
+     * @param enableBackupRequest enableBackupRequest
+     * @return {@code this}
+     */
+    public Builder enableBackupRequest(boolean enableBackupRequest) {
+      this.enableBackupRequest = enableBackupRequest;
+      return this;
+    }
+
+    /**
      * Create a new instance of {@link ClientOptions}.
      *
      * @return new instance of {@link ClientOptions}.
@@ -238,7 +259,8 @@ public class ClientOptions {
         .asyncWorkers(getAsyncWorkers())
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
-        .falconPushInterval(getFalconPushInterval());
+        .falconPushInterval(getFalconPushInterval())
+        .enableBackupRequest(isEnableBackupRequest());
     return builder;
   }
 
@@ -297,5 +319,16 @@ public class ClientOptions {
    */
   public Duration getFalconPushInterval() {
     return falconPushInterval;
+  }
+
+  /**
+   * Whether to enable backup request. If true, the client will call all of the primary and
+   * secondarys, and get the fastest response. Defaults to {@literal false}, see {@link
+   * #DEFAULT_ENABLE_PERF_COUNTER}.
+   *
+   * @return Whether to enable backup request.
+   */
+  public boolean isEnableBackupRequest() {
+    return this.enableBackupRequest;
   }
 }

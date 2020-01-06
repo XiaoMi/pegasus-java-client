@@ -20,6 +20,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,8 +32,9 @@ public class TableHandler extends Table {
   public static final class ReplicaConfiguration {
     public gpid pid = new gpid();
     public long ballot = 0;
-    public rpc_address primary = new rpc_address();
-    public ReplicaSession session = null;
+    public rpc_address primaryAddress = new rpc_address();
+    public ReplicaSession primarySession = null;
+    public Map<rpc_address, ReplicaSession> secondarySessions;
   }
 
   static final class TableConfiguration {
@@ -132,8 +134,8 @@ public class TableHandler extends Table {
       if (noticeOld) {
         ReplicaConfiguration oldReplicaConfig = oldConfig.replicas.get(i);
         newReplicaConfig.ballot = oldReplicaConfig.ballot;
-        newReplicaConfig.primary = oldReplicaConfig.primary;
-        newReplicaConfig.session = oldReplicaConfig.session;
+        newReplicaConfig.primaryAddress = oldReplicaConfig.primaryAddress;
+        newReplicaConfig.secondarySessions = oldReplicaConfig.secondarySessions;
       }
       newConfig.replicas.add(newReplicaConfig);
     }
@@ -142,14 +144,14 @@ public class TableHandler extends Table {
     for (partition_configuration pc : resp.getPartitions()) {
       ReplicaConfiguration s = newConfig.replicas.get(pc.getPid().get_pidx());
       if (s.ballot != pc.ballot) {
-        if (!s.primary.equals(pc.primary)) {
+        if (!s.primaryAddress.equals(pc.primary)) {
           logger.info(
               "{}: gpid({}) ballot: {} -> {}, primary: {} -> {}",
               tableName_,
               pc.getPid().toString(),
               s.ballot,
               pc.ballot,
-              s.primary,
+              s.primaryAddress,
               pc.primary);
         } else {
           logger.info(
@@ -170,16 +172,33 @@ public class TableHandler extends Table {
       }
 
       s.ballot = pc.ballot;
-      s.primary = pc.primary;
+      s.primaryAddress = pc.primary;
       if (pc.primary.isInvalid()) {
-        s.session = null;
+        s.primarySession = null;
+        s.secondarySessions.clear();
       } else {
-        if (s.session == null || !s.session.getAddress().equals(pc.primary)) {
+        if (s.primarySession == null || !s.primarySession.getAddress().equals(pc.primary)) {
           // reset to new primary
-          s.session = manager_.getReplicaSession(pc.primary);
-          ChannelFuture fut = s.session.tryConnect();
+          s.primarySession = manager_.getReplicaSession(pc.primary);
+          ChannelFuture fut = s.primarySession.tryConnect();
           if (fut != null) {
             futureGroup.add(fut);
+          }
+
+          // backup request is enabled, get all secondary sessions
+          if (manager_.isEnableBackupRequest()) {
+            // secondary sessions
+            s.secondarySessions.clear();
+            pc.secondaries.stream()
+                .forEach(
+                    secondary -> {
+                      ReplicaSession session = manager_.getReplicaSession(secondary);
+                      s.secondarySessions.put(secondary, session);
+                      ChannelFuture channelFuture = session.tryConnect();
+                      if (channelFuture != null) {
+                        futureGroup.add(channelFuture);
+                      }
+                    });
           }
         }
       }
@@ -257,10 +276,23 @@ public class TableHandler extends Table {
       ClientRequestRound round,
       int tryId,
       ReplicaConfiguration cachedHandle,
-      long cachedConfigVersion) {
+      long cachedConfigVersion,
+      Boolean isSuccess) {
     client_operator operator = round.getOperator();
-
     boolean needQueryMeta = false;
+
+    if (isSuccess) {
+      return;
+    } else {
+      synchronized (isSuccess) {
+        // the correct response has been received
+        if (isSuccess) {
+          return;
+        }
+        isSuccess = true;
+      }
+    }
+
     switch (operator.rpc_error.errno) {
       case ERR_OK:
         round.thisRoundCompletion();
@@ -271,7 +303,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) rpc timeout for gpid({}), operator({}), try({}), error_code({}), not retry",
             tableName_,
-            cachedHandle.session.name(),
+            cachedHandle.primaryAddress,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -285,7 +317,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) doesn't serve gpid({}), operator({}), try({}), error_code({}), need query meta",
             tableName_,
-            cachedHandle.session.name(),
+            cachedHandle.primaryAddress,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -299,7 +331,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) can't serve writing for gpid({}), operator({}), try({}), error_code({}), retry later",
             tableName_,
-            cachedHandle.session.name(),
+            cachedHandle.primaryAddress,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -311,7 +343,7 @@ public class TableHandler extends Table {
         logger.error(
             "{}: replica server({}) fails for gpid({}), operator({}), try({}), error_code({}), not retry",
             tableName_,
-            cachedHandle.session.name(),
+            cachedHandle.primaryAddress,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -354,16 +386,33 @@ public class TableHandler extends Table {
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
-    if (handle.session != null) {
-      handle.session.asyncSend(
+    if (handle.primarySession != null) {
+      boolean isSuccess = false;
+      handle.primarySession.asyncSend(
           round.getOperator(),
           new Runnable() {
             @Override
             public void run() {
-              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
+              onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
             }
           },
           round.timeoutMs);
+
+      // if it's write operation, send to secondaries
+      // if (round.operator.is_write())
+      {
+        handle.secondarySessions.forEach(
+            (address, session) ->
+                session.asyncSend(
+                    round.getOperator(),
+                    new Runnable() {
+                      @Override
+                      public void run() {
+                        onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
+                      }
+                    },
+                    round.timeoutMs));
+      }
     } else {
       logger.warn(
           "{}: no primary for gpid({}), operator({}), try({}), retry later",
