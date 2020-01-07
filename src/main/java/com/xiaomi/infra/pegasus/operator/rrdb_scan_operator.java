@@ -17,7 +17,7 @@ public class rrdb_scan_operator extends client_operator {
       String tableName,
       scan_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash);
+    super(gpid, tableName, partitionHash, false);
     this.request = request;
   }
 

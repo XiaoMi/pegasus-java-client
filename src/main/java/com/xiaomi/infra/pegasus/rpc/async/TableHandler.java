@@ -20,6 +20,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +35,7 @@ public class TableHandler extends Table {
     public long ballot = 0;
     public rpc_address primaryAddress = new rpc_address();
     public ReplicaSession primarySession = null;
-    public Map<rpc_address, ReplicaSession> secondarySessions;
+    public Map<rpc_address, ReplicaSession> secondarySessions = new HashMap<>();
   }
 
   static final class TableConfiguration {
@@ -107,114 +108,64 @@ public class TableHandler extends Table {
   }
 
   // update the table configuration & appID_ according to to queried response
+  // there should only be one thread to do the table config update
   void initTableConfiguration(query_cfg_response resp) {
     TableConfiguration oldConfig = tableConfig_.get();
-    TableConfiguration newConfig = new TableConfiguration();
 
+    // init new table config
+    TableConfiguration newConfig = new TableConfiguration();
     newConfig.updateVersion = (oldConfig == null) ? 1 : (oldConfig.updateVersion + 1);
     newConfig.replicas = new ArrayList<ReplicaConfiguration>(resp.getPartition_count());
-
-    boolean noticeOld = false;
-    if (appID_ == resp.getApp_id()
-        && oldConfig != null
-        && oldConfig.replicas.size() == resp.getPartition_count()) {
-      noticeOld = true;
-      logger.info(
-          "{}: take care and compare the old configuration from the new one when update config",
-          tableName_);
-    } else {
-      logger.info("{}: skip the old config in current table", tableName_);
-    }
-
     for (int i = 0; i != resp.getPartition_count(); ++i) {
       ReplicaConfiguration newReplicaConfig = new ReplicaConfiguration();
       newReplicaConfig.pid.set_app_id(resp.getApp_id());
       newReplicaConfig.pid.set_pidx(i);
-
-      if (noticeOld) {
-        ReplicaConfiguration oldReplicaConfig = oldConfig.replicas.get(i);
-        newReplicaConfig.ballot = oldReplicaConfig.ballot;
-        newReplicaConfig.primaryAddress = oldReplicaConfig.primaryAddress;
-        newReplicaConfig.secondarySessions = oldReplicaConfig.secondarySessions;
-      }
       newConfig.replicas.add(newReplicaConfig);
     }
 
+    // create sessions for primary and secondaries
     FutureGroup<Void> futureGroup = new FutureGroup<>(resp.getPartition_count());
     for (partition_configuration pc : resp.getPartitions()) {
       ReplicaConfiguration s = newConfig.replicas.get(pc.getPid().get_pidx());
-      if (s.ballot != pc.ballot) {
-        if (!s.primaryAddress.equals(pc.primary)) {
-          logger.info(
-              "{}: gpid({}) ballot: {} -> {}, primary: {} -> {}",
-              tableName_,
-              pc.getPid().toString(),
-              s.ballot,
-              pc.ballot,
-              s.primaryAddress,
-              pc.primary);
-        } else {
-          logger.info(
-              "{}: gpid({}) ballot: {} -> {}, primary: {}",
-              tableName_,
-              pc.getPid().toString(),
-              s.ballot,
-              pc.ballot,
-              pc.primary);
-        }
-      } else {
-        logger.info(
-            "{}: gpid({}) ballot: {}, primary: {}",
-            tableName_,
-            pc.getPid().toString(),
-            pc.ballot,
-            pc.primary);
-      }
-
       s.ballot = pc.ballot;
-      s.primaryAddress = pc.primary;
-      if (pc.primary.isInvalid()) {
-        s.primarySession = null;
-        s.secondarySessions.clear();
-      } else {
-        if (s.primarySession == null || !s.primarySession.getAddress().equals(pc.primary)) {
-          // reset to new primary
-          s.primarySession = manager_.getReplicaSession(pc.primary);
-          ChannelFuture fut = s.primarySession.tryConnect();
-          if (fut != null) {
-            futureGroup.add(fut);
-          }
 
-          // backup request is enabled, get all secondary sessions
-          if (manager_.isEnableBackupRequest()) {
-            // secondary sessions
-            s.secondarySessions.clear();
-            pc.secondaries.stream()
-                .forEach(
-                    secondary -> {
-                      ReplicaSession session = manager_.getReplicaSession(secondary);
-                      s.secondarySessions.put(secondary, session);
-                      ChannelFuture channelFuture = session.tryConnect();
-                      if (channelFuture != null) {
-                        futureGroup.add(channelFuture);
-                      }
-                    });
-          }
+      // create primary sessions
+      s.primaryAddress = pc.primary;
+      if (!pc.primary.isInvalid()) {
+        s.primarySession = manager_.getReplicaSession(pc.primary);
+        ChannelFuture fut = s.primarySession.tryConnect();
+        if (fut != null) {
+          futureGroup.add(fut);
+        }
+
+        // backup request is enabled, get all secondary sessions
+        s.secondarySessions.clear();
+        if (manager_.isEnableBackupRequest()) {
+          // secondary sessions
+          pc.secondaries.forEach(
+              secondary -> {
+                if (!secondary.isInvalid()) {
+                  ReplicaSession session = manager_.getReplicaSession(secondary);
+                  s.secondarySessions.put(secondary, session);
+                  ChannelFuture channelFuture = session.tryConnect();
+                  if (channelFuture != null) {
+                    futureGroup.add(channelFuture);
+                  }
+                }
+              });
         }
       }
     }
 
-    // there should only be one thread to do the table config update
-    appID_ = resp.getApp_id();
-    tableConfig_.set(newConfig);
-
-    // Warm up the connections during client.openTable, so RPCs thereafter can
-    // skip the connect process.
+    // waiting for the connect is completed
     try {
       futureGroup.waitAllCompleteOrOneFail(manager_.getTimeout());
     } catch (PException e) {
       logger.warn("failed to connect with some replica servers!");
     }
+
+    appID_ = resp.getApp_id();
+    tableConfig_.set(newConfig);
   }
 
   void onUpdateConfiguration(final query_cfg_operator op) {
@@ -387,7 +338,7 @@ public class TableHandler extends Table {
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
     if (handle.primarySession != null) {
-      boolean isSuccess = false;
+      Boolean isSuccess = false;
       handle.primarySession.asyncSend(
           round.getOperator(),
           new Runnable() {
@@ -396,13 +347,13 @@ public class TableHandler extends Table {
               onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
             }
           },
-          round.timeoutMs);
+          round.timeoutMs,
+          false);
 
-      // if it's write operation, send to secondaries
-      // if (round.operator.is_write())
-      {
+      // if it's not write operation, send to secondaries
+      if (!round.operator.isWrite) {
         handle.secondarySessions.forEach(
-            (address, session) ->
+            (addr, session) ->
                 session.asyncSend(
                     round.getOperator(),
                     new Runnable() {
@@ -411,7 +362,8 @@ public class TableHandler extends Table {
                         onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
                       }
                     },
-                    round.timeoutMs));
+                    round.timeoutMs,
+                    true));
       }
     } else {
       logger.warn(

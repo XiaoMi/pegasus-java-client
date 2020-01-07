@@ -14,7 +14,7 @@ import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
 public class rrdb_remove_operator extends client_operator {
   public rrdb_remove_operator(
       com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, blob request, long partitionHash) {
-    super(gpid, tableName, partitionHash);
+    super(gpid, tableName, partitionHash, true);
     this.request = request;
   }
 

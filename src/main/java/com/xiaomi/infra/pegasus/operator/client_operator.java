@@ -10,7 +10,7 @@ import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
 import com.xiaomi.infra.pegasus.thrift.TException;
 
 public abstract class client_operator {
-  public client_operator(gpid gpid, String tableName) {
+  public client_operator(gpid gpid, String tableName, boolean isWrite) {
     this.header = new ThriftHeader();
     this.meta = new request_meta();
     this.meta.setApp_id(gpid.get_app_id());
@@ -18,10 +18,11 @@ public abstract class client_operator {
     this.pid = gpid;
     this.tableName = tableName;
     this.rpc_error = new error_code();
+    this.isWrite = isWrite;
   }
 
-  public client_operator(gpid gpid, String tableName, long partitionHash) {
-    this(gpid, tableName);
+  public client_operator(gpid gpid, String tableName, long partitionHash, boolean isWrite) {
+    this(gpid, tableName, isWrite);
     this.meta.setPartition_hash(partitionHash);
   }
 
@@ -32,9 +33,12 @@ public abstract class client_operator {
   }
 
   public final void prepare_thrift_meta(
-      com.xiaomi.infra.pegasus.thrift.protocol.TProtocol oprot, int client_timeout)
+      com.xiaomi.infra.pegasus.thrift.protocol.TProtocol oprot,
+      int client_timeout,
+      boolean isBackupRequest)
       throws TException {
     this.meta.setClient_timeout(client_timeout);
+    this.meta.setIs_backup_request(isBackupRequest);
     this.meta.write(oprot);
   }
 
@@ -51,6 +55,7 @@ public abstract class client_operator {
         mark = "fail";
         break;
     }
+
     // pegasus.client.put.succ.qps
     return new StringBuilder()
         .append("pegasus.client.")
@@ -89,4 +94,5 @@ public abstract class client_operator {
   public gpid pid;
   public String tableName; // only for metrics
   public error_code rpc_error;
+  public boolean isWrite;
 }

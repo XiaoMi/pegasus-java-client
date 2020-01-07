@@ -17,7 +17,7 @@ public class rrdb_incr_operator extends client_operator {
       String tableName,
       incr_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash);
+    super(gpid, tableName, partitionHash, true);
     this.request = request;
   }
 
