@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 
+import static java.lang.Thread.sleep;
+
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {
   public static final class ReplicaConfiguration {
@@ -227,23 +229,22 @@ public class TableHandler extends Table {
       ClientRequestRound round,
       int tryId,
       ReplicaConfiguration cachedHandle,
-      long cachedConfigVersion,
-      Boolean isSuccess) {
-    client_operator operator = round.getOperator();
-    boolean needQueryMeta = false;
-
-    if (isSuccess) {
+      long cachedConfigVersion) {
+    // judge if it is the first response
+    if (round.isSuccess) {
       return;
     } else {
-      synchronized (isSuccess) {
+      synchronized (round) {
         // the correct response has been received
-        if (isSuccess) {
+        if (round.isSuccess) {
           return;
         }
-        isSuccess = true;
+        round.isSuccess = true;
       }
     }
 
+    client_operator operator = round.getOperator();
+    boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
         round.thisRoundCompletion();
@@ -307,7 +308,8 @@ public class TableHandler extends Table {
       tryQueryMeta(cachedConfigVersion);
     }
 
-    tryDelayCall(round, tryId + 1);
+    // must use new round here, because round.isSuccess is true now
+    tryDelayCall(new ClientRequestRound(round), tryId + 1);
   }
 
   void tryDelayCall(final ClientRequestRound round, final int tryId) {
@@ -338,13 +340,12 @@ public class TableHandler extends Table {
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
     if (handle.primarySession != null) {
-      Boolean isSuccess = false;
       handle.primarySession.asyncSend(
           round.getOperator(),
           new Runnable() {
             @Override
             public void run() {
-              onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
+              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
             }
           },
           round.timeoutMs,
@@ -359,7 +360,7 @@ public class TableHandler extends Table {
                     new Runnable() {
                       @Override
                       public void run() {
-                        onRpcReply(round, tryId, handle, tableConfig.updateVersion, isSuccess);
+                        onRpcReply(round, tryId, handle, tableConfig.updateVersion);
                       }
                     },
                     round.timeoutMs,
