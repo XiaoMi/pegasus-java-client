@@ -138,10 +138,12 @@ public class TableHandler extends Table {
       }
     }
 
+    // Warm up the connections during client.openTable, so RPCs thereafter can
+    // skip the connect process.
     try {
       futureGroup.waitAllCompleteOrOneFail(manager_.getTimeout());
     } catch (PException e) {
-      logger.warn("failed to connect with some replica servers!", e);
+      logger.warn("failed to connect with some replica servers: ", e);
     }
 
     // there should only be one thread to do the table config update
