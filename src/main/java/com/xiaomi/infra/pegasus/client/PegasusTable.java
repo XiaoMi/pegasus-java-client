@@ -136,7 +136,7 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
-    logForWrite("asyncSet",hashKey,sortKey,value);
+    logForWrite("asyncSet", hashKey, sortKey, value);
 
     blob k = new blob(PegasusClient.generateKey(hashKey, sortKey));
     blob v = new blob(value);
@@ -410,7 +410,7 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
-    logForWrite("asyncMultiSet",hashKey,values.size());
+    logForWrite("asyncMultiSet", hashKey, values.size());
 
     blob hash_key_blob = new blob(hashKey);
     List<key_value> values_blob = new ArrayList<key_value>();
@@ -465,7 +465,7 @@ public class PegasusTable implements PegasusTableInterface {
   @Override
   public Future<Void> asyncDel(byte[] hashKey, byte[] sortKey, int timeout) {
 
-    logForWrite("asyncDel",hashKey,sortKey,"".getBytes());
+    logForWrite("asyncDel", hashKey, sortKey, "".getBytes());
 
     final DefaultPromise<Void> promise = table.newPromise();
     blob request = new blob(PegasusClient.generateKey(hashKey, sortKey));
@@ -521,8 +521,8 @@ public class PegasusTable implements PegasusTableInterface {
       sortKeyBlobs.add(new blob(sortKey));
     }
 
-    //no important request for log, so no need detail message.
-    logForWrite("asyncMultiDel","".getBytes(),"".getBytes(),"".getBytes());
+    // no important request for log, so no need detail message.
+    logForWrite("asyncMultiDel", "".getBytes(), "".getBytes(), "".getBytes());
 
     multi_remove_request request = new multi_remove_request(new blob(hashKey), sortKeyBlobs, 100);
 
@@ -559,7 +559,7 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
-    logForWrite("asyncIncr",hashKey,sortKey,"".getBytes());
+    logForWrite("asyncIncr", hashKey, sortKey, "".getBytes());
 
     blob key = new blob(PegasusClient.generateKey(hashKey, sortKey));
     int expireSeconds = (ttlSeconds <= 0 ? ttlSeconds : ttlSeconds + (int) Tools.epoch_now());
@@ -618,8 +618,8 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
-    logForWrite("asyncCheckAndSet",hashKey,setSortKey,setValue);
-    
+    logForWrite("asyncCheckAndSet", hashKey, setSortKey, setValue);
+
     blob hashKeyBlob = new blob(hashKey);
     blob checkSortKeyBlob = (checkSortKey == null ? null : new blob(checkSortKey));
     cas_check_type type = cas_check_type.findByValue(checkType.getValue());
@@ -1768,23 +1768,38 @@ public class PegasusTable implements PegasusTableInterface {
     return ret;
   }
 
-  //only trace requests key for c3srv-browser
+  // only trace requests key for c3srv-browser
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PegasusTable.class);
+
   private void logForWrite(String type, byte[] hashKey, byte[] sortKey, byte[] value) {
-    if(((int)(Math.random()*10)) == 0){
-      if(hashKey != null && sortKey != null && value != null){
-        logger.info("request trace for write:type="+type+",hashKey="+new String(hashKey)+",sortKey="+new String(sortKey)+",value size="+value.length);
+    if (((int) (Math.random() * 10)) == 0) {
+      if (hashKey != null && sortKey != null && value != null) {
+        logger.info(
+            "request trace for write:type="
+                + type
+                + ",hashKey="
+                + new String(hashKey)
+                + ",sortKey="
+                + new String(sortKey)
+                + ",value size="
+                + value.length);
       } else {
-        logger.warn("request trace for write:type="+type+",but contain null field.");
+        logger.warn("request trace for write:type=" + type + ",but contain null field.");
       }
     }
   }
 
   private void logForWrite(String type, byte[] hashKey, int valueSize) {
     if (((int) (Math.random() * 10)) == 0) {
-      if(hashKey != null) {
-        logger.info("request trace for write:type=" + type + ",hashKey =" + new String(hashKey) + ",value size=" + valueSize);
-      }else{
+      if (hashKey != null) {
+        logger.info(
+            "request trace for write:type="
+                + type
+                + ",hashKey ="
+                + new String(hashKey)
+                + ",value size="
+                + valueSize);
+      } else {
         logger.warn("request trace for write:type=" + type + ",but contain null field.");
       }
     }
