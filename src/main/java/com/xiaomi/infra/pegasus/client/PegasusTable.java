@@ -1775,16 +1775,13 @@ public class PegasusTable implements PegasusTableInterface {
     if (((int) (Math.random() * 10)) == 0) {
       if (hashKey != null && sortKey != null && value != null) {
         logger.info(
-            "request trace for write:type="
-                + type
-                + ",hashKey="
-                + new String(hashKey)
-                + ",sortKey="
-                + new String(sortKey)
-                + ",value size="
-                + value.length);
+            "request trace for write:type={},hashKey={},sortKey={}, valueSize={}",
+            type,
+            new String(hashKey),
+            new String(sortKey),
+            value.length);
       } else {
-        logger.warn("request trace for write:type=" + type + ",but contain null field.");
+        logger.warn("request trace for write:type={},but contain null field.");
       }
     }
   }
@@ -1793,14 +1790,12 @@ public class PegasusTable implements PegasusTableInterface {
     if (((int) (Math.random() * 10)) == 0) {
       if (hashKey != null) {
         logger.info(
-            "request trace for write:type="
-                + type
-                + ",hashKey ="
-                + new String(hashKey)
-                + ",value size="
-                + valueSize);
+            "request trace for write:type={},hashKey={},sortKey={}, valueSize={}",
+            type,
+            new String(hashKey),
+            valueSize);
       } else {
-        logger.warn("request trace for write:type=" + type + ",but contain null field.");
+        logger.warn("request trace for write:type={},but contain null field.");
       }
     }
   }
