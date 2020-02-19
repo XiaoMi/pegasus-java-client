@@ -26,7 +26,7 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
-PEGASUS_PKG="https://github.com/XiaoMi/pegasus-common/archive/deps.tar.gz"
+PEGASUS_PKG="pegasus-server-1.13.SNAPSHOT-695b366-glibc2.17-release.tar.gz"
 
 PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus-common/archive/deps.tar.gz"
 
