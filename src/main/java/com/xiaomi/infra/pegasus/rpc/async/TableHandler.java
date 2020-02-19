@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 
-import static java.lang.Thread.sleep;
-
 /** Created by sunweijie@xiaomi.com on 16-11-11. */
 public class TableHandler extends Table {
   public static final class ReplicaConfiguration {
