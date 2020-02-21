@@ -26,8 +26,8 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
-PEGASUS_PKG="pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release"
-PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus-common/releases/download/deps/pegasus-tools-1.11.6-9f4e5ae-glibc2.12-release.tar.gz"
+PEGASUS_PKG="pegasus-tools-1.13.SNAPSHOT-695b366-glibc2.17-release"
+PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus-common/releases/download/deps/pegasus-tools-1.13.SNAPSHOT-695b366-glibc2.17-release.tar.gz"
 
 # start pegasus onebox environment
 if [ ! -f $PEGASUS_PKG.tar.gz ]; then
