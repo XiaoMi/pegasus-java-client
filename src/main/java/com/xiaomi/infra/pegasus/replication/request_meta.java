@@ -5,7 +5,7 @@
  *
  * @generated
  */
-package com.xiaomi.infra.pegasus.base;
+package com.xiaomi.infra.pegasus.replication;
 
 import com.xiaomi.infra.pegasus.thrift.*;
 import com.xiaomi.infra.pegasus.thrift.meta_data.FieldMetaData;
