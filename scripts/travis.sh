@@ -26,6 +26,8 @@ if [[ $(git status -s) ]]; then
     exit 1
 fi
 
+# The new version of pegasus client is not compatible with old version server which contains old rpc protocol,
+# So we use snapshot version of pegasus-tools, because we don`t have a new release version, which contains the new version of rpc protocol,
 PEGASUS_PKG="pegasus-tools-1.13.SNAPSHOT-695b366-glibc2.17-release"
 PEGASUS_PKG_URL="https://github.com/XiaoMi/pegasus-common/releases/download/deps/pegasus-tools-1.13.SNAPSHOT-695b366-glibc2.17-release.tar.gz"
 
