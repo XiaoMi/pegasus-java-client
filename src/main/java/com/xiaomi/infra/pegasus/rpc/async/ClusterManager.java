@@ -27,7 +27,7 @@ public class ClusterManager extends Cluster {
   private int operationTimeout;
   private int retryDelay;
   private boolean enableCounter;
-  private boolean enableBackupRequest;
+  private int backupRequestDelayMS;
 
   private ConcurrentHashMap<rpc_address, ReplicaSession> replicaSessions;
   private EventLoopGroup metaGroup; // group used for handle meta logic
@@ -51,11 +51,11 @@ public class ClusterManager extends Cluster {
       String perfCounterTags,
       int pushIntervalSecs,
       String[] address_list,
-      boolean enableBackupRequest)
+      int backupRequestDelayMS)
       throws IllegalArgumentException {
     setTimeout(timeout);
     this.enableCounter = enableCounter;
-    this.enableBackupRequest = enableBackupRequest;
+    this.backupRequestDelayMS = backupRequestDelayMS;
     if (enableCounter) {
       MetricsManager.detectHostAndInit(perfCounterTags, pushIntervalSecs);
     }
@@ -133,8 +133,12 @@ public class ClusterManager extends Cluster {
     return metaList;
   }
 
+  public int getBackupRequestDelayMS() {
+    return backupRequestDelayMS;
+  }
+
   public boolean isEnableBackupRequest() {
-    return enableBackupRequest;
+    return backupRequestDelayMS >= 0;
   }
 
   @Override

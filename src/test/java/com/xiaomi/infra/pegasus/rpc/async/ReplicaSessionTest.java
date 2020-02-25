@@ -40,7 +40,7 @@ public class ReplicaSessionTest {
 
   @Before
   public void before() throws Exception {
-    manager = new ClusterManager(1000, 1, false, null, 60, metaList, false);
+    manager = new ClusterManager(1000, 1, false, null, 60, metaList, -1);
   }
 
   @After

@@ -28,8 +28,8 @@ public abstract class Cluster {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
-  public static final String PEGASUS_ENABLE_BACKUP_REQUEST_KEY = "enable_backup_request";
-  public static final String PEGASUS_ENABLE_BACKUP_REQUEST_DEF = "false";
+  public static final String PEGASUS_BACKUP_REQUEST_DELAY_KEY = "backup_request_delay_ms";
+  public static final String PEGASUS_BACKUP_REQUEST_DELAY_DEF = "-1";
 
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     int operatorTimeout =
@@ -58,10 +58,9 @@ public abstract class Cluster {
         Integer.parseInt(
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
-    boolean enableBackupRequest =
-        Boolean.parseBoolean(
-            config.getProperty(
-                PEGASUS_ENABLE_BACKUP_REQUEST_KEY, PEGASUS_ENABLE_BACKUP_REQUEST_DEF));
+    int backupRequestDelayMS =
+        Integer.parseInt(
+            config.getProperty(PEGASUS_BACKUP_REQUEST_DELAY_KEY, PEGASUS_BACKUP_REQUEST_DELAY_DEF));
     return new ClusterManager(
         operatorTimeout,
         asyncWorkers,
@@ -69,7 +68,7 @@ public abstract class Cluster {
         perfCounterTags,
         pushIntervalSecs,
         address,
-        enableBackupRequest);
+        backupRequestDelayMS);
   }
 
   public abstract String[] getMetaList();

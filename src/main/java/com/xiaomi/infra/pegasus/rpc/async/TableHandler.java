@@ -18,10 +18,7 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,7 +32,7 @@ public class TableHandler extends Table {
     public long ballot = 0;
     public rpc_address primaryAddress = new rpc_address();
     public ReplicaSession primarySession = null;
-    public Map<rpc_address, ReplicaSession> secondarySessions = new HashMap<>();
+    public Vector<ReplicaSession> secondarySessions = new Vector<>();
   }
 
   static final class TableConfiguration {
@@ -145,7 +142,7 @@ public class TableHandler extends Table {
               secondary -> {
                 if (!secondary.isInvalid()) {
                   ReplicaSession session = manager_.getReplicaSession(secondary);
-                  s.secondarySessions.put(secondary, session);
+                  s.secondarySessions.add(session);
                   ChannelFuture channelFuture = session.tryConnect();
                   if (channelFuture != null) {
                     futureGroup.add(channelFuture);
@@ -350,20 +347,29 @@ public class TableHandler extends Table {
           round.timeoutMs,
           false);
 
-      // if it's not write operation, send to secondaries
-      if (!round.operator.isWrite) {
-        handle.secondarySessions.forEach(
-            (addr, session) ->
-                session.asyncSend(
-                    round.getOperator(),
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        onRpcReply(round, tryId, handle, tableConfig.updateVersion);
-                      }
-                    },
-                    round.timeoutMs,
-                    true));
+      // if it's not write operation and backup request is enabled,
+      // select one secondary from secondaries randomly, and schedule to send to it
+      if (!round.operator.isWrite && manager_.isEnableBackupRequest()) {
+        executor_.schedule(
+            new Runnable() {
+              @Override
+              public void run() {
+                handle.secondarySessions.forEach(
+                    v ->
+                        v.asyncSend(
+                            round.getOperator(),
+                            new Runnable() {
+                              @Override
+                              public void run() {
+                                onRpcReply(round, tryId, handle, tableConfig.updateVersion);
+                              }
+                            },
+                            round.timeoutMs,
+                            true));
+              }
+            },
+            manager_.getBackupRequestDelayMS(),
+            TimeUnit.MILLISECONDS);
       }
     } else {
       logger.warn(

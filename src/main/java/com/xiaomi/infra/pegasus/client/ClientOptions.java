@@ -37,7 +37,7 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
-  public static final boolean DEFAULT_ENABLE_BACKUP_REQUEST = false;
+  public static final int DEFAULT_BACKUP_REQUEST_DELAY_MS = -1;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -45,7 +45,7 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
-  private final boolean enableBackupRequest;
+  private final int backupRequestDelayMS;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -54,7 +54,7 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
-    this.enableBackupRequest = builder.enableBackupRequest;
+    this.backupRequestDelayMS = builder.backupRequestDelayMS;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -64,7 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
-    this.enableBackupRequest = original.enableBackupRequest;
+    this.backupRequestDelayMS = original.backupRequestDelayMS;
   }
 
   /**
@@ -108,7 +108,7 @@ public class ClientOptions {
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
-          && this.enableBackupRequest == clientOptions.enableBackupRequest;
+          && this.backupRequestDelayMS == clientOptions.backupRequestDelayMS;
     }
     return false;
   }
@@ -130,8 +130,8 @@ public class ClientOptions {
         + '\''
         + ", falconPushInterval="
         + falconPushInterval
-        + ", enableBackupRequest="
-        + enableBackupRequest
+        + ", backupRequestDelayMS="
+        + backupRequestDelayMS
         + '}';
   }
 
@@ -143,7 +143,7 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
-    private boolean enableBackupRequest = DEFAULT_ENABLE_BACKUP_REQUEST;
+    private int backupRequestDelayMS = DEFAULT_BACKUP_REQUEST_DELAY_MS;
 
     protected Builder() {}
 
@@ -222,15 +222,14 @@ public class ClientOptions {
     }
 
     /**
-     * Whether to enable backup request. If true, the client will call all of the primary and
-     * secondarys, and get the fastest response. Defaults to {@literal false}, see {@link
-     * #DEFAULT_ENABLE_BACKUP_REQUEST}.
+     * The delay time of enable backup request. Defaults to {@literal -1}, which means there is no
+     * need to send backup request, see {@link #DEFAULT_BACKUP_REQUEST_DELAY_MS}.
      *
-     * @param enableBackupRequest enableBackupRequest
+     * @param backupRequestDelayMS backupRequestDelayMS
      * @return {@code this}
      */
-    public Builder enableBackupRequest(boolean enableBackupRequest) {
-      this.enableBackupRequest = enableBackupRequest;
+    public Builder backupRequestDelayMS(int backupRequestDelayMS) {
+      this.backupRequestDelayMS = backupRequestDelayMS;
       return this;
     }
 
@@ -260,7 +259,7 @@ public class ClientOptions {
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
         .falconPushInterval(getFalconPushInterval())
-        .enableBackupRequest(isEnableBackupRequest());
+        .backupRequestDelayMS(getBackupRequestDelayMS());
     return builder;
   }
 
@@ -322,13 +321,12 @@ public class ClientOptions {
   }
 
   /**
-   * Whether to enable backup request. If true, the client will call all of the primary and
-   * secondarys, and get the fastest response. Defaults to {@literal false}, see {@link
-   * #DEFAULT_ENABLE_PERF_COUNTER}.
+   * The delay time of enable backup request. Defaults to {@literal -1}, which means there is no
+   * need to send backup request, see {@link #DEFAULT_BACKUP_REQUEST_DELAY_MS}.
    *
-   * @return Whether to enable backup request.
+   * @return the delay time of backup request.
    */
-  public boolean isEnableBackupRequest() {
-    return this.enableBackupRequest;
+  public int getBackupRequestDelayMS() {
+    return backupRequestDelayMS;
   }
 }
