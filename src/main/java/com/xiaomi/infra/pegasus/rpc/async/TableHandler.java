@@ -32,7 +32,7 @@ public class TableHandler extends Table {
     public long ballot = 0;
     public rpc_address primaryAddress = new rpc_address();
     public ReplicaSession primarySession = null;
-    public Vector<ReplicaSession> secondarySessions = new Vector<>();
+    public List<ReplicaSession> secondarySessions = new ArrayList<>();
   }
 
   static final class TableConfiguration {
