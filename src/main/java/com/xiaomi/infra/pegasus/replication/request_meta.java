@@ -5,7 +5,7 @@
  *
  * @generated
  */
-package com.xiaomi.infra.pegasus.base;
+package com.xiaomi.infra.pegasus.replication;
 
 @SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
 @javax.annotation.Generated(

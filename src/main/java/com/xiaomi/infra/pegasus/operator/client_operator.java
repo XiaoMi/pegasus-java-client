@@ -5,7 +5,7 @@ package com.xiaomi.infra.pegasus.operator;
 
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
-import com.xiaomi.infra.pegasus.base.request_meta;
+import com.xiaomi.infra.pegasus.replication.request_meta;
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
 import com.xiaomi.infra.pegasus.thrift.TException;
 

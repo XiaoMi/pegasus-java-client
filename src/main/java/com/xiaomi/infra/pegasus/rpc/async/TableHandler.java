@@ -112,10 +112,9 @@ public class TableHandler extends Table {
   void initTableConfiguration(query_cfg_response resp) {
     TableConfiguration oldConfig = tableConfig_.get();
 
-    // init new table config
     TableConfiguration newConfig = new TableConfiguration();
     newConfig.updateVersion = (oldConfig == null) ? 1 : (oldConfig.updateVersion + 1);
-    newConfig.replicas = new ArrayList<ReplicaConfiguration>(resp.getPartition_count());
+    newConfig.replicas = new ArrayList<>(resp.getPartition_count());
     for (int i = 0; i != resp.getPartition_count(); ++i) {
       ReplicaConfiguration newReplicaConfig = new ReplicaConfiguration();
       newReplicaConfig.pid.set_app_id(resp.getApp_id());
@@ -157,13 +156,15 @@ public class TableHandler extends Table {
       }
     }
 
-    // waiting for the connect is completed
+    // Warm up the connections during client.openTable, so RPCs thereafter can
+    // skip the connect process.
     try {
       futureGroup.waitAllCompleteOrOneFail(manager_.getTimeout());
     } catch (PException e) {
-      logger.warn("failed to connect with some replica servers!");
+      logger.warn("failed to connect with some replica servers: ", e);
     }
 
+    // there should only be one thread to do the table config update
     appID_ = resp.getApp_id();
     tableConfig_.set(newConfig);
   }
