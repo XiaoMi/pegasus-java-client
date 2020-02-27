@@ -379,8 +379,7 @@ public class TableHandler extends Table {
           round.timeoutMs,
           false);
 
-      // if it's not write operation and backup request is enabled,
-      // select one secondary from secondaries randomly, and schedule to send to it
+      // if it's not write operation and backup request is enabled, schedule to send to secondaries
       if (!round.operator.isWrite && manager_.isEnableBackupRequest()) {
         round.backupRequstTask =
             executor_.schedule(
