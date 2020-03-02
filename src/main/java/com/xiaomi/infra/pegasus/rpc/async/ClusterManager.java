@@ -138,7 +138,7 @@ public class ClusterManager extends Cluster {
   }
 
   public boolean isEnableBackupRequest() {
-    return backupRequestDelayMS >= 0;
+    return backupRequestDelayMS > 0;
   }
 
   @Override
