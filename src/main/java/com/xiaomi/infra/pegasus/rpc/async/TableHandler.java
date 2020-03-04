@@ -341,44 +341,8 @@ public class TableHandler extends Table {
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
-    // if it's not write operation and backup request is enabled, schedule to send to secondaries
-    if (!round.operator.isWrite && manager_.isEnableBackupRequest()) {
-      round.backupRequstTask =
-          executor_.schedule(
-              new Runnable() {
-                @Override
-                public void run() {
-                  handle.secondarySessions.forEach(
-                      v ->
-                          v.asyncSend(
-                              round.getOperator(),
-                              new Runnable() {
-                                @Override
-                                public void run() {
-                                  onRpcReply(round, tryId, handle, tableConfig.updateVersion);
-                                }
-                              },
-                              round.timeoutMs,
-                              true));
-                }
-              },
-              manager_.getBackupRequestDelayMS(),
-              TimeUnit.MILLISECONDS);
-    }
-
     // send request to primary session
     if (handle.primarySession != null) {
-      handle.primarySession.asyncSend(
-          round.getOperator(),
-          new Runnable() {
-            @Override
-            public void run() {
-              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
-            }
-          },
-          round.timeoutMs,
-          false);
-
       // if it's not write operation and backup request is enabled, schedule to send to secondaries
       if (!round.operator.isWrite && manager_.isEnableBackupRequest()) {
         round.backupRequstTask =
@@ -403,6 +367,17 @@ public class TableHandler extends Table {
                 manager_.getBackupRequestDelayMS(),
                 TimeUnit.MILLISECONDS);
       }
+
+      handle.primarySession.asyncSend(
+          round.getOperator(),
+          new Runnable() {
+            @Override
+            public void run() {
+              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
+            }
+          },
+          round.timeoutMs,
+          false);
     } else {
       logger.warn(
           "{}: no primary for gpid({}), operator({}), try({}), retry later",
