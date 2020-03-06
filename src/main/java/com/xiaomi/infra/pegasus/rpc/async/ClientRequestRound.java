@@ -41,16 +41,7 @@ public final class ClientRequestRound {
     createNanoTime = System.nanoTime();
     expireNanoTime = createNanoTime + timeoutMs * 1000000L;
     isSuccess = false;
-  }
-
-  public ClientRequestRound(ClientRequestRound round) {
-    operator = round.operator;
-    callback = round.callback;
-    timeoutMs = round.timeoutMs;
-    this.enableCounter = round.enableCounter;
-    createNanoTime = System.nanoTime();
-    expireNanoTime = createNanoTime + timeoutMs * 1000000L;
-    isSuccess = false;
+    backupRequstTask = null;
   }
 
   public com.xiaomi.infra.pegasus.operator.client_operator getOperator() {

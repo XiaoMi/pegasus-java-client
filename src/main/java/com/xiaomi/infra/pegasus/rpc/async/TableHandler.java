@@ -310,7 +310,10 @@ public class TableHandler extends Table {
     }
 
     // must use new round here, because round.isSuccess is true now
-    tryDelayCall(new ClientRequestRound(round), tryId + 1);
+    tryDelayCall(
+        new ClientRequestRound(
+            round.operator, round.callback, round.enableCounter, round.timeoutMs),
+        tryId + 1);
   }
 
   void tryDelayCall(final ClientRequestRound round, final int tryId) {
