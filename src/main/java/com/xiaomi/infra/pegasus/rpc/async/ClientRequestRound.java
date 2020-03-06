@@ -20,7 +20,7 @@ public final class ClientRequestRound {
   boolean enableCounter;
   long createNanoTime;
   long expireNanoTime;
-  boolean isSuccess;
+  boolean isCompleted;
   ScheduledFuture<?> backupRequstTask;
 
   /**
@@ -41,7 +41,7 @@ public final class ClientRequestRound {
     this.enableCounter = enableCounter;
     createNanoTime = System.nanoTime();
     expireNanoTime = createNanoTime + timeoutMs * 1000000L;
-    isSuccess = false;
+    isCompleted = false;
     backupRequstTask = null;
   }
 

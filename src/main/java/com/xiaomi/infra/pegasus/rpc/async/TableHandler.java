@@ -231,15 +231,15 @@ public class TableHandler extends Table {
       long cachedConfigVersion,
       String serverAddr) {
     // judge if it is the first response
-    if (round.isSuccess) {
+    if (round.isCompleted) {
       return;
     } else {
       synchronized (round) {
         // the correct response has been received
-        if (round.isSuccess) {
+        if (round.isCompleted) {
           return;
         }
-        round.isSuccess = true;
+        round.isCompleted = true;
       }
     }
 
