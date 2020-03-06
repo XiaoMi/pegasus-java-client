@@ -119,8 +119,8 @@ public class ClientOptions {
         + "metaServers='"
         + metaServers
         + '\''
-        + ", operationTimeout="
-        + operationTimeout
+        + ", operationTimeout(ms)="
+        + operationTimeout.toMillis()
         + ", asyncWorkers="
         + asyncWorkers
         + ", enablePerfCounter="
@@ -128,8 +128,8 @@ public class ClientOptions {
         + ", falconPerfCounterTags='"
         + falconPerfCounterTags
         + '\''
-        + ", falconPushInterval="
-        + falconPushInterval
+        + ", falconPushInterval(s)="
+        + falconPushInterval.getSeconds()
         + ", backupRequestDelayMS="
         + backupRequestDelayMS
         + '}';
