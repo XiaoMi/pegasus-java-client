@@ -34,7 +34,7 @@ public class TableHandlerTest {
 
   @Before
   public void before() throws Exception {
-    testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, -1);
+    testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
   }
 
   @After
@@ -60,7 +60,7 @@ public class TableHandlerTest {
     System.out.println("TableHandlerTest#testOperateOp");
     TableHandler table = null;
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, -1);
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -147,7 +147,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, -1);
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -191,7 +191,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, -1);
     } catch (ReplicationException e) {
       Assert.fail();
     }

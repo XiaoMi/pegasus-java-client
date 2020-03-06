@@ -37,7 +37,6 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
-  public static final int DEFAULT_BACKUP_REQUEST_DELAY_MS = -1;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -45,7 +44,6 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
-  private final int backupRequestDelayMS;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -54,7 +52,6 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
-    this.backupRequestDelayMS = builder.backupRequestDelayMS;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -64,7 +61,6 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
-    this.backupRequestDelayMS = original.backupRequestDelayMS;
   }
 
   /**
@@ -107,8 +103,7 @@ public class ClientOptions {
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
-          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
-          && this.backupRequestDelayMS == clientOptions.backupRequestDelayMS;
+          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis();
     }
     return false;
   }
@@ -130,8 +125,6 @@ public class ClientOptions {
         + '\''
         + ", falconPushInterval(s)="
         + falconPushInterval.getSeconds()
-        + ", backupRequestDelayMS="
-        + backupRequestDelayMS
         + '}';
   }
 
@@ -143,7 +136,6 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
-    private int backupRequestDelayMS = DEFAULT_BACKUP_REQUEST_DELAY_MS;
 
     protected Builder() {}
 
@@ -222,18 +214,6 @@ public class ClientOptions {
     }
 
     /**
-     * The delay time of enable backup request. Defaults to {@literal -1}, which means there is no
-     * need to send backup request, see {@link #DEFAULT_BACKUP_REQUEST_DELAY_MS}.
-     *
-     * @param backupRequestDelayMS backupRequestDelayMS
-     * @return {@code this}
-     */
-    public Builder backupRequestDelayMS(int backupRequestDelayMS) {
-      this.backupRequestDelayMS = backupRequestDelayMS;
-      return this;
-    }
-
-    /**
      * Create a new instance of {@link ClientOptions}.
      *
      * @return new instance of {@link ClientOptions}.
@@ -258,8 +238,7 @@ public class ClientOptions {
         .asyncWorkers(getAsyncWorkers())
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
-        .falconPushInterval(getFalconPushInterval())
-        .backupRequestDelayMS(getBackupRequestDelayMS());
+        .falconPushInterval(getFalconPushInterval());
     return builder;
   }
 
@@ -318,15 +297,5 @@ public class ClientOptions {
    */
   public Duration getFalconPushInterval() {
     return falconPushInterval;
-  }
-
-  /**
-   * The delay time of enable backup request. Defaults to {@literal -1}, which means there is no
-   * need to send backup request, see {@link #DEFAULT_BACKUP_REQUEST_DELAY_MS}.
-   *
-   * @return the delay time of backup request.
-   */
-  public int getBackupRequestDelayMS() {
-    return backupRequestDelayMS;
   }
 }

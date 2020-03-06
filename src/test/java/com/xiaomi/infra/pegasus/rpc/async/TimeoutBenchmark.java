@@ -62,11 +62,11 @@ public class TimeoutBenchmark {
   @Test
   public void timeoutChecker() {
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
-    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList, -1);
+    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
 
     TableHandler handle;
     try {
-      handle = manager.openTable("temp", KeyHasher.DEFAULT);
+      handle = manager.openTable("temp", KeyHasher.DEFAULT, -1);
     } catch (ReplicationException e) {
       e.printStackTrace();
       Assert.fail();

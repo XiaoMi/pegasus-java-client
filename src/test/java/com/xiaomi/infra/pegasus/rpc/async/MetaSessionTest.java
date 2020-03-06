@@ -64,7 +64,7 @@ public class MetaSessionTest {
     // then it forward to the right server
     // then the wrong server crashed
     String[] addr_list = {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"};
-    ClusterManager manager = new ClusterManager(1000, 4, false, null, 60, addr_list, -1);
+    ClusterManager manager = new ClusterManager(1000, 4, false, null, 60, addr_list);
     MetaSession session = manager.getMetaSession();
 
     rpc_address addr = new rpc_address();
@@ -119,8 +119,7 @@ public class MetaSessionTest {
             false,
             null,
             60,
-            new String[] {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"},
-            -1);
+            new String[] {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
     ReplicaSession meta2 = meta.getMetaList().get(0); // 127.0.0.1:34602
@@ -160,7 +159,7 @@ public class MetaSessionTest {
   @Test
   public void testDNSMetaAllChanged() throws Exception {
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"}, -1);
+        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
     // curLeader=0, hostPort="localhost:34601"
@@ -222,7 +221,7 @@ public class MetaSessionTest {
     // into local meta list, and set it to current leader.
 
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"}, -1);
+        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
     // curLeader=0, hostPort="localhost:34601"
@@ -272,7 +271,7 @@ public class MetaSessionTest {
   @Test
   public void testDNSResetMetaMaxQueryCount() {
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"}, -1);
+        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
 
     List<ReplicaSession> metaList = metaMock.getMetaList();
@@ -307,7 +306,7 @@ public class MetaSessionTest {
   public void testDNSMetaUnavailable() {
     // Ensures when the DNS returns meta all unavailable, finally the query will timeout.
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"}, -1);
+        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
     List<ReplicaSession> metaList = metaMock.getMetaList();
     metaList.remove(0); // del the "localhost:34601"

@@ -28,9 +28,6 @@ public abstract class Cluster {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
-  public static final String PEGASUS_BACKUP_REQUEST_DELAY_KEY = "backup_request_delay_ms";
-  public static final String PEGASUS_BACKUP_REQUEST_DELAY_DEF = "-1";
-
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     int operatorTimeout =
         Integer.parseInt(
@@ -58,22 +55,18 @@ public abstract class Cluster {
         Integer.parseInt(
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
-    int backupRequestDelayMS =
-        Integer.parseInt(
-            config.getProperty(PEGASUS_BACKUP_REQUEST_DELAY_KEY, PEGASUS_BACKUP_REQUEST_DELAY_DEF));
     return new ClusterManager(
         operatorTimeout,
         asyncWorkers,
         enablePerfCounter,
         perfCounterTags,
         pushIntervalSecs,
-        address,
-        backupRequestDelayMS);
+        address);
   }
 
   public abstract String[] getMetaList();
 
-  public abstract Table openTable(String name, KeyHasher function)
+  public abstract Table openTable(String name, KeyHasher function, int backupRequestDelayMs)
       throws ReplicationException, TException;
 
   public abstract void close();

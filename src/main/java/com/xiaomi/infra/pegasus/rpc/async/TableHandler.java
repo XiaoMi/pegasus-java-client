@@ -47,8 +47,10 @@ public class TableHandler extends Table {
   AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
+  int backupRequestDelayMs;
 
-  public TableHandler(ClusterManager mgr, String name, KeyHasher h) throws ReplicationException {
+  public TableHandler(ClusterManager mgr, String name, KeyHasher h, int backupRequestDelayMs)
+      throws ReplicationException {
     int i = 0;
     for (; i < name.length(); i++) {
       char c = name.charAt(i);
@@ -92,6 +94,7 @@ public class TableHandler extends Table {
     // members of this
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
+    this.backupRequestDelayMs = backupRequestDelayMs;
 
     tableConfig_ = new AtomicReference<TableConfiguration>(null);
     initTableConfiguration(resp);
@@ -136,7 +139,7 @@ public class TableHandler extends Table {
 
         // backup request is enabled, get all secondary sessions
         s.secondarySessions.clear();
-        if (manager_.isEnableBackupRequest()) {
+        if (isEnableBackupRequest()) {
           // secondary sessions
           pc.secondaries.forEach(
               secondary -> {
@@ -347,7 +350,7 @@ public class TableHandler extends Table {
     // send request to primary session
     if (handle.primarySession != null) {
       // if it's not write operation and backup request is enabled, schedule to send to secondaries
-      if (!round.operator.isWrite && manager_.isEnableBackupRequest()) {
+      if (!round.operator.isWrite && isEnableBackupRequest()) {
         round.backupRequstTask =
             executor_.schedule(
                 new Runnable() {
@@ -367,7 +370,7 @@ public class TableHandler extends Table {
                     }
                   }
                 },
-                manager_.getBackupRequestDelayMS(),
+                backupRequestDelayMs,
                 TimeUnit.MILLISECONDS);
       }
 
@@ -476,5 +479,9 @@ public class TableHandler extends Table {
         message = " Unable to connect to the meta servers!";
     }
     throw new ReplicationException(err_type, header + message);
+  }
+
+  private boolean isEnableBackupRequest() {
+    return backupRequestDelayMs > 0;
   }
 }
