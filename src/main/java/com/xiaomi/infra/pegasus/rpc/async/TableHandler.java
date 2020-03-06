@@ -228,7 +228,8 @@ public class TableHandler extends Table {
       ClientRequestRound round,
       int tryId,
       ReplicaConfiguration cachedHandle,
-      long cachedConfigVersion) {
+      long cachedConfigVersion,
+      String serverAddr) {
     // judge if it is the first response
     if (round.isSuccess) {
       return;
@@ -259,7 +260,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) rpc timeout for gpid({}), operator({}), try({}), error_code({}), not retry",
             tableName_,
-            cachedHandle.primarySession.name(),
+            serverAddr,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -273,7 +274,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) doesn't serve gpid({}), operator({}), try({}), error_code({}), need query meta",
             tableName_,
-            cachedHandle.primarySession.name(),
+            serverAddr,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -287,7 +288,7 @@ public class TableHandler extends Table {
         logger.warn(
             "{}: replica server({}) can't serve writing for gpid({}), operator({}), try({}), error_code({}), retry later",
             tableName_,
-            cachedHandle.primarySession.name(),
+            serverAddr,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -299,7 +300,7 @@ public class TableHandler extends Table {
         logger.error(
             "{}: replica server({}) fails for gpid({}), operator({}), try({}), error_code({}), not retry",
             tableName_,
-            cachedHandle.primarySession.name(),
+            serverAddr,
             operator.get_gpid().toString(),
             operator,
             tryId,
@@ -362,7 +363,8 @@ public class TableHandler extends Table {
                           new Runnable() {
                             @Override
                             public void run() {
-                              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
+                              onRpcReply(
+                                  round, tryId, handle, tableConfig.updateVersion, session.name());
                             }
                           },
                           round.timeoutMs,
@@ -379,7 +381,8 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              onRpcReply(round, tryId, handle, tableConfig.updateVersion);
+              onRpcReply(
+                  round, tryId, handle, tableConfig.updateVersion, handle.primarySession.name());
             }
           },
           round.timeoutMs,
