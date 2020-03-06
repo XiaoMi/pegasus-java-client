@@ -42,7 +42,7 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   private PegasusTable getTable(String tableName) throws PException {
-    return getTable(tableName, -1);
+    return getTable(tableName, 0);
   }
 
   private PegasusTable getTable(String tableName, int backupRequestDelayMs) throws PException {

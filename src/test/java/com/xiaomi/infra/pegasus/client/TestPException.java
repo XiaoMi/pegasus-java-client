@@ -51,7 +51,7 @@ public class TestPException {
   public void testHandleReplicationException() throws Exception {
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
     ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
-    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, -1);
+    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0);
     DefaultPromise<Void> promise = table.newPromise();
     update_request req = new update_request(new blob(), new blob(), 100);
     gpid gpid = table.getGpidByHash(1);
@@ -87,7 +87,7 @@ public class TestPException {
     // timeout is 0.
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
     ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
-    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, -1);
+    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0);
     DefaultPromise<Void> promise = table.newPromise();
     update_request req = new update_request(new blob(), new blob(), 100);
     gpid gpid = table.getGpidByHash(1);
