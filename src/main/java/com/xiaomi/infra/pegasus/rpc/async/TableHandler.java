@@ -95,6 +95,9 @@ public class TableHandler extends Table {
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
     this.backupRequestDelayMs = backupRequestDelayMs;
+    if (backupRequestDelayMs > 0) {
+      logger.info("the delay time of backup request is \"{}\"", backupRequestDelayMs);
+    }
 
     tableConfig_ = new AtomicReference<TableConfiguration>(null);
     initTableConfiguration(resp);
@@ -132,9 +135,9 @@ public class TableHandler extends Table {
       s.primaryAddress = pc.primary;
       if (!pc.primary.isInvalid()) {
         s.primarySession = manager_.getReplicaSession(pc.primary);
-        ChannelFuture fut = s.primarySession.tryConnect();
-        if (fut != null) {
-          futureGroup.add(fut);
+        ChannelFuture primaryFuture = s.primarySession.tryConnect();
+        if (primaryFuture != null) {
+          futureGroup.add(primaryFuture);
         }
 
         // backup request is enabled, get all secondary sessions
@@ -146,9 +149,9 @@ public class TableHandler extends Table {
                 if (!secondary.isInvalid()) {
                   ReplicaSession session = manager_.getReplicaSession(secondary);
                   s.secondarySessions.add(session);
-                  ChannelFuture channelFuture = session.tryConnect();
-                  if (channelFuture != null) {
-                    futureGroup.add(channelFuture);
+                  ChannelFuture secondaryFuture = session.tryConnect();
+                  if (secondaryFuture != null) {
+                    futureGroup.add(secondaryFuture);
                   }
                 }
               });
