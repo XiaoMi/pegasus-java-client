@@ -142,7 +142,7 @@ public class TableHandler extends Table {
 
         // backup request is enabled, get all secondary sessions
         s.secondarySessions.clear();
-        if (isEnableBackupRequest()) {
+        if (isBackupRequestEnabled()) {
           // secondary sessions
           pc.secondaries.forEach(
               secondary -> {
@@ -228,11 +228,7 @@ public class TableHandler extends Table {
   }
 
   void onRpcReply(
-      ClientRequestRound round,
-      int tryId,
-      ReplicaConfiguration cachedHandle,
-      long cachedConfigVersion,
-      String serverAddr) {
+      ClientRequestRound round, int tryId, long cachedConfigVersion, String serverAddr) {
     // judge if it is the first response
     if (round.isCompleted) {
       return;
@@ -354,7 +350,7 @@ public class TableHandler extends Table {
     // send request to primary session
     if (handle.primarySession != null) {
       // if it's not write operation and backup request is enabled, schedule to send to secondaries
-      if (!round.operator.isWrite && isEnableBackupRequest()) {
+      if (!round.operator.isWrite && isBackupRequestEnabled()) {
         round.backupRequstTask =
             executor_.schedule(
                 new Runnable() {
@@ -366,8 +362,7 @@ public class TableHandler extends Table {
                           new Runnable() {
                             @Override
                             public void run() {
-                              onRpcReply(
-                                  round, tryId, handle, tableConfig.updateVersion, session.name());
+                              onRpcReply(round, tryId, tableConfig.updateVersion, session.name());
                             }
                           },
                           round.timeoutMs,
@@ -384,8 +379,7 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              onRpcReply(
-                  round, tryId, handle, tableConfig.updateVersion, handle.primarySession.name());
+              onRpcReply(round, tryId, tableConfig.updateVersion, handle.primarySession.name());
             }
           },
           round.timeoutMs,
@@ -487,7 +481,7 @@ public class TableHandler extends Table {
     throw new ReplicationException(err_type, header + message);
   }
 
-  private boolean isEnableBackupRequest() {
+  private boolean isBackupRequestEnabled() {
     return backupRequestDelayMs > 0;
   }
 }
