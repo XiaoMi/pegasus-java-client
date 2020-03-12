@@ -131,14 +131,11 @@ public class TableHandler extends Table {
       ReplicaConfiguration s = newConfig.replicas.get(pc.getPid().get_pidx());
       s.ballot = pc.ballot;
 
-      // create primary sessions
+      // If the primary address is invalid, we don't create secondary session either.
+      // because all of these sessions will be recreated later.
       s.primaryAddress = pc.primary;
       if (!pc.primary.isInvalid()) {
-        s.primarySession = manager_.getReplicaSession(pc.primary);
-        ChannelFuture primaryFuture = s.primarySession.tryConnect();
-        if (primaryFuture != null) {
-          futureGroup.add(primaryFuture);
-        }
+        s.primarySession = tryConnect(pc.primary, futureGroup);
 
         // backup request is enabled, get all secondary sessions
         s.secondarySessions.clear();
@@ -146,13 +143,9 @@ public class TableHandler extends Table {
           // secondary sessions
           pc.secondaries.forEach(
               secondary -> {
-                if (!secondary.isInvalid()) {
-                  ReplicaSession session = manager_.getReplicaSession(secondary);
+                ReplicaSession session = tryConnect(secondary, futureGroup);
+                if (session != null) {
                   s.secondarySessions.add(session);
-                  ChannelFuture secondaryFuture = session.tryConnect();
-                  if (secondaryFuture != null) {
-                    futureGroup.add(secondaryFuture);
-                  }
                 }
               });
         }
@@ -170,6 +163,20 @@ public class TableHandler extends Table {
     // there should only be one thread to do the table config update
     appID_ = resp.getApp_id();
     tableConfig_.set(newConfig);
+  }
+
+  public ReplicaSession tryConnect(final rpc_address addr, FutureGroup<Void> futureGroup) {
+    if (addr.isInvalid()) {
+      return null;
+    }
+
+    ReplicaSession session = manager_.getReplicaSession(addr);
+    ChannelFuture fut = session.tryConnect();
+    if (fut != null) {
+      futureGroup.add(fut);
+    }
+
+    return session;
   }
 
   void onUpdateConfiguration(final query_cfg_operator op) {
