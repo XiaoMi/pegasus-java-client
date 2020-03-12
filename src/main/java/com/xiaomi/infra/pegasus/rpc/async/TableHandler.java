@@ -354,33 +354,10 @@ public class TableHandler extends Table {
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
-    // send request to primary session
     if (handle.primarySession != null) {
-      // if it's not write operation and backup request is enabled, schedule to send to secondaries
-      if (!round.operator.isWrite && isBackupRequestEnabled()) {
-        round.backupRequstTask =
-            executor_.schedule(
-                new Runnable() {
-                  @Override
-                  public void run() {
-                    for (ReplicaSession session : handle.secondarySessions) {
-                      session.asyncSend(
-                          round.getOperator(),
-                          new Runnable() {
-                            @Override
-                            public void run() {
-                              onRpcReply(round, tryId, tableConfig.updateVersion, session.name());
-                            }
-                          },
-                          round.timeoutMs,
-                          true);
-                    }
-                  }
-                },
-                backupRequestDelayMs,
-                TimeUnit.MILLISECONDS);
-      }
+      backupCall(round, tryId);
 
+      // send request to primary session
       handle.primarySession.asyncSend(
           round.getOperator(),
           new Runnable() {
@@ -400,6 +377,37 @@ public class TableHandler extends Table {
           tryId);
       tryQueryMeta(tableConfig.updateVersion);
       tryDelayCall(round, tryId + 1);
+    }
+  }
+
+  void backupCall(final ClientRequestRound round, final int tryId) {
+    final TableConfiguration tableConfig = tableConfig_.get();
+    final ReplicaConfiguration handle =
+        tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
+
+    // if it's not write operation and backup request is enabled, schedule to send to secondaries
+    if (!round.operator.isWrite && isBackupRequestEnabled()) {
+      round.backupRequstTask =
+          executor_.schedule(
+              new Runnable() {
+                @Override
+                public void run() {
+                  for (ReplicaSession session : handle.secondarySessions) {
+                    session.asyncSend(
+                        round.getOperator(),
+                        new Runnable() {
+                          @Override
+                          public void run() {
+                            onRpcReply(round, tryId, tableConfig.updateVersion, session.name());
+                          }
+                        },
+                        round.timeoutMs,
+                        true);
+                  }
+                }
+              },
+              backupRequestDelayMs,
+              TimeUnit.MILLISECONDS);
     }
   }
 
