@@ -355,7 +355,10 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      backupCall(round, tryId);
+      // if it's not write operation and backup request is enabled, schedule to send to secondaries
+      if (!round.operator.isWrite && isBackupRequestEnabled()) {
+        backupCall(round, tryId);
+      }
 
       // send request to primary session
       handle.primarySession.asyncSend(
@@ -385,30 +388,28 @@ public class TableHandler extends Table {
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
-    // if it's not write operation and backup request is enabled, schedule to send to secondaries
-    if (!round.operator.isWrite && isBackupRequestEnabled()) {
-      round.backupRequestTask =
-          executor_.schedule(
-              new Runnable() {
-                @Override
-                public void run() {
-                  for (ReplicaSession session : handle.secondarySessions) {
-                    session.asyncSend(
-                        round.getOperator(),
-                        new Runnable() {
-                          @Override
-                          public void run() {
-                            onRpcReply(round, tryId, tableConfig.updateVersion, session.name());
-                          }
-                        },
-                        round.timeoutMs,
-                        true);
-                  }
+    round.backupRequestTask =
+        executor_.schedule(
+            new Runnable() {
+              @Override
+              public void run() {
+                for (ReplicaSession secondarySession : handle.secondarySessions) {
+                  secondarySession.asyncSend(
+                      round.getOperator(),
+                      new Runnable() {
+                        @Override
+                        public void run() {
+                          onRpcReply(
+                              round, tryId, tableConfig.updateVersion, secondarySession.name());
+                        }
+                      },
+                      round.timeoutMs,
+                      true);
                 }
-              },
-              backupRequestDelayMs,
-              TimeUnit.MILLISECONDS);
-    }
+              }
+            },
+            backupRequestDelayMs,
+            TimeUnit.MILLISECONDS);
   }
 
   @Override
