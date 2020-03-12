@@ -132,7 +132,7 @@ public class TableHandler extends Table {
       s.ballot = pc.ballot;
 
       // If the primary address is invalid, we don't create secondary session either.
-      // because all of these sessions will be recreated later.
+      // Because all of these sessions will be recreated later.
       s.primaryAddress = pc.primary;
       if (!pc.primary.isInvalid()) {
         s.primarySession = tryConnect(pc.primary, futureGroup);
