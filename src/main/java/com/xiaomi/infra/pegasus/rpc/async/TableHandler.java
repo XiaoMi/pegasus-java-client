@@ -241,7 +241,7 @@ public class TableHandler extends Table {
       return;
     } else {
       synchronized (round) {
-        // the correct response has been received
+        // the fastest response has been received
         if (round.isCompleted) {
           return;
         }
@@ -250,8 +250,8 @@ public class TableHandler extends Table {
     }
 
     // cancel the backup request task
-    if (round.backupRequstTask != null) {
-      round.backupRequstTask.cancel(true);
+    if (round.backupRequestTask != null) {
+      round.backupRequestTask.cancel(true);
     }
 
     client_operator operator = round.getOperator();
@@ -387,7 +387,7 @@ public class TableHandler extends Table {
 
     // if it's not write operation and backup request is enabled, schedule to send to secondaries
     if (!round.operator.isWrite && isBackupRequestEnabled()) {
-      round.backupRequstTask =
+      round.backupRequestTask =
           executor_.schedule(
               new Runnable() {
                 @Override

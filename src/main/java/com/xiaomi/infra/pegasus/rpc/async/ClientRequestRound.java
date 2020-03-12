@@ -21,7 +21,7 @@ public final class ClientRequestRound {
   long createNanoTime;
   long expireNanoTime;
   boolean isCompleted;
-  ScheduledFuture<?> backupRequstTask;
+  ScheduledFuture<?> backupRequestTask;
 
   /**
    * Constructor.
@@ -42,7 +42,7 @@ public final class ClientRequestRound {
     createNanoTime = System.nanoTime();
     expireNanoTime = createNanoTime + timeoutMs * 1000000L;
     isCompleted = false;
-    backupRequstTask = null;
+    backupRequestTask = null;
   }
 
   public com.xiaomi.infra.pegasus.operator.client_operator getOperator() {
