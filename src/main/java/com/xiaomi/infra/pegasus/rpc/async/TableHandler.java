@@ -355,7 +355,7 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      // if it's not write operation and backup request is enabled, schedule to send to secondaries
+      // if backup request is enabled, schedule to send to secondaries
       if (round.operator.enableBackupRequest && isBackupRequestEnabled()) {
         backupCall(round, tryId);
       }
