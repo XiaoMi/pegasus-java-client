@@ -355,12 +355,12 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      // if backup request is enabled, schedule to send to secondaries
+      // if backup request is enabled, schedule to send to secondary
       if (round.operator.enableBackupRequest && isBackupRequestEnabled()) {
         backupCall(round, tryId);
       }
 
-      // send request to primary session
+      // send request to primary
       handle.primarySession.asyncSend(
           round.getOperator(),
           new Runnable() {
@@ -393,19 +393,21 @@ public class TableHandler extends Table {
             new Runnable() {
               @Override
               public void run() {
-                for (ReplicaSession secondarySession : handle.secondarySessions) {
-                  secondarySession.asyncSend(
-                      round.getOperator(),
-                      new Runnable() {
-                        @Override
-                        public void run() {
-                          onRpcReply(
-                              round, tryId, tableConfig.updateVersion, secondarySession.name());
-                        }
-                      },
-                      round.timeoutMs,
-                      true);
-                }
+                // pick a secondary at random
+                ReplicaSession secondarySession =
+                    handle.secondarySessions.get(
+                        new Random().nextInt(handle.secondarySessions.size()));
+                secondarySession.asyncSend(
+                    round.getOperator(),
+                    new Runnable() {
+                      @Override
+                      public void run() {
+                        onRpcReply(
+                            round, tryId, tableConfig.updateVersion, secondarySession.name());
+                      }
+                    },
+                    round.timeoutMs,
+                    true);
               }
             },
             backupRequestDelayMs,
