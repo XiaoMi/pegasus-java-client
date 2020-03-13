@@ -17,7 +17,7 @@ public class rrdb_put_operator extends client_operator {
       String tableName,
       update_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash, true);
+    super(gpid, tableName, partitionHash);
     this.request = request;
   }
 

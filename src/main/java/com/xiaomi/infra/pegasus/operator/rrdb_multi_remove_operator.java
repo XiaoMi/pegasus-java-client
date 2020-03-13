@@ -17,7 +17,7 @@ public class rrdb_multi_remove_operator extends client_operator {
       String tableName,
       multi_remove_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash, true);
+    super(gpid, tableName, partitionHash);
     this.request = request;
   }
 

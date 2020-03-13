@@ -17,7 +17,7 @@ public class rrdb_check_and_mutate_operator extends client_operator {
       String tableName,
       check_and_mutate_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash, true);
+    super(gpid, tableName, partitionHash);
     this.request = request;
   }
 
