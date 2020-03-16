@@ -16,7 +16,7 @@ public class rrdb_sortkey_count_operator extends client_operator {
       String tableName,
       com.xiaomi.infra.pegasus.base.blob request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash, true);
+    super(gpid, tableName, partitionHash);
     this.request = request;
   }
 
