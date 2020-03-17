@@ -474,6 +474,14 @@ public class TableHandler extends Table {
 
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
+
+    if (op.enableSizeLimit
+        && manager_.getMaxAllowedWriteSize() > 0
+        && round.operator.header.body_length > manager_.getMaxAllowedWriteSize()) {
+      round.operator.rpc_error.errno = error_types.ERR_INVALID_DATA;
+      round.thisRoundCompletion();
+    }
+
     call(round, 1);
   }
 

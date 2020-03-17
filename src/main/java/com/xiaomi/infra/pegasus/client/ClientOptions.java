@@ -37,6 +37,7 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
+  public static final int DEFAULT_MAX_ALLOWED_WRITE_SIZE = 1 << 20;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -44,6 +45,7 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
+  private final int maxAllowedWriteSize;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -52,6 +54,7 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
+    this.maxAllowedWriteSize = builder.maxAllowedWriteSize;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -61,6 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
+    this.maxAllowedWriteSize = original.getMaxAllowedWriteSize();
   }
 
   /**
@@ -103,7 +107,8 @@ public class ClientOptions {
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
-          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis();
+          && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
+          && this.maxAllowedWriteSize == clientOptions.maxAllowedWriteSize;
     }
     return false;
   }
@@ -125,6 +130,8 @@ public class ClientOptions {
         + '\''
         + ", falconPushInterval(s)="
         + falconPushInterval.getSeconds()
+        + ",maxAllowedWriteSize(Byte)="
+        + maxAllowedWriteSize
         + '}';
   }
 
@@ -136,6 +143,7 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
+    private int maxAllowedWriteSize = DEFAULT_MAX_ALLOWED_WRITE_SIZE;
 
     protected Builder() {}
 
@@ -214,6 +222,19 @@ public class ClientOptions {
     }
 
     /**
+     * The max allowed write body size, exceeding this threshold will be reject to send and throw
+     * {@linkplain com.xiaomi.infra.pegasus.base.error_code ERR_INVALID_DATA}. 0 means no check,
+     * Defaults to {@literal 1MB}, See {@link #DEFAULT_MAX_ALLOWED_WRITE_SIZE}.
+     *
+     * @param maxAllowedWriteSize falconPushInterval
+     * @return {@code this}
+     */
+    public Builder maxAllowedWriteSize(int maxAllowedWriteSize) {
+      this.maxAllowedWriteSize = maxAllowedWriteSize;
+      return this;
+    }
+
+    /**
      * Create a new instance of {@link ClientOptions}.
      *
      * @return new instance of {@link ClientOptions}.
@@ -238,7 +259,8 @@ public class ClientOptions {
         .asyncWorkers(getAsyncWorkers())
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
-        .falconPushInterval(getFalconPushInterval());
+        .falconPushInterval(getFalconPushInterval())
+        .maxAllowedWriteSize(getMaxAllowedWriteSize());
     return builder;
   }
 
@@ -297,5 +319,16 @@ public class ClientOptions {
    */
   public Duration getFalconPushInterval() {
     return falconPushInterval;
+  }
+
+  /**
+   * The max allowed write body size, exceeding this threshold will be reject to send and throw
+   * {@linkplain com.xiaomi.infra.pegasus.base.error_code ERR_INVALID_DATA} exception. 0 means no
+   * check, Defaults to {@literal 1MB}.
+   *
+   * @return The max allowed write body size.
+   */
+  public int getMaxAllowedWriteSize() {
+    return maxAllowedWriteSize;
   }
 }

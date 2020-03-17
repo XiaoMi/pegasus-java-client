@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
@@ -2481,5 +2482,44 @@ public class TestBasic {
     Assert.assertTrue(valueStr.contains("v_97"));
     Assert.assertTrue(valueStr.contains("v_98"));
     Assert.assertTrue(valueStr.contains("v_99"));
+  }
+
+  @Test
+  public void testWriteSizeLimit() throws PException {
+    // Test config from pegasus.properties
+    PegasusClientInterface client1 = PegasusClientFactory.getSingletonClient();
+    String tableName = "temp";
+    String hashKey = "limitHashKey";
+    String sortKey = "limitSortKey";
+    String writeValue = RandomStringUtils.random(1 << 20);
+    List<Pair<byte[], byte[]>> multiValue = new ArrayList<Pair<byte[], byte[]>>();
+    multiValue.add(Pair.of(sortKey.getBytes(), writeValue.getBytes()));
+
+    try {
+      client1.set(tableName, hashKey.getBytes(), sortKey.getBytes(), writeValue.getBytes());
+    } catch (PException e) {
+      Assert.assertTrue(e.getMessage().contains("ERR_INVALID_DATA"));
+    }
+
+    try {
+      client1.multiSet(tableName, hashKey.getBytes(), multiValue);
+    } catch (PException e) {
+      Assert.assertTrue(e.getMessage().contains("ERR_INVALID_DATA"));
+    }
+
+    // Test config from ClientOptions
+    ClientOptions clientOptions = ClientOptions.create();
+    PegasusClientInterface client2 = PegasusClientFactory.createClient(clientOptions);
+    try {
+      client2.set(tableName, hashKey.getBytes(), sortKey.getBytes(), writeValue.getBytes());
+    } catch (PException e) {
+      Assert.assertTrue(e.getMessage().contains("ERR_INVALID_DATA"));
+    }
+
+    try {
+      client2.multiSet(tableName, hashKey.getBytes(), multiValue);
+    } catch (PException e) {
+      Assert.assertTrue(e.getMessage().contains("ERR_INVALID_DATA"));
+    }
   }
 }

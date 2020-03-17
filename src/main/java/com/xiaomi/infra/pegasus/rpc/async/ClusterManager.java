@@ -27,6 +27,7 @@ public class ClusterManager extends Cluster {
   private int operationTimeout;
   private int retryDelay;
   private boolean enableCounter;
+  private int maxAllowedWriteSize;
 
   private ConcurrentHashMap<rpc_address, ReplicaSession> replicaSessions;
   private EventLoopGroup metaGroup; // group used for handle meta logic
@@ -49,7 +50,8 @@ public class ClusterManager extends Cluster {
       boolean enableCounter,
       String perfCounterTags,
       int pushIntervalSecs,
-      String[] address_list)
+      String[] address_list,
+      int maxAllowedWriteSize)
       throws IllegalArgumentException {
     setTimeout(timeout);
     this.enableCounter = enableCounter;
@@ -63,6 +65,7 @@ public class ClusterManager extends Cluster {
     tableGroup = getEventLoopGroupInstance(1);
 
     metaList = address_list;
+    this.maxAllowedWriteSize = maxAllowedWriteSize;
     // the constructor of meta session is depend on the replicaSessions,
     // so the replicaSessions should be initialized earlier
     metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
@@ -113,6 +116,14 @@ public class ClusterManager extends Cluster {
     operationTimeout = t;
     // set retry delay as t/3.
     retryDelay = (t < 3 ? 1 : t / 3);
+  }
+
+  public int getMaxAllowedWriteSize() {
+    return maxAllowedWriteSize;
+  }
+
+  public void setMaxAllowedWriteSize(int maxAllowedWriteSize) {
+    this.maxAllowedWriteSize = maxAllowedWriteSize;
   }
 
   public static EventLoopGroup getEventLoopGroupInstance(int threadsCount) {

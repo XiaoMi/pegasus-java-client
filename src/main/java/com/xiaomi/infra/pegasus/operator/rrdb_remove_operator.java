@@ -16,6 +16,7 @@ public class rrdb_remove_operator extends client_operator {
       com.xiaomi.infra.pegasus.base.gpid gpid, String tableName, blob request, long partitionHash) {
     super(gpid, tableName, partitionHash);
     this.request = request;
+    this.enableSizeLimit = true;
   }
 
   public String name() {
