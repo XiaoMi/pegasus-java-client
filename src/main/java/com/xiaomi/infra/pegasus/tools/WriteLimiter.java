@@ -21,6 +21,7 @@ public class WriteLimiter {
     if (!isEnable) {
       return;
     }
+
     checkSingleHashKey(hashKey);
     checkSingleSortKey(hashKey, sortKey);
     checkSingleValue(hashKey, sortKey, value);
@@ -30,6 +31,7 @@ public class WriteLimiter {
     if (!isEnable) {
       return;
     }
+
     checkSingleHashKey(hashKey);
     checkMultiValueCount(hashKey, values.size());
 
