@@ -48,6 +48,7 @@ public class TableHandler extends Table {
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
   int backupRequestDelayMs;
+  private boolean enableWriteLimit;
 
   public TableHandler(ClusterManager mgr, String name, KeyHasher h, int backupRequestDelayMs)
       throws ReplicationException {
@@ -95,6 +96,7 @@ public class TableHandler extends Table {
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
     this.backupRequestDelayMs = backupRequestDelayMs;
+    this.enableWriteLimit = manager_.isEnableWriteSizeLimit();
     if (backupRequestDelayMs > 0) {
       logger.info("the delay time of backup request is \"{}\"", backupRequestDelayMs);
     }
@@ -475,13 +477,6 @@ public class TableHandler extends Table {
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
 
-    if (op.enableSizeLimit
-        && manager_.getMaxAllowedWriteSize() > 0
-        && round.operator.header.body_length > manager_.getMaxAllowedWriteSize()) {
-      round.operator.rpc_error.errno = error_types.ERR_INVALID_DATA;
-      round.thisRoundCompletion();
-    }
-
     call(round, 1);
   }
 
@@ -509,5 +504,9 @@ public class TableHandler extends Table {
 
   private boolean isBackupRequestEnabled() {
     return backupRequestDelayMs > 0;
+  }
+
+  public boolean isEnableWriteLimit() {
+    return enableWriteLimit;
   }
 }

@@ -37,7 +37,7 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = false;
   public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
-  public static final int DEFAULT_MAX_ALLOWED_WRITE_SIZE = 1 << 20;
+  public static final boolean DEFAULT_ENABLE_WRITE_LIMIT = true;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -45,7 +45,7 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
-  private final int maxAllowedWriteSize;
+  private final boolean enableWriteLimit;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -54,7 +54,7 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
-    this.maxAllowedWriteSize = builder.maxAllowedWriteSize;
+    this.enableWriteLimit = builder.enableWriteLimit;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -64,7 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
-    this.maxAllowedWriteSize = original.getMaxAllowedWriteSize();
+    this.enableWriteLimit = original.isEnableWriteLimit();
   }
 
   /**
@@ -108,7 +108,7 @@ public class ClientOptions {
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
-          && this.maxAllowedWriteSize == clientOptions.maxAllowedWriteSize;
+          && this.enableWriteLimit == clientOptions.enableWriteLimit;
     }
     return false;
   }
@@ -130,8 +130,8 @@ public class ClientOptions {
         + '\''
         + ", falconPushInterval(s)="
         + falconPushInterval.getSeconds()
-        + ",maxAllowedWriteSize(Byte)="
-        + maxAllowedWriteSize
+        + ",enableWriteLimit="
+        + enableWriteLimit
         + '}';
   }
 
@@ -143,7 +143,7 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
-    private int maxAllowedWriteSize = DEFAULT_MAX_ALLOWED_WRITE_SIZE;
+    private boolean enableWriteLimit = DEFAULT_ENABLE_WRITE_LIMIT;
 
     protected Builder() {}
 
@@ -222,15 +222,15 @@ public class ClientOptions {
     }
 
     /**
-     * The max allowed write body size, exceeding this threshold will be reject to send and throw
-     * {@linkplain com.xiaomi.infra.pegasus.base.error_code ERR_INVALID_DATA}. 0 means no check,
-     * Defaults to {@literal 1MB}, See {@link #DEFAULT_MAX_ALLOWED_WRITE_SIZE}.
+     * whether to enable limit write size. if true, exceed the threshold setted will throw
+     * exception, See {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}.
+     * Defaults to Defaults to {@literal true}, see {@link #DEFAULT_ENABLE_WRITE_LIMIT}
      *
-     * @param maxAllowedWriteSize falconPushInterval
+     * @param enableWriteLimit enableWriteLimit
      * @return {@code this}
      */
-    public Builder maxAllowedWriteSize(int maxAllowedWriteSize) {
-      this.maxAllowedWriteSize = maxAllowedWriteSize;
+    public Builder enableWriteLimit(boolean enableWriteLimit) {
+      this.enableWriteLimit = enableWriteLimit;
       return this;
     }
 
@@ -260,7 +260,7 @@ public class ClientOptions {
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
         .falconPushInterval(getFalconPushInterval())
-        .maxAllowedWriteSize(getMaxAllowedWriteSize());
+        .enableWriteLimit(isEnableWriteLimit());
     return builder;
   }
 
@@ -322,13 +322,13 @@ public class ClientOptions {
   }
 
   /**
-   * The max allowed write body size, exceeding this threshold will be reject to send and throw
-   * {@linkplain com.xiaomi.infra.pegasus.base.error_code ERR_INVALID_DATA} exception. 0 means no
-   * check, Defaults to {@literal 1MB}.
+   * whether to enable write limit . if true, exceed the threshold setted will throw exception, See
+   * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to Defaults to
+   * {@literal true}, See {@link #DEFAULT_ENABLE_WRITE_LIMIT}
    *
-   * @return The max allowed write body size.
+   * @return whether to enable write limit
    */
-  public int getMaxAllowedWriteSize() {
-    return maxAllowedWriteSize;
+  public boolean isEnableWriteLimit() {
+    return enableWriteLimit;
   }
 }

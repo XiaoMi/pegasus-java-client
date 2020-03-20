@@ -28,8 +28,8 @@ public abstract class Cluster {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
-  public static final String PEGASUS_MAX_ALLOWED_WRITE_SIZE = "max_allowed_write_size";
-  public static final String PEGASUS_MAX_ALLOWED_WRITE_SIZE_DEF = String.valueOf(1 << 20);
+  public static final String PEGASUS_ENABLE_WRITE_SIZE_LIMIT = "max_allowed_write_size";
+  public static final String PEGASUS_ENABLE_WRITE_SIZE_LIMIT_DEF = "true";
 
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     int operatorTimeout =
@@ -59,9 +59,10 @@ public abstract class Cluster {
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
 
-    int maxAllowedWriteSize =
-        Integer.parseInt(
-            config.getProperty(PEGASUS_MAX_ALLOWED_WRITE_SIZE, PEGASUS_MAX_ALLOWED_WRITE_SIZE_DEF));
+    boolean enableWriteSizeLimit =
+        Boolean.parseBoolean(
+            config.getProperty(
+                PEGASUS_ENABLE_WRITE_SIZE_LIMIT, PEGASUS_ENABLE_WRITE_SIZE_LIMIT_DEF));
 
     return new ClusterManager(
         operatorTimeout,
@@ -70,10 +71,12 @@ public abstract class Cluster {
         perfCounterTags,
         pushIntervalSecs,
         address,
-        maxAllowedWriteSize);
+        enableWriteSizeLimit);
   }
 
   public abstract String[] getMetaList();
+
+  public abstract boolean isEnableWriteSizeLimit();
 
   public abstract Table openTable(String name, KeyHasher function, int backupRequestDelayMs)
       throws ReplicationException, TException;

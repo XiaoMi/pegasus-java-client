@@ -13,6 +13,7 @@ import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.ReplicaConfiguration;
 import com.xiaomi.infra.pegasus.tools.Tools;
+import com.xiaomi.infra.pegasus.tools.WriteLimiter;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.Future;
 import java.net.UnknownHostException;
@@ -32,10 +33,12 @@ import org.apache.commons.lang3.tuple.Pair;
 public class PegasusTable implements PegasusTableInterface {
   private Table table;
   private int defaultTimeout;
+  private WriteLimiter writeLimiter;
 
   public PegasusTable(PegasusClient client, Table table) {
     this.table = table;
     this.defaultTimeout = table.getDefaultTimeout();
+    this.writeLimiter = new WriteLimiter(table.isEnableWriteLimit());
   }
 
   @Override
@@ -132,6 +135,13 @@ public class PegasusTable implements PegasusTableInterface {
     }
     if (ttlSeconds < 0) {
       promise.setFailure(new PException("Invalid parameter: ttlSeconds should be no less than 0"));
+      return promise;
+    }
+
+    try {
+      writeLimiter.validateSet(hashKey, sortKey, value);
+    } catch (PException e) {
+      promise.setFailure(new PException("Exceed write limit threshold!", e));
       return promise;
     }
 
@@ -407,6 +417,13 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
+    try {
+      writeLimiter.validateMultiSet(hashKey, values);
+    } catch (PException e) {
+      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      return promise;
+    }
+
     blob hash_key_blob = new blob(hashKey);
     List<key_value> values_blob = new ArrayList<key_value>();
     for (int i = 0; i < values.size(); i++) {
@@ -604,6 +621,13 @@ public class PegasusTable implements PegasusTableInterface {
       return promise;
     }
 
+    try {
+      writeLimiter.validateSet(hashKey, setSortKey, setValue);
+    } catch (PException e) {
+      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      return promise;
+    }
+
     blob hashKeyBlob = new blob(hashKey);
     blob checkSortKeyBlob = (checkSortKey == null ? null : new blob(checkSortKey));
     cas_check_type type = cas_check_type.findByValue(checkType.getValue());
@@ -700,6 +724,13 @@ public class PegasusTable implements PegasusTableInterface {
     if (mutations == null || mutations.isEmpty()) {
       promise.setFailure(
           new PException("Invalid parameter: mutations should not be null or empty"));
+    }
+
+    try {
+      writeLimiter.validateCheckAndMutate(hashKey, mutations);
+    } catch (Exception e) {
+      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      return promise;
     }
 
     blob hashKeyBlob = new blob(hashKey);
