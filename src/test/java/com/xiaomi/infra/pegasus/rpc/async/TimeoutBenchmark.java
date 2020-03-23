@@ -62,7 +62,7 @@ public class TimeoutBenchmark {
   @Test
   public void timeoutChecker() {
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
-    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList, 0);
+    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList, false);
 
     TableHandler handle;
     try {

@@ -34,7 +34,7 @@ public class TableHandlerTest {
 
   @Before
   public void before() throws Exception {
-    testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, 0);
+    testManager = new ClusterManager(1000, 1, false, null, 60, addr_list, false);
   }
 
   @After

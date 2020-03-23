@@ -139,9 +139,9 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     try {
-      writeLimiter.validateSet(hashKey, sortKey, value);
+      writeLimiter.validateSingleSet(hashKey, sortKey, value);
     } catch (Exception e) {
-      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      promise.setFailure(new PException("Exceed write limit threshold:" + e.getMessage()));
       return promise;
     }
 
@@ -420,7 +420,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       writeLimiter.validateMultiSet(hashKey, values);
     } catch (Exception e) {
-      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      promise.setFailure(new PException("Exceed write limit threshold:" + e.getMessage()));
       return promise;
     }
 
@@ -622,9 +622,9 @@ public class PegasusTable implements PegasusTableInterface {
     }
 
     try {
-      writeLimiter.validateSet(hashKey, setSortKey, setValue);
+      writeLimiter.validateCheckAndSet(hashKey, setSortKey, setValue);
     } catch (Exception e) {
-      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      promise.setFailure(new PException("Exceed write limit threshold:" + e.getMessage()));
       return promise;
     }
 
@@ -729,7 +729,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       writeLimiter.validateCheckAndMutate(hashKey, mutations);
     } catch (Exception e) {
-      promise.setFailure(new PException("Exceed write limit threshold!", e));
+      promise.setFailure(new PException("Exceed write limit threshold:" + e.getMessage()));
       return promise;
     }
 
