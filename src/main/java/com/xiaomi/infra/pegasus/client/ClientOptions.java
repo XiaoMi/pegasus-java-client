@@ -222,7 +222,7 @@ public class ClientOptions {
     }
 
     /**
-     * whether to enable limit write size. if true, exceed the threshold setted will throw
+     * whether to enable limit write. if true, exceed the threshold set will throw
      * exception, See {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}.
      * Defaults to Defaults to {@literal true}, see {@link #DEFAULT_ENABLE_WRITE_LIMIT}
      *
@@ -322,7 +322,7 @@ public class ClientOptions {
   }
 
   /**
-   * whether to enable write limit. if true, exceed the threshold setted will throw exception, See
+   * whether to enable write limit. if true, exceed the threshold set will throw exception, See
    * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to Defaults to
    * {@literal true}, See {@link #DEFAULT_ENABLE_WRITE_LIMIT}
    *
