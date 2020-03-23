@@ -42,8 +42,8 @@ public class WriteLimiter {
 
     int valuesLength = 0;
     for (Pair<byte[], byte[]> value : values) {
-      byte[] sortKey = value.getLeft();
-      byte[] multiValue = value.getRight();
+      byte[] sortKey = value.getLeft() == null ? "".getBytes() : value.getLeft();
+      byte[] multiValue = value.getRight() == null ? "".getBytes() : value.getRight();
       checkSingleSortKey(hashKey, sortKey);
       checkSingleValue(hashKey, sortKey, multiValue);
       valuesLength += multiValue.length;
@@ -61,8 +61,8 @@ public class WriteLimiter {
 
     int valuesLength = 0;
     for (mutate mu : mutations.getMutations()) {
-      byte[] sortKey = mu.sort_key.data;
-      byte[] MutateValue = mu.value.data;
+      byte[] sortKey = mu.sort_key == null ? "".getBytes() : mu.sort_key.data;
+      byte[] MutateValue = mu.value == null ? "".getBytes() : mu.value.data;
       checkSingleSortKey(hashKey, sortKey);
       checkSingleValue(hashKey, sortKey, MutateValue);
       valuesLength += MutateValue.length;
