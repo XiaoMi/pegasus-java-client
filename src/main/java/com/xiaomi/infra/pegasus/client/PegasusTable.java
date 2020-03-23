@@ -1475,7 +1475,7 @@ public class PegasusTable implements PegasusTableInterface {
               + " failed, timeUsed:"
               + timeUsed,
           new ReplicationException(error_code.error_types.ERR_TIMEOUT));
-    } // TODO(heyuchen): consider scan exception
+    }
   }
 
   @Override
@@ -1728,19 +1728,6 @@ public class PegasusTable implements PegasusTableInterface {
     int averageSize = gpidCount / scannerCount;
     int more = gpidCount % scannerCount;
 
-    // use default value for other fields in scan_options
-//    ScanOptions opt = new ScanOptions();
-//    opt.timeoutMillis = options.timeoutMillis;
-//    opt.batchSize = options.batchSize;
-//    opt.noValue = options.noValue;
-//    opt.sortKeyFilterType = options.sortKeyFilterType;
-//    opt.sortKeyFilterPattern = options.sortKeyFilterPattern;
-//    opt.hashKeyFilterPattern = options.hashKeyFilterPattern;
-//    opt.hashKeyFilterType = options.hashKeyFilterType;
-//
-//    startInclusive = o.startInclusive;
-//    stopInclusive = o.stopInclusive;
-//    noValue = o.noValue;
     ScanOptions scanOption = new ScanOptions(options);
     scanOption.startInclusive = true;
     scanOption.stopInclusive = false;

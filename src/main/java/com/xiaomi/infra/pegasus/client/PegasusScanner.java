@@ -236,7 +236,7 @@ public class PegasusScanner implements PegasusScannerInterface {
     while (!_promises.isEmpty()) {
       while (++_p >= _kvs.size()) {
         if (_contextId == CONTEXT_ID_COMPLETED) {
-          // this scan operation got incomplete for server, abandon scan operation
+          // this scan operation got incomplete from server, abandon scan operation
           if (_incomplete) {
             for (DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> p : _promises) {
               logger.error(
