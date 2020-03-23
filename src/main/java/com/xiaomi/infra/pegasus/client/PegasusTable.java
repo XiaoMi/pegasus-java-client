@@ -1686,7 +1686,8 @@ public class PegasusTable implements PegasusTableInterface {
         start = prefix_start;
         scanOptions.startInclusive = true;
       }
-      byte[] prefix_stop = PegasusClient.generateNextBytes(hashKey, scanOptions.sortKeyFilterPattern);
+      byte[] prefix_stop =
+          PegasusClient.generateNextBytes(hashKey, scanOptions.sortKeyFilterPattern);
       if (PegasusClient.bytesCompare(prefix_stop, stop) <= 0) {
         stop = prefix_stop;
         scanOptions.stopInclusive = false;
@@ -1707,7 +1708,8 @@ public class PegasusTable implements PegasusTableInterface {
       gpidArray = new gpid[0];
     }
 
-    return new PegasusScanner(table, gpidArray, scanOptions, new blob(start), new blob(stop), hashArray, false);
+    return new PegasusScanner(
+        table, gpidArray, scanOptions, new blob(start), new blob(stop), hashArray, false);
   }
 
   @Override
@@ -1733,12 +1735,12 @@ public class PegasusTable implements PegasusTableInterface {
     scanOption.stopInclusive = false;
 
     /*
-    * For example, if gpidCount = 16, maxSplitCount = 9
-    * then scannerCount = 9, averageSize = 1, more = 7
-    * It means that we should return nine scanners
-    * the first seventh scanners will contain two partitions' data
-    * and the remainder two scanners will contain only one partition's data
-    * */
+     * For example, if gpidCount = 16, maxSplitCount = 9
+     * then scannerCount = 9, averageSize = 1, more = 7
+     * It means that we should return nine scanners
+     * the first seventh scanners will contain two partitions' data
+     * and the remainder two scanners will contain only one partition's data
+     * */
     for (int i = 0; i < scannerCount; i++) {
       int size = i < more ? averageSize + 1 : averageSize;
       gpid[] gpidArray = new gpid[size];

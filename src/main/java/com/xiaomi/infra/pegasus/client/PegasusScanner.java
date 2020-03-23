@@ -240,9 +240,9 @@ public class PegasusScanner implements PegasusScannerInterface {
           if (_incomplete) {
             for (DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> p : _promises) {
               logger.error(
-                      "scan got incomplete error, " + "tableName({}), {}",
-                      _table.getTableName(),
-                      _gpid.toString());
+                  "scan got incomplete error, " + "tableName({}), {}",
+                  _table.getTableName(),
+                  _gpid.toString());
               p.setFailure(new PException("scan got incomplete error, retry later"));
             }
             _promises.clear();
