@@ -19,7 +19,6 @@ public class rrdb_incr_operator extends client_operator {
       long partitionHash) {
     super(gpid, tableName, partitionHash);
     this.request = request;
-    this.enableSizeLimit = true;
   }
 
   public String name() {

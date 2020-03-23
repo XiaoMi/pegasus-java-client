@@ -97,5 +97,4 @@ public abstract class client_operator {
   public String tableName; // only for metrics
   public error_code rpc_error;
   public boolean enableBackupRequest;
-  public boolean enableSizeLimit;
 }
