@@ -1,7 +1,12 @@
+// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
+// This source code is licensed under the Apache License Version 2.0, which
+// can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.tools;
 
+import com.xiaomi.infra.pegasus.client.PConfigUtil;
+import com.xiaomi.infra.pegasus.client.PException;
 import java.nio.charset.Charset;
-import org.apache.logging.log4j.Level;
+import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
@@ -22,47 +27,80 @@ import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// The wrapper base log4j2:
+// 1. default, `LoggerOptions.enablePegasusCustomLog = true`.user will use pegasus custom log
+// config, but user can change the `LoggerOptions.rollingFileSaveName`
+// to set log path.
+// 2. if `LoggerOptions.enablePegasusCustomLog = false`, user will use the xml config.
+// 3. `LoggerOptions` expose `enablePegasusCustomLog` and `rollingFileSaveName` to change for user
+// by
+// `pegasus.properties`.
 public class LogWrapper {
-
-  private static PegasusRollingFileLogger pegasusLogger;
+  public static final String PEGASUS_CUSTOM_LOG_PATH_KEY = "pegasus_custom_log_path";
+  public static final String PEGASUS_CUSTOM_LOG_PATH_DEF = "log/pegasus/pegasus.client.log";
+  private static final Object singletonLock = new Object();
+  private static PegasusRollingFileLogger singletonPegasusLogger;
 
   public static Logger getRollingFileLogger(Class clazz) {
-    LoggerOptions loggerOptions = new LoggerOptions();
-    PegasusRollingFileLogger logger = createRollingFileAppender(loggerOptions);
-    return logger.getLogger(clazz.getName());
+
+    if (singletonPegasusLogger != null) {
+      return singletonPegasusLogger.getLogger(clazz.getName());
+    }
+
+    synchronized (singletonLock) {
+      if (singletonPegasusLogger != null) {
+        return singletonPegasusLogger.getLogger(clazz.getName());
+      }
+
+      LoggerOptions loggerOptions = new LoggerOptions();
+      try {
+        Properties properties = PConfigUtil.loadConfiguration("resource:///pegasus.properties");
+        String logPath =
+            properties.getProperty(PEGASUS_CUSTOM_LOG_PATH_KEY, PEGASUS_CUSTOM_LOG_PATH_DEF);
+
+        if (logPath.equals("false")) {
+          loggerOptions.setEnablePegasusCustomLog(false);
+        } else {
+          loggerOptions.setRollingFileSaveName(logPath);
+        }
+      } catch (PException e) {
+        LoggerFactory.getLogger(LogWrapper.class)
+            .warn(
+                "config resource not found: resource:///pegasus.properties. will use default config: pegasus client log path = "
+                    + PEGASUS_CUSTOM_LOG_PATH_DEF);
+      }
+      singletonPegasusLogger = createRollingFileAppender(loggerOptions);
+      return singletonPegasusLogger.getLogger(clazz.getName());
+    }
   }
 
-  // TODO 单例
   private static PegasusRollingFileLogger createRollingFileAppender(LoggerOptions loggerOptions) {
-    if (pegasusLogger != null) {
-      return pegasusLogger;
+
+    if (!loggerOptions.isEnablePegasusCustomLog()) {
+      return new PegasusRollingFileLogger(false);
     }
 
-    LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false /*todo*/);
+    LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
     Configuration configuration = loggerContext.getConfiguration();
-
-    if ((configuration.getAppender(loggerOptions.rollingFileAppenderName)) != null
-        && configuration.getAppender(loggerOptions.rollingFileAppenderName)
-            instanceof RollingFileAppender) {
-      return new PegasusRollingFileLogger(loggerContext, loggerOptions.rollingFileAppenderName);
-    }
 
     PatternLayout patternLayout =
         PatternLayout.newBuilder()
             .withCharset(Charset.forName("UTF-8"))
             .withConfiguration(configuration)
-            .withPattern(loggerOptions.layoutPattern)
+            .withPattern(loggerOptions.getLayoutPattern())
             .build();
 
     PathCondition lastModified =
-        IfLastModified.createAgeCondition(Duration.parse(loggerOptions.deleteAge), null);
+        IfLastModified.createAgeCondition(Duration.parse(loggerOptions.getDeleteFileAge()), null);
     PathCondition fileNameMatch =
         IfFileName.createNameCondition(
-            loggerOptions.deleteFileNamePattern, loggerOptions.deleteFileNamePattern, null);
+            loggerOptions.getDeleteFileNamePattern(),
+            loggerOptions.getDeleteFileNamePattern(),
+            null);
     PathCondition[] pathConditions = new PathCondition[] {fileNameMatch, lastModified};
     DeleteAction action =
         DeleteAction.createDeleteAction(
-            loggerOptions.deleteFilePath,
+            loggerOptions.getDeleteFilePath(),
             false,
             1,
             false,
@@ -74,19 +112,20 @@ public class LogWrapper {
 
     RolloverStrategy strategy =
         DefaultRolloverStrategy.newBuilder()
-            .withMax(loggerOptions.maxFileNumber)
-            .withMin(loggerOptions.minFileNumber)
+            .withMax(loggerOptions.getMaxFileNumber())
+            .withMin(loggerOptions.getMinFileNumber())
             .withCustomActions(actions)
             .build();
 
-    TriggeringPolicy policy = SizeBasedTriggeringPolicy.createPolicy(loggerOptions.singleFileSize);
+    TriggeringPolicy policy =
+        SizeBasedTriggeringPolicy.createPolicy(loggerOptions.getSingleFileSize());
 
     RollingFileAppender rollingFileAppender =
         RollingFileAppender.newBuilder()
-            .setName(loggerOptions.rollingFileAppenderName)
+            .setName(loggerOptions.getRollingFileAppenderName())
             .withImmediateFlush(true)
-            .withFileName(loggerOptions.rollingFileSaveName)
-            .withFilePattern(loggerOptions.rollingFileSavePattern)
+            .withFileName(loggerOptions.getRollingFileSaveName())
+            .withFilePattern(loggerOptions.getRollingFileSavePattern())
             .setLayout(patternLayout)
             .withPolicy(policy)
             .withStrategy(strategy)
@@ -97,75 +136,59 @@ public class LogWrapper {
     configuration.addAppender(rollingFileAppender);
 
     AppenderRef ref =
-        AppenderRef.createAppenderRef(loggerOptions.rollingFileAppenderName, null, null);
+        AppenderRef.createAppenderRef(loggerOptions.getRollingFileAppenderName(), null, null);
     AppenderRef[] refs = new AppenderRef[] {ref};
 
     LoggerConfig loggerConfig =
         LoggerConfig.createLogger(
             false,
-            Level.ALL,
-            loggerOptions.rollingFileAppenderName,
+            loggerOptions.getRollingLogLevel(),
+            loggerOptions.getRollingFileAppenderName(),
             "true",
             refs,
             null,
             configuration,
             null);
     loggerConfig.addAppender(rollingFileAppender, null, null);
-    configuration.addLogger(loggerOptions.rollingFileAppenderName, loggerConfig);
+    configuration.addLogger(loggerOptions.getRollingFileAppenderName(), loggerConfig);
     loggerContext.updateLoggers(configuration);
-    return new PegasusRollingFileLogger(loggerContext, loggerOptions.rollingFileAppenderName);
+    singletonPegasusLogger =
+        new PegasusRollingFileLogger(loggerContext, loggerOptions.getRollingFileAppenderName());
+    return singletonPegasusLogger;
   }
 
-  public static void main(String[] args) throws InterruptedException {
-    Logger loggerLogWrapper = LogWrapper.getRollingFileLogger(LogWrapper.class);
-    Logger loggerString = LogWrapper.getRollingFileLogger(String.class);
-    int n = 5;
-    while (n-- > 0) {
-      Thread.sleep(1000);
-      loggerLogWrapper.warn("LogWrapper = {}", n);
+  static class PegasusRollingFileLogger {
+
+    public boolean isEnable = true;
+
+    public LoggerConfig loggerConfig;
+    public LoggerContext loggerContext;
+    public Configuration configuration;
+
+    public PegasusRollingFileLogger(LoggerContext loggerContext, String appenderName) {
+      this.loggerContext = loggerContext;
+      this.configuration = loggerContext.getConfiguration();
+      this.loggerConfig = configuration.getLoggerConfig(appenderName);
     }
 
-    n = 5;
-    while (n-- > 0) {
-      Thread.sleep(1000);
-      loggerString.warn("String = {}", n);
+    public PegasusRollingFileLogger(boolean isEnable) {
+      this.isEnable = isEnable;
     }
-  }
-}
 
-class LoggerOptions {
-  // PatternLayout
-  String layoutPattern = "%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n";
-  // DeleteAction
-  String deleteAge = "PT5S";
-  String deleteFilePath = "log/pegasus";
-  String deleteFileNamePattern = "pegasus.client.log*";
-  // RolloverStrategy
-  String maxFileNumber = "5";
-  String minFileNumber = "1";
-  // SizeBasedTriggeringPolicy
-  String singleFileSize = "10";
-  // RollingFileAppender
-  String rollingFileAppenderName = "pegasusRolling";
-  String rollingFileSaveName = "log/pegasus/pegasus.client.log";
-  String rollingFileSavePattern = "log/pegasus/pegasus.client.log.%d{yyyy-MM-dd.HH:mm:ss}";
-}
+    public Logger getLogger(String loggerName) {
+      if (!isEnable) {
+        return LoggerFactory.getLogger(loggerName);
+      }
 
-class PegasusRollingFileLogger {
+      if (loggerConfig == null || loggerContext == null || configuration == null) {
+        throw new NullPointerException(
+            "PegasusRollingFileLogger hasn't been initialized successfully ");
+      }
 
-  public LoggerConfig loggerConfig;
-  public LoggerContext loggerContext;
-  public Configuration configuration;
-
-  public PegasusRollingFileLogger(LoggerContext loggerContext, String appenderName) {
-    this.loggerContext = loggerContext;
-    this.configuration = loggerContext.getConfiguration();
-    this.loggerConfig = configuration.getLoggerConfig(appenderName);
-  }
-
-  public Logger getLogger(String loggerName) {
-    configuration.addLogger(loggerName, loggerConfig);
-    loggerContext.updateLoggers(configuration);
-    return LoggerFactory.getLogger(loggerName);
+      // addLogger is volatile
+      configuration.addLogger(loggerName, loggerConfig);
+      loggerContext.updateLoggers(configuration);
+      return LoggerFactory.getLogger(loggerName);
+    }
   }
 }
