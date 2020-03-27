@@ -57,7 +57,6 @@ public abstract class Cluster {
         Integer.parseInt(
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
-
     return new ClusterManager(
         operatorTimeout,
         asyncWorkers,
