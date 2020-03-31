@@ -45,7 +45,7 @@ public class ClientOptions {
   private final boolean enablePerfCounter;
   private final String falconPerfCounterTags;
   private final Duration falconPushInterval;
-  private final boolean enableWriteLimit;
+  private final boolean enableWriteSizeLimit;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -54,7 +54,7 @@ public class ClientOptions {
     this.enablePerfCounter = builder.enablePerfCounter;
     this.falconPerfCounterTags = builder.falconPerfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
-    this.enableWriteLimit = builder.enableWriteLimit;
+    this.enableWriteSizeLimit = builder.enableWriteSizeLimit;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -64,7 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
-    this.enableWriteLimit = original.isEnableWriteLimit();
+    this.enableWriteSizeLimit = original.isEnableWriteSizeLimit();
   }
 
   /**
@@ -108,7 +108,7 @@ public class ClientOptions {
           && this.enablePerfCounter == clientOptions.enablePerfCounter
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
-          && this.enableWriteLimit == clientOptions.enableWriteLimit;
+          && this.enableWriteSizeLimit == clientOptions.enableWriteSizeLimit;
     }
     return false;
   }
@@ -130,8 +130,8 @@ public class ClientOptions {
         + '\''
         + ", falconPushInterval(s)="
         + falconPushInterval.getSeconds()
-        + ",enableWriteLimit="
-        + enableWriteLimit
+        + ",enableWriteSizeLimit="
+        + enableWriteSizeLimit
         + '}';
   }
 
@@ -143,7 +143,7 @@ public class ClientOptions {
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
     private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
-    private boolean enableWriteLimit = DEFAULT_ENABLE_WRITE_LIMIT;
+    private boolean enableWriteSizeLimit = DEFAULT_ENABLE_WRITE_LIMIT;
 
     protected Builder() {}
 
@@ -226,11 +226,11 @@ public class ClientOptions {
      * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to Defaults
      * to {@literal true}, see {@link #DEFAULT_ENABLE_WRITE_LIMIT}
      *
-     * @param enableWriteLimit enableWriteLimit
+     * @param enableWriteLimit enableWriteSizeLimit
      * @return {@code this}
      */
     public Builder enableWriteLimit(boolean enableWriteLimit) {
-      this.enableWriteLimit = enableWriteLimit;
+      this.enableWriteSizeLimit = enableWriteLimit;
       return this;
     }
 
@@ -260,7 +260,7 @@ public class ClientOptions {
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
         .falconPushInterval(getFalconPushInterval())
-        .enableWriteLimit(isEnableWriteLimit());
+        .enableWriteLimit(isEnableWriteSizeLimit());
     return builder;
   }
 
@@ -328,7 +328,7 @@ public class ClientOptions {
    *
    * @return whether to enable write limit
    */
-  public boolean isEnableWriteLimit() {
-    return enableWriteLimit;
+  public boolean isEnableWriteSizeLimit() {
+    return enableWriteSizeLimit;
   }
 }
