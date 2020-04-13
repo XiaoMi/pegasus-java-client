@@ -7,8 +7,8 @@ import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.replication.request_meta;
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
-import com.xiaomi.infra.pegasus.tools.Tools;
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TProtocol;
 
 public abstract class client_operator {
   public client_operator(gpid gpid, String tableName, boolean enableBackupRequest) {
@@ -40,10 +40,7 @@ public abstract class client_operator {
   }
 
   public final void prepare_thrift_meta(
-      com.xiaomi.infra.pegasus.thrift.protocol.TProtocol oprot,
-      int client_timeout,
-      boolean isBackupRequest)
-      throws TException {
+      TProtocol oprot, int client_timeout, boolean isBackupRequest) throws TException {
     this.meta.setClient_timeout(client_timeout);
     this.meta.setIs_backup_request(isBackupRequest);
     this.meta.write(oprot);
