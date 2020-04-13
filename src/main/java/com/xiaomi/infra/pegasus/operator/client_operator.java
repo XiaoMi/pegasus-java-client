@@ -5,31 +5,47 @@ package com.xiaomi.infra.pegasus.operator;
 
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
+import com.xiaomi.infra.pegasus.replication.request_meta;
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
 import com.xiaomi.infra.pegasus.thrift.TException;
-import com.xiaomi.infra.pegasus.tools.Tools;
 
 public abstract class client_operator {
-  public client_operator(gpid gpid, String tableName) {
+  public client_operator(gpid gpid, String tableName, boolean enableBackupRequest) {
     this.header = new ThriftHeader();
-    this.header.app_id = gpid.get_app_id();
-    this.header.partition_index = gpid.get_pidx();
+    this.meta = new request_meta();
+    this.meta.setApp_id(gpid.get_app_id());
+    this.meta.setPartition_index(gpid.get_pidx());
     this.pid = gpid;
     this.tableName = tableName;
     this.rpc_error = new error_code();
+    this.enableBackupRequest = enableBackupRequest;
+  }
+
+  public client_operator(
+      gpid gpid, String tableName, long partitionHash, boolean enableBackupRequest) {
+    this(gpid, tableName, enableBackupRequest);
+    this.meta.setPartition_hash(partitionHash);
   }
 
   public client_operator(gpid gpid, String tableName, long partitionHash) {
-    this(gpid, tableName);
-    this.header.partition_hash = partitionHash;
+    this(gpid, tableName, false);
+    this.meta.setPartition_hash(partitionHash);
   }
 
-  public final byte[] prepare_thrift_header(int body_length, int client_timeout) {
-    header.body_length = body_length;
-    header.header_length = ThriftHeader.HEADER_LENGTH;
-    header.client_timeout = client_timeout;
-    header.thread_hash = Tools.dsn_gpid_to_thread_hash(header.app_id, header.partition_index);
+  public final byte[] prepare_thrift_header(int meta_length, int body_length) {
+    this.header.meta_length = meta_length;
+    this.header.body_length = body_length;
     return header.toByteArray();
+  }
+
+  public final void prepare_thrift_meta(
+      com.xiaomi.infra.pegasus.thrift.protocol.TProtocol oprot,
+      int client_timeout,
+      boolean isBackupRequest)
+      throws TException {
+    this.meta.setClient_timeout(client_timeout);
+    this.meta.setIs_backup_request(isBackupRequest);
+    this.meta.write(oprot);
   }
 
   public String getQPSCounter() {
@@ -45,6 +61,7 @@ public abstract class client_operator {
         mark = "fail";
         break;
     }
+
     // pegasus.client.put.succ.qps
     return new StringBuilder()
         .append("pegasus.client.")
@@ -79,7 +96,9 @@ public abstract class client_operator {
       throws TException;
 
   public ThriftHeader header;
+  public request_meta meta;
   public gpid pid;
   public String tableName; // only for metrics
   public error_code rpc_error;
+  public boolean enableBackupRequest;
 }
