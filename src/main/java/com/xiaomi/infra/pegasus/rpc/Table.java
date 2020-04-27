@@ -52,8 +52,6 @@ public abstract class Table {
 
   public abstract int getPartitionCount();
 
-  public abstract boolean isEnableWriteLimit();
-
   public abstract void operate(client_operator op, int timeoutMs) throws ReplicationException;
 
   public abstract void asyncOperate(client_operator op, ClientOPCallback callback, int timeoutMs);

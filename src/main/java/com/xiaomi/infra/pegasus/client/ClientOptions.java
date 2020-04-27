@@ -64,7 +64,7 @@ public class ClientOptions {
     this.enablePerfCounter = original.isEnablePerfCounter();
     this.falconPerfCounterTags = original.getFalconPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
-    this.enableWriteLimit = original.isEnableWriteLimit();
+    this.enableWriteLimit = original.isWriteLimitEnabled();
   }
 
   /**
@@ -222,9 +222,9 @@ public class ClientOptions {
     }
 
     /**
-     * whether to enable limit write. if true, exceed the threshold set will throw exception, See
-     * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to Defaults
-     * to {@literal true}, see {@link #DEFAULT_ENABLE_WRITE_LIMIT}
+     * whether to enable write limit . if true, exceed the threshold set will throw exception, See
+     * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to {@literal
+     * true}, see {@link #DEFAULT_ENABLE_WRITE_LIMIT}
      *
      * @param enableWriteLimit enableWriteLimit
      * @return {@code this}
@@ -260,7 +260,7 @@ public class ClientOptions {
         .enablePerfCounter(isEnablePerfCounter())
         .falconPerfCounterTags(getFalconPerfCounterTags())
         .falconPushInterval(getFalconPushInterval())
-        .enableWriteLimit(isEnableWriteLimit());
+        .enableWriteLimit(isWriteLimitEnabled());
     return builder;
   }
 
@@ -322,13 +322,13 @@ public class ClientOptions {
   }
 
   /**
-   * whether to enable write size limit. if true, exceed the threshold set will throw exception, See
-   * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to Defaults to
-   * {@literal true}, See {@link #DEFAULT_ENABLE_WRITE_LIMIT}
+   * whether to enable write limit. if true, exceed the threshold set will throw exception, See
+   * {@linkplain com.xiaomi.infra.pegasus.tools.WriteLimiter WriteLimiter}. Defaults to {@literal
+   * true}, See {@link #DEFAULT_ENABLE_WRITE_LIMIT}
    *
    * @return whether to enable write size limit
    */
-  public boolean isEnableWriteLimit() {
+  public boolean isWriteLimitEnabled() {
     return enableWriteLimit;
   }
 }

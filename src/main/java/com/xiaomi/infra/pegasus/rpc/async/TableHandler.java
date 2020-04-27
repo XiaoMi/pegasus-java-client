@@ -96,7 +96,6 @@ public class TableHandler extends Table {
     manager_ = mgr;
     executor_ = manager_.getExecutor(name, 1);
     this.backupRequestDelayMs = backupRequestDelayMs;
-    this.enableWriteLimit = manager_.isEnableWriteLimit();
     if (backupRequestDelayMs > 0) {
       logger.info("the delay time of backup request is \"{}\"", backupRequestDelayMs);
     }
@@ -504,9 +503,5 @@ public class TableHandler extends Table {
 
   private boolean isBackupRequestEnabled() {
     return backupRequestDelayMs > 0;
-  }
-
-  public boolean isEnableWriteLimit() {
-    return enableWriteLimit;
   }
 }

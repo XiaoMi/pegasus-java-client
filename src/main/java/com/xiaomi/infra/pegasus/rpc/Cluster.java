@@ -28,9 +28,6 @@ public abstract class Cluster {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
-  public static final String PEGASUS_ENABLE_WRITE_LIMIT = "enable_write_limit";
-  public static final String PEGASUS_ENABLE_WRITE_LIMIT_DEF = "true";
-
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     int operatorTimeout =
         Integer.parseInt(
@@ -59,23 +56,16 @@ public abstract class Cluster {
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
 
-    boolean enableWriteLimit =
-        Boolean.parseBoolean(
-            config.getProperty(PEGASUS_ENABLE_WRITE_LIMIT, PEGASUS_ENABLE_WRITE_LIMIT_DEF));
-
     return new ClusterManager(
         operatorTimeout,
         asyncWorkers,
         enablePerfCounter,
         perfCounterTags,
         pushIntervalSecs,
-        address,
-        enableWriteLimit);
+        address);
   }
 
   public abstract String[] getMetaList();
-
-  public abstract boolean isEnableWriteLimit();
 
   public abstract Table openTable(String name, KeyHasher function, int backupRequestDelayMs)
       throws ReplicationException, TException;

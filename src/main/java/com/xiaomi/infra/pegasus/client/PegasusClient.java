@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 public class PegasusClient implements PegasusClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
 
+  public static final String PEGASUS_ENABLE_WRITE_LIMIT = "enable_write_limit";
+  public static final String PEGASUS_ENABLE_WRITE_LIMIT_DEF = "true";
+
+  private boolean enableWriteLimit;
   private final Properties config;
   private final ConcurrentHashMap<String, PegasusTable> tableMap;
   private final Object tableMapLock;
@@ -73,7 +77,7 @@ public class PegasusClient implements PegasusClientInterface {
         Cluster.PEGASUS_ASYNC_WORKERS_KEY,
         Cluster.PEGASUS_ENABLE_PERF_COUNTER_KEY,
         Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY,
-        Cluster.PEGASUS_ENABLE_WRITE_LIMIT
+        PEGASUS_ENABLE_WRITE_LIMIT
       };
 
   // configPath could be:
@@ -89,7 +93,14 @@ public class PegasusClient implements PegasusClientInterface {
     this.cluster = Cluster.createCluster(config);
     this.tableMap = new ConcurrentHashMap<String, PegasusTable>();
     this.tableMapLock = new Object();
+    this.enableWriteLimit =
+        Boolean.parseBoolean(
+            config.getProperty(PEGASUS_ENABLE_WRITE_LIMIT, PEGASUS_ENABLE_WRITE_LIMIT_DEF));
     LOGGER.info(getConfigurationString());
+  }
+
+  public boolean isWriteLimitEnabled() {
+    return enableWriteLimit;
   }
 
   @Override
