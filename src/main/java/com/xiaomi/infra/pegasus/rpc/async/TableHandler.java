@@ -475,7 +475,6 @@ public class TableHandler extends Table {
 
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
-
     call(round, 1);
   }
 
