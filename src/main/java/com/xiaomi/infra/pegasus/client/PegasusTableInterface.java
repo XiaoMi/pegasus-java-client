@@ -1127,6 +1127,6 @@ public interface PegasusTableInterface {
    * @return scanners, count of which would be no more than maxScannerCount
    * @throws PException throw exception if any error occurs.
    */
-  public List<PegasusScannerInterface> getUnorderedScanners(int maxScannerCount, ScanOptions options)
-      throws PException;
+  public List<PegasusScannerInterface> getUnorderedScanners(
+      int maxScannerCount, ScanOptions options) throws PException;
 }

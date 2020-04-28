@@ -38,7 +38,11 @@ public class PegasusScanner implements PegasusScannerInterface {
   private static final int CONTEXT_ID_NOT_EXIST = -2;
 
   public PegasusScanner(
-      Table table, gpid[] partitions, ScanOptions options, long[] partitionHashes, boolean needCheckHash) {
+      Table table,
+      gpid[] partitions,
+      ScanOptions options,
+      long[] partitionHashes,
+      boolean needCheckHash) {
     this(table, partitions, options, min, max, partitionHashes, needCheckHash);
     options.startInclusive = true;
     options.stopInclusive = false;
@@ -273,7 +277,8 @@ public class PegasusScanner implements PegasusScannerInterface {
       DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> p = _promises.getFirst();
       p.setSuccess(
           new ImmutablePair<Pair<byte[], byte[]>, byte[]>(
-              PegasusClient.restoreKey(_kvs.get(_readKvIter).key.data), _kvs.get(_readKvIter).value.data));
+              PegasusClient.restoreKey(_kvs.get(_readKvIter).key.data),
+              _kvs.get(_readKvIter).value.data));
       _promises.removeFirst();
     }
   }

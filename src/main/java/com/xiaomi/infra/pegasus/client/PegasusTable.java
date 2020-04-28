@@ -1713,8 +1713,8 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
-  public List<PegasusScannerInterface> getUnorderedScanners(int maxScannerCount, ScanOptions options)
-      throws PException {
+  public List<PegasusScannerInterface> getUnorderedScanners(
+      int maxScannerCount, ScanOptions options) throws PException {
     if (maxScannerCount <= 0) {
       throw new PException("Invalid parameter: the max count of splits must be greater than 0");
     }
