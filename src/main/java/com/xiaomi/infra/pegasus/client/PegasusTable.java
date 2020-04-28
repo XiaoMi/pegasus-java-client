@@ -1697,58 +1697,58 @@ public class PegasusTable implements PegasusTableInterface {
     // check if range is empty
     int cmp = PegasusClient.bytesCompare(start, stop);
 
-    long[] hashArray;
-    gpid[] gpidArray;
+    long[] partitionHashes;
+    gpid[] partitions;
     if (cmp < 0 || cmp == 0 && scanOptions.startInclusive && scanOptions.stopInclusive) {
       long startHash = table.getHash(start);
-      hashArray = new long[] {startHash};
-      gpidArray = new gpid[] {table.getGpidByHash(startHash)};
+      partitionHashes = new long[] {startHash};
+      partitions = new gpid[] {table.getGpidByHash(startHash)};
     } else {
-      hashArray = new long[] {0};
-      gpidArray = new gpid[0];
+      partitionHashes = new long[] {0};
+      partitions = new gpid[0];
     }
 
     return new PegasusScanner(
-        table, gpidArray, scanOptions, new blob(start), new blob(stop), hashArray, false);
+        table, partitions, scanOptions, new blob(start), new blob(stop), partitionHashes, false);
   }
 
   @Override
-  public List<PegasusScannerInterface> getUnorderedScanners(int maxSplitCount, ScanOptions options)
+  public List<PegasusScannerInterface> getUnorderedScanners(int maxScannerCount, ScanOptions options)
       throws PException {
-    if (maxSplitCount <= 0) {
+    if (maxScannerCount <= 0) {
       throw new PException("Invalid parameter: the max count of splits must be greater than 0");
     }
     if (options.timeoutMillis <= 0) {
       options.timeoutMillis = defaultTimeout;
     }
 
-    gpid[] allGpid = table.getAllGpid();
-    int gpidCount = allGpid.length;
-    int scannerCount = gpidCount < maxSplitCount ? gpidCount : maxSplitCount;
+    gpid[] allPartitions = table.getAllGpid();
+    int partitionCount = allPartitions.length;
+    int scannerCount = partitionCount < maxScannerCount ? partitionCount : maxScannerCount;
     List<PegasusScannerInterface> ret = new ArrayList<PegasusScannerInterface>(scannerCount);
 
-    int averageSize = gpidCount / scannerCount;
-    int more = gpidCount % scannerCount;
+    int averageSize = partitionCount / scannerCount;
+    int remainder = partitionCount % scannerCount;
 
     ScanOptions scanOption = new ScanOptions(options);
     scanOption.startInclusive = true;
     scanOption.stopInclusive = false;
 
     /*
-     * For example, if gpidCount = 16, maxSplitCount = 9
+     * For example, if gpidCount = 16, maxScannerCount = 9
      * then scannerCount = 9, averageSize = 1, more = 7
      * It means that we should return nine scanners
-     * the first seventh scanners will contain two partitions' data
-     * and the remainder two scanners will contain only one partition's data
+     * the first seven scanners will serve two partitions' data
+     * and the remaining two scanners will serve only one partition's data
      * */
     for (int i = 0; i < scannerCount; i++) {
-      int size = i < more ? averageSize + 1 : averageSize;
+      int size = i < remainder ? averageSize + 1 : averageSize;
       gpid[] gpidArray = new gpid[size];
       long[] hashArray = new long[size];
       for (int j = 0; j < size; j++) {
-        --gpidCount;
-        gpidArray[j] = allGpid[gpidCount];
-        hashArray[j] = gpidCount;
+        --partitionCount;
+        gpidArray[j] = allPartitions[partitionCount];
+        hashArray[j] = partitionCount;
       }
       PegasusScanner scanner = new PegasusScanner(table, gpidArray, scanOption, hashArray, true);
       ret.add(scanner);

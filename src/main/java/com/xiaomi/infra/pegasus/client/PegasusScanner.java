@@ -38,29 +38,29 @@ public class PegasusScanner implements PegasusScannerInterface {
   private static final int CONTEXT_ID_NOT_EXIST = -2;
 
   public PegasusScanner(
-      Table table, gpid[] splitGpid, ScanOptions options, long[] splitHash, boolean needCheckHash) {
-    this(table, splitGpid, options, min, max, splitHash, needCheckHash);
+      Table table, gpid[] partitions, ScanOptions options, long[] partitionHashes, boolean needCheckHash) {
+    this(table, partitions, options, min, max, partitionHashes, needCheckHash);
     options.startInclusive = true;
     options.stopInclusive = false;
   }
 
   public PegasusScanner(
       Table table,
-      gpid[] splitGpid,
+      gpid[] partitions,
       ScanOptions options,
       blob startKey,
       blob stopKey,
-      long[] splitHash,
+      long[] partitionHashes,
       boolean needCheckHash) {
     _table = table;
-    _splitHash = splitHash;
-    _splitGpid = splitGpid == null ? new gpid[0] : splitGpid;
+    _partitionHashes = partitionHashes;
+    _partitions = partitions == null ? new gpid[0] : partitions;
     _options = options;
     _startKey = startKey;
     _stopKey = stopKey;
-    _p = -1;
+    _readKvIter = -1;
     _contextId = CONTEXT_ID_COMPLETED;
-    _splitCount = _splitGpid.length;
+    _partitionIter = _partitions.length;
     _kvs = new ArrayList<key_value>();
     _promises = new LinkedList<DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>>>();
     _rpcRunning = false;
@@ -107,7 +107,7 @@ public class PegasusScanner implements PegasusScannerInterface {
       }
       _contextId = CONTEXT_ID_COMPLETED;
     }
-    _splitCount = 0;
+    _partitionIter = 0;
   }
 
   private void asyncStartScan() {
@@ -204,14 +204,14 @@ public class PegasusScanner implements PegasusScannerInterface {
     if (err.errno == error_code.error_types.ERR_OK) {
       if (response.error == 0) { // ERR_OK
         _kvs = response.kvs;
-        _p = -1;
+        _readKvIter = -1;
         _contextId = response.context_id;
       } else if (response.error
           == 1) { // rocksDB error kNotFound, that scan context has been removed
         _contextId = CONTEXT_ID_NOT_EXIST;
       } else if (response.error == 7) { // rocksDB error kIncomplete
         _kvs = response.kvs;
-        _p = -1;
+        _readKvIter = -1;
         _contextId = CONTEXT_ID_COMPLETED;
         _incomplete = true;
       } else { // rpc succeed, but operation encounter some error in server side
@@ -234,7 +234,7 @@ public class PegasusScanner implements PegasusScannerInterface {
       return;
     }
     while (!_promises.isEmpty()) {
-      while (++_p >= _kvs.size()) {
+      while (++_readKvIter >= _kvs.size()) {
         if (_contextId == CONTEXT_ID_COMPLETED) {
           // this scan operation got incomplete from server, abandon scan operation
           if (_incomplete) {
@@ -250,7 +250,7 @@ public class PegasusScanner implements PegasusScannerInterface {
           }
 
           // reach the end of one partition, finish scan operation
-          if (_splitCount <= 0) {
+          if (_partitionIter <= 0) {
             for (DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> p : _promises) {
               p.setSuccess(null);
             }
@@ -258,9 +258,9 @@ public class PegasusScanner implements PegasusScannerInterface {
             return;
           }
 
-          _gpid = _splitGpid[--_splitCount];
-          _hash = _splitHash[_splitCount];
-          splitReset();
+          _gpid = _partitions[--_partitionIter];
+          _hash = _partitionHashes[_partitionIter];
+          contextReset();
         } else if (_contextId == CONTEXT_ID_NOT_EXIST) {
           // no valid context_id found
           asyncStartScan();
@@ -273,14 +273,14 @@ public class PegasusScanner implements PegasusScannerInterface {
       DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> p = _promises.getFirst();
       p.setSuccess(
           new ImmutablePair<Pair<byte[], byte[]>, byte[]>(
-              PegasusClient.restoreKey(_kvs.get(_p).key.data), _kvs.get(_p).value.data));
+              PegasusClient.restoreKey(_kvs.get(_readKvIter).key.data), _kvs.get(_readKvIter).value.data));
       _promises.removeFirst();
     }
   }
 
-  private void splitReset() {
+  private void contextReset() {
     _kvs.clear();
-    _p = -1;
+    _readKvIter = -1;
     _contextId = CONTEXT_ID_NOT_EXIST;
   }
 
@@ -288,15 +288,15 @@ public class PegasusScanner implements PegasusScannerInterface {
   private blob _startKey;
   private blob _stopKey;
   private ScanOptions _options;
-  private gpid[] _splitGpid;
-  private long[] _splitHash;
-  private int _splitCount;
+  private gpid[] _partitions;
+  private long[] _partitionHashes;
+  private int _partitionIter;
 
   private gpid _gpid;
   private long _hash;
 
   private List<key_value> _kvs;
-  private int _p;
+  private int _readKvIter;
 
   private long _contextId;
 
