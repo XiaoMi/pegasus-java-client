@@ -133,7 +133,7 @@ public class ClusterManager extends Cluster {
   @Override
   public TableHandler openTable(String name, KeyHasher h, int backupRequestDelayMs, int timeout)
       throws ReplicationException {
-    if (0 <= timeout) {
+    if (timeout <= 0) {
       timeout = operationTimeout;
     }
     return new TableHandler(this, name, h, backupRequestDelayMs, timeout);
