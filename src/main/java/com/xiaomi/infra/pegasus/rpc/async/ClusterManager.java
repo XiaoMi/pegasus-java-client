@@ -65,7 +65,7 @@ public class ClusterManager extends Cluster {
     metaList = address_list;
     // the constructor of meta session is depend on the replicaSessions,
     // so the replicaSessions should be initialized earlier
-    metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
+    metaSession = new MetaSession(this, address_list, 10, metaGroup);
   }
 
   public EventExecutor getExecutor(String name, int threadCount) {
@@ -131,9 +131,12 @@ public class ClusterManager extends Cluster {
   }
 
   @Override
-  public TableHandler openTable(String name, KeyHasher h, int backupRequestDelayMs)
+  public TableHandler openTable(String name, KeyHasher h, int backupRequestDelayMs, int timeout)
       throws ReplicationException {
-    return new TableHandler(this, name, h, backupRequestDelayMs);
+    if (0 <= timeout) {
+      timeout = operationTimeout;
+    }
+    return new TableHandler(this, name, h, backupRequestDelayMs, timeout);
   }
 
   @Override

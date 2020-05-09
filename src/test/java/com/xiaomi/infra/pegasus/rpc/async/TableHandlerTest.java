@@ -31,10 +31,11 @@ public class TableHandlerTest {
   private String[] replica_servers = {"127.0.0.1:34801", "127.0.0.1:34802", "127.0.01:34803"};
 
   private ClusterManager testManager;
+  private int timeout = 1000;
 
   @Before
   public void before() throws Exception {
-    testManager = new ClusterManager(1000, 1, false, null, 60, addr_list);
+    testManager = new ClusterManager(timeout, 1, false, null, 60, addr_list);
   }
 
   @After
@@ -60,7 +61,7 @@ public class TableHandlerTest {
     System.out.println("TableHandlerTest#testOperateOp");
     TableHandler table = null;
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0, timeout);
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -147,7 +148,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0, timeout);
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -191,7 +192,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0);
+      table = testManager.openTable("temp", KeyHasher.DEFAULT, 0, timeout);
     } catch (ReplicationException e) {
       Assert.fail();
     }

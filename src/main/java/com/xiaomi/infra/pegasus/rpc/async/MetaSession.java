@@ -18,11 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MetaSession extends HostNameResolver {
   public MetaSession(
-      ClusterManager manager,
-      String[] addrList,
-      int eachQueryTimeoutInMills,
-      int defaultMaxQueryCount,
-      EventLoopGroup g)
+      ClusterManager manager, String[] addrList, int defaultMaxQueryCount, EventLoopGroup g)
       throws IllegalArgumentException {
     clusterManager = manager;
     metaList = new ArrayList<ReplicaSession>();
@@ -50,7 +46,6 @@ public class MetaSession extends HostNameResolver {
     }
     curLeader = 0;
 
-    this.eachQueryTimeoutInMills = eachQueryTimeoutInMills;
     this.defaultMaxQueryCount = defaultMaxQueryCount;
     this.group = g;
   }
@@ -72,7 +67,8 @@ public class MetaSession extends HostNameResolver {
     return addr;
   }
 
-  public final void asyncQuery(client_operator op, Runnable callbackFunc, int maxQueryCount) {
+  public final void asyncQuery(
+      client_operator op, Runnable callbackFunc, int maxQueryCount, int timeout) {
     if (maxQueryCount == 0) {
       maxQueryCount = defaultMaxQueryCount;
     }
@@ -80,10 +76,10 @@ public class MetaSession extends HostNameResolver {
     synchronized (this) {
       round = new MetaRequestRound(op, callbackFunc, maxQueryCount, metaList.get(curLeader));
     }
-    asyncCall(round);
+    asyncCall(round, timeout);
   }
 
-  public final void query(client_operator op, int maxQueryCount) {
+  public final void query(client_operator op, int maxQueryCount, int timeout) {
     FutureTask<Void> v =
         new FutureTask<Void>(
             new Callable<Void>() {
@@ -92,7 +88,7 @@ public class MetaSession extends HostNameResolver {
                 return null;
               }
             });
-    asyncQuery(op, v, maxQueryCount);
+    asyncQuery(op, v, maxQueryCount, timeout);
     while (true) {
       try {
         v.get();
@@ -113,20 +109,20 @@ public class MetaSession extends HostNameResolver {
     }
   }
 
-  private void asyncCall(final MetaRequestRound round) {
+  private void asyncCall(final MetaRequestRound round, int timeout) {
     round.lastSession.asyncSend(
         round.op,
         new Runnable() {
           @Override
           public void run() {
-            onFinishQueryMeta(round);
+            onFinishQueryMeta(round, timeout);
           }
         },
-        eachQueryTimeoutInMills,
+        timeout,
         false);
   }
 
-  void onFinishQueryMeta(final MetaRequestRound round) {
+  void onFinishQueryMeta(final MetaRequestRound round, int timeout) {
     client_operator op = round.op;
 
     boolean needDelay = false;
@@ -208,15 +204,15 @@ public class MetaSession extends HostNameResolver {
       return;
     }
 
-    retryQueryMeta(round, needDelay);
+    retryQueryMeta(round, needDelay, timeout);
   }
 
-  void retryQueryMeta(final MetaRequestRound round, boolean needDelay) {
+  void retryQueryMeta(final MetaRequestRound round, boolean needDelay, int timeout) {
     group.schedule(
         new Runnable() {
           @Override
           public void run() {
-            asyncCall(round);
+            asyncCall(round, timeout);
           }
         },
         needDelay ? 1 : 0,
@@ -290,7 +286,6 @@ public class MetaSession extends HostNameResolver {
   private ClusterManager clusterManager;
   private List<ReplicaSession> metaList;
   private int curLeader;
-  private int eachQueryTimeoutInMills;
   private int defaultMaxQueryCount;
   private EventLoopGroup group;
   private String hostPort;

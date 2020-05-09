@@ -50,8 +50,9 @@ public class TestPException {
   @Test
   public void testHandleReplicationException() throws Exception {
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
-    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
-    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0);
+    int timeout = 1000;
+    ClusterManager manager = new ClusterManager(timeout, 1, false, null, 60, metaList);
+    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0, timeout);
     DefaultPromise<Void> promise = table.newPromise();
     update_request req = new update_request(new blob(), new blob(), 100);
     gpid gpid = table.getGpidByHash(1);
@@ -59,7 +60,6 @@ public class TestPException {
     op.rpc_error.errno = error_code.error_types.ERR_OBJECT_NOT_FOUND;
 
     // set failure in promise, the exception is thrown as ExecutionException.
-    int timeout = 1000;
     PegasusClient client = (PegasusClient) PegasusClientFactory.getSingletonClient();
     PegasusTable pegasusTable = new PegasusTable(client, table);
     pegasusTable.handleReplicaException(promise, op, table, timeout);
@@ -87,8 +87,9 @@ public class TestPException {
     // ensure "PException ERR_TIMEOUT" is thrown with the real timeout value, when user given
     // timeout is 0.
     String[] metaList = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
-    ClusterManager manager = new ClusterManager(1000, 1, false, null, 60, metaList);
-    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0);
+    int timeout = 1000;
+    ClusterManager manager = new ClusterManager(timeout, 1, false, null, 60, metaList);
+    TableHandler table = manager.openTable("temp", KeyHasher.DEFAULT, 0, timeout);
     DefaultPromise<Void> promise = table.newPromise();
     update_request req = new update_request(new blob(), new blob(), 100);
     gpid gpid = table.getGpidByHash(1);

@@ -50,7 +50,8 @@ public class TableHandler extends Table {
   int backupRequestDelayMs;
   private boolean enableWriteLimit;
 
-  public TableHandler(ClusterManager mgr, String name, KeyHasher h, int backupRequestDelayMs)
+  public TableHandler(
+      ClusterManager mgr, String name, KeyHasher h, int backupRequestDelayMs, int timeout)
       throws ReplicationException {
     int i = 0;
     for (; i < name.length(); i++) {
@@ -74,7 +75,7 @@ public class TableHandler extends Table {
 
     query_cfg_request req = new query_cfg_request(name, new ArrayList<Integer>());
     query_cfg_operator op = new query_cfg_operator(new gpid(-1, -1), req);
-    mgr.getMetaSession().query(op, 5);
+    mgr.getMetaSession().query(op, 5, timeout);
     error_types err = MetaSession.getMetaServiceError(op);
     if (err != error_types.ERR_OK) {
       handleMetaException(err, mgr, name);
@@ -230,7 +231,8 @@ public class TableHandler extends Table {
                 onUpdateConfiguration(query_op);
               }
             },
-            5);
+            5,
+            getDefaultTimeout());
 
     return true;
   }

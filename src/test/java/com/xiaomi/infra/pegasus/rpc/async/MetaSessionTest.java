@@ -64,7 +64,8 @@ public class MetaSessionTest {
     // then it forward to the right server
     // then the wrong server crashed
     String[] addr_list = {"127.0.0.1:34602", "127.0.0.1:34603", "127.0.0.1:34601"};
-    ClusterManager manager = new ClusterManager(1000, 4, false, null, 60, addr_list);
+    int timeout = 1000;
+    ClusterManager manager = new ClusterManager(timeout, 4, false, null, 60, addr_list);
     MetaSession session = manager.getMetaSession();
 
     rpc_address addr = new rpc_address();
@@ -85,7 +86,7 @@ public class MetaSessionTest {
                 }
               });
       callbacks.add(callback);
-      session.asyncQuery(op, callback, 10);
+      session.asyncQuery(op, callback, 10, timeout);
     }
 
     Toollet.closeServer(addr);
@@ -158,8 +159,9 @@ public class MetaSessionTest {
 
   @Test
   public void testDNSMetaAllChanged() throws Exception {
+    int timeout = 1000;
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
+        new ClusterManager(timeout, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
     // curLeader=0, hostPort="localhost:34601"
@@ -187,7 +189,7 @@ public class MetaSessionTest {
             meta.getMetaList().get(0));
 
     // simulate a failed query meta, but ensure it will not retry after a failure.
-    Mockito.doNothing().when(meta).retryQueryMeta(round, false);
+    Mockito.doNothing().when(meta).retryQueryMeta(round, false, timeout);
 
     // DNS updated.
     rpc_address[] addrs2 = new rpc_address[2];
@@ -197,21 +199,21 @@ public class MetaSessionTest {
     Mockito.when(meta.resolve(("localhost:34601"))).thenReturn(addrs2);
 
     // meta all dead, query failed.
-    meta.onFinishQueryMeta(round);
+    meta.onFinishQueryMeta(round, timeout);
     // switch curLeader to 1, meta list unchanged.
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs);
     Integer curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
     Assert.assertEquals(curLeader.intValue(), 1);
 
     // failed again
-    meta.onFinishQueryMeta(round);
+    meta.onFinishQueryMeta(round, timeout);
     // switch curLeader to 0, meta list updated
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs2);
     curLeader = (Integer) FieldUtils.readField(meta, "curLeader", true);
     Assert.assertEquals(curLeader.intValue(), 0);
 
     // retry
-    meta.onFinishQueryMeta(round);
+    meta.onFinishQueryMeta(round, timeout);
     Assert.assertArrayEquals(getAddressFromSession(meta.getMetaList()), addrs2);
   }
 
@@ -219,9 +221,9 @@ public class MetaSessionTest {
   public void testMetaForwardUnknownPrimary() throws Exception {
     // ensures that client will accept the forwarded meta
     // into local meta list, and set it to current leader.
-
+    int timeout = 1000;
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
+        new ClusterManager(timeout, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession session = manager.getMetaSession();
     MetaSession meta = Mockito.spy(session);
     // curLeader=0, hostPort="localhost:34601"
@@ -254,10 +256,10 @@ public class MetaSessionTest {
             meta.getMetaList().get(0));
 
     // do not retry after a failed QueryMeta.
-    Mockito.doNothing().when(meta).retryQueryMeta(round, false);
+    Mockito.doNothing().when(meta).retryQueryMeta(round, false, timeout);
 
     // failed to query meta
-    meta.onFinishQueryMeta(round);
+    meta.onFinishQueryMeta(round, timeout);
 
     rpc_address[] addrs2 = Arrays.copyOf(addrs, 3);
     addrs2[2] = rpc_address.fromIpPort("172.0.0.3:34601");
@@ -270,8 +272,9 @@ public class MetaSessionTest {
 
   @Test
   public void testDNSResetMetaMaxQueryCount() {
+    int timeout = 1000;
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
+        new ClusterManager(timeout, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
 
     List<ReplicaSession> metaList = metaMock.getMetaList();
@@ -297,7 +300,7 @@ public class MetaSessionTest {
     // `MetaSession#query` will first query the 3 old addresses (and failed), then resolve the DNS
     // and find the 5 new addresses.
     // Even though the given maxQueryCount is given 3, the total query count is at least 6.
-    metaMock.query(op, metaList.size());
+    metaMock.query(op, metaList.size(), timeout);
     error_types err = MetaSession.getMetaServiceError(op);
     Assert.assertEquals(error_code.error_types.ERR_OK, err);
   }
@@ -305,8 +308,9 @@ public class MetaSessionTest {
   @Test
   public void testDNSMetaUnavailable() {
     // Ensures when the DNS returns meta all unavailable, finally the query will timeout.
+    int timeout = 1000;
     ClusterManager manager =
-        new ClusterManager(1000, 4, false, null, 60, new String[] {"localhost:34601"});
+        new ClusterManager(timeout, 4, false, null, 60, new String[] {"localhost:34601"});
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
     List<ReplicaSession> metaList = metaMock.getMetaList();
     metaList.remove(0); // del the "localhost:34601"
@@ -322,7 +326,7 @@ public class MetaSessionTest {
     Mockito.when(metaMock.resolve("localhost:34601")).thenReturn(newAddrs);
     query_cfg_request req = new query_cfg_request("temp", new ArrayList<Integer>());
     client_operator op = new query_cfg_operator(new gpid(-1, -1), req);
-    metaMock.query(op, metaList.size());
+    metaMock.query(op, metaList.size(), timeout);
     Assert.assertEquals(error_types.ERR_TIMEOUT, MetaSession.getMetaServiceError(op));
   }
 }

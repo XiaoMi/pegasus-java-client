@@ -66,7 +66,8 @@ public abstract class Cluster {
 
   public abstract String[] getMetaList();
 
-  public abstract Table openTable(String name, KeyHasher function, int backupRequestDelayMs)
+  public abstract Table openTable(
+      String name, KeyHasher function, int backupRequestDelayMs, int timeout)
       throws ReplicationException, TException;
 
   public abstract void close();
