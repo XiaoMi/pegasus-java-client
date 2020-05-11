@@ -48,7 +48,6 @@ public class TableHandler extends Table {
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
   int backupRequestDelayMs;
-  private boolean enableWriteLimit;
 
   public TableHandler(
       ClusterManager mgr, String name, KeyHasher h, int backupRequestDelayMs, int timeout)
