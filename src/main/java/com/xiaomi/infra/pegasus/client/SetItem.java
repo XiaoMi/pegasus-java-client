@@ -3,7 +3,9 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
-public class SetItem extends Serializable {
+import java.io.Serializable;
+
+public class SetItem implements Serializable {
   public byte[] hashKey = null;
   public byte[] sortKey = null;
   public byte[] value = null;
