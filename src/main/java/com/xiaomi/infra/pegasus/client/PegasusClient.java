@@ -3,11 +3,12 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
-import com.xiaomi.infra.pegasus.rpc.Cluster;
-import com.xiaomi.infra.pegasus.rpc.KeyHasher;
+import com.xiaomi.infra.pegasus.rpc.*;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -56,9 +57,9 @@ public class PegasusClient implements PegasusClientInterface {
         table = tableMap.get(tableName);
         if (table == null) {
           try {
-            table =
-                new PegasusTable(
-                    this, cluster.openTable(tableName, new PegasusHasher(), backupRequestDelayMs));
+            TableOptions options = new TableOptions(new PegasusHasher(), backupRequestDelayMs);
+            Table internalTable = cluster.openTable(tableName, options);
+            table = new PegasusTable(this, internalTable);
           } catch (Throwable e) {
             throw new PException(e);
           }
@@ -72,11 +73,11 @@ public class PegasusClient implements PegasusClientInterface {
   // pegasus client configuration keys
   public static final String[] PEGASUS_CLIENT_CONFIG_KEYS =
       new String[] {
-        Cluster.PEGASUS_META_SERVERS_KEY,
-        Cluster.PEGASUS_OPERATION_TIMEOUT_KEY,
-        Cluster.PEGASUS_ASYNC_WORKERS_KEY,
-        Cluster.PEGASUS_ENABLE_PERF_COUNTER_KEY,
-        Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY,
+        ClusterOptions.PEGASUS_META_SERVERS_KEY,
+        ClusterOptions.PEGASUS_OPERATION_TIMEOUT_KEY,
+        ClusterOptions.PEGASUS_ASYNC_WORKERS_KEY,
+        ClusterOptions.PEGASUS_ENABLE_PERF_COUNTER_KEY,
+        ClusterOptions.PEGASUS_PERF_COUNTER_TAGS_KEY,
         PEGASUS_ENABLE_WRITE_LIMIT
       };
 
