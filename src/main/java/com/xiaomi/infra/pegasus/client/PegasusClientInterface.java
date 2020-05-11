@@ -44,16 +44,6 @@ public interface PegasusClientInterface {
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
    *
-   * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
-   * provided in this class. 2. the table-interface way, which is provided by {@link
-   * PegasusTableInterface}. With the client-interface, you don't need to create
-   * PegasusTableInterface by openTable, so you can access the pegasus cluster conveniently.
-   * However, the client-interface's api also has some restrictions: 1. we don't provide async
-   * methods in client-interface. 2. the timeout in client-interface isn't as accurate as the
-   * table-interface. 3. the client-interface may throw an exception when open table fails. It means
-   * that you may need to handle this exception in every data access operation, which is annoying.
-   * 4. You can't specify a per-operation timeout. So we recommend you to use the table-interface.
-   *
    * @param tableName the table should be exist on the server, which is created before by the system
    *     administrator
    * @param backupRequestDelayMs the delay time to send backup request. If backupRequestDelayMs <=
@@ -66,16 +56,6 @@ public interface PegasusClientInterface {
 
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
-   *
-   * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
-   * provided in this class. 2. the table-interface way, which is provided by {@link
-   * PegasusTableInterface}. With the client-interface, you don't need to create
-   * PegasusTableInterface by openTable, so you can access the pegasus cluster conveniently.
-   * However, the client-interface's api also has some restrictions: 1. we don't provide async
-   * methods in client-interface. 2. the timeout in client-interface isn't as accurate as the
-   * table-interface. 3. the client-interface may throw an exception when open table fails. It means
-   * that you may need to handle this exception in every data access operation, which is annoying.
-   * 4. You can't specify a per-operation timeout. So we recommend you to use the table-interface.
    *
    * @param tableName the table should be exist on the server, which is created before by the system
    *     administrator
