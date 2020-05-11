@@ -28,6 +28,9 @@ public abstract class Cluster {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
+  public static final String PEGASUS_META_QUERY_TIMEOUT_KEY = "meta_query_timeout";
+  public static final String PEGASUS_META_QUERY_TIMEOUT_DEF = "5000";
+
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     int operatorTimeout =
         Integer.parseInt(
@@ -55,13 +58,17 @@ public abstract class Cluster {
         Integer.parseInt(
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
+    int metaQueryTimeout =
+        Integer.parseInt(
+            config.getProperty(PEGASUS_META_QUERY_TIMEOUT_KEY, PEGASUS_META_QUERY_TIMEOUT_DEF));
     return new ClusterManager(
         operatorTimeout,
         asyncWorkers,
         enablePerfCounter,
         perfCounterTags,
         pushIntervalSecs,
-        address);
+        address,
+        metaQueryTimeout);
   }
 
   public abstract String[] getMetaList();

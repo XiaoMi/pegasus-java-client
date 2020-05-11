@@ -49,7 +49,8 @@ public class ClusterManager extends Cluster {
       boolean enableCounter,
       String perfCounterTags,
       int pushIntervalSecs,
-      String[] address_list)
+      String[] address_list,
+      int metaQueryTimeout)
       throws IllegalArgumentException {
     setTimeout(timeout);
     this.enableCounter = enableCounter;
@@ -65,7 +66,7 @@ public class ClusterManager extends Cluster {
     metaList = address_list;
     // the constructor of meta session is depend on the replicaSessions,
     // so the replicaSessions should be initialized earlier
-    metaSession = new MetaSession(this, address_list, timeout, 10, metaGroup);
+    metaSession = new MetaSession(this, address_list, metaQueryTimeout, 10, metaGroup);
   }
 
   public EventExecutor getExecutor(String name, int threadCount) {

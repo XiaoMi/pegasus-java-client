@@ -77,7 +77,8 @@ public class PegasusClient implements PegasusClientInterface {
         Cluster.PEGASUS_ASYNC_WORKERS_KEY,
         Cluster.PEGASUS_ENABLE_PERF_COUNTER_KEY,
         Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY,
-        PEGASUS_ENABLE_WRITE_LIMIT
+        PEGASUS_ENABLE_WRITE_LIMIT,
+        Cluster.PEGASUS_META_QUERY_TIMEOUT_KEY
       };
 
   // configPath could be:
