@@ -9,9 +9,6 @@ import org.apache.thrift.TException;
 
 public abstract class Cluster {
 
-  public static final String PEGASUS_META_QUERY_TIMEOUT_KEY = "meta_query_timeout";
-  public static final String PEGASUS_META_QUERY_TIMEOUT_DEF = "5000";
-
   public static Cluster createCluster(Properties config) throws IllegalArgumentException {
     return new ClusterManager(ClusterOptions.create(config));
   }
