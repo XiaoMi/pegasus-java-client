@@ -106,8 +106,8 @@ public class ClusterOptions {
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
     int metaQueryTimeout =
-            Integer.parseInt(
-                    config.getProperty(PEGASUS_META_QUERY_TIMEOUT_KEY, PEGASUS_META_QUERY_TIMEOUT_DEF));
+        Integer.parseInt(
+            config.getProperty(PEGASUS_META_QUERY_TIMEOUT_KEY, PEGASUS_META_QUERY_TIMEOUT_DEF));
 
     return new ClusterOptions(
         operationTimeout,
