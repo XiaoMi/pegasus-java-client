@@ -114,7 +114,7 @@ public class ClientOptions {
           && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
           && this.enableWriteLimit == clientOptions.enableWriteLimit
-          && this.metaQueryTimeout == clientOptions.metaQueryTimeout;
+          && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis();
     }
     return false;
   }
