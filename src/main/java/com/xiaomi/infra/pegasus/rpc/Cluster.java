@@ -15,7 +15,7 @@ public abstract class Cluster {
 
   public abstract String[] getMetaList();
 
-  public abstract Table openTable(String name, TableOptions config)
+  public abstract Table openTable(String name, TableOptions options)
       throws ReplicationException, TException;
 
   public abstract void close();

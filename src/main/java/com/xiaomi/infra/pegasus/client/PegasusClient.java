@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -72,14 +73,7 @@ public class PegasusClient implements PegasusClientInterface {
 
   // pegasus client configuration keys
   public static final String[] PEGASUS_CLIENT_CONFIG_KEYS =
-      new String[] {
-        ClusterOptions.PEGASUS_META_SERVERS_KEY,
-        ClusterOptions.PEGASUS_OPERATION_TIMEOUT_KEY,
-        ClusterOptions.PEGASUS_ASYNC_WORKERS_KEY,
-        ClusterOptions.PEGASUS_ENABLE_PERF_COUNTER_KEY,
-        ClusterOptions.PEGASUS_PERF_COUNTER_TAGS_KEY,
-        PEGASUS_ENABLE_WRITE_LIMIT
-      };
+      ArrayUtils.add(ClusterOptions.allKeys(), PEGASUS_ENABLE_WRITE_LIMIT);
 
   // configPath could be:
   // - zk path: zk://host1:port1,host2:port2,host3:port3/path/to/config

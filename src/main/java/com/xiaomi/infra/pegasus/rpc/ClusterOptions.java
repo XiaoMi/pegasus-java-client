@@ -19,13 +19,23 @@ public class ClusterOptions {
       String.valueOf(Runtime.getRuntime().availableProcessors());
 
   public static final String PEGASUS_ENABLE_PERF_COUNTER_KEY = "enable_perf_counter";
-  public static final String PEGASUS_ENABLE_PERF_COUNTER_VALUE = "false";
+  public static final String PEGASUS_ENABLE_PERF_COUNTER_DEF = "false";
 
   public static final String PEGASUS_PERF_COUNTER_TAGS_KEY = "perf_counter_tags";
   public static final String PEGASUS_PERF_COUNTER_TAGS_DEF = "";
 
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
+
+  public static String[] allKeys() {
+    return new String[] {
+      PEGASUS_META_SERVERS_KEY,
+      PEGASUS_OPERATION_TIMEOUT_KEY,
+      PEGASUS_ASYNC_WORKERS_KEY,
+      PEGASUS_ENABLE_PERF_COUNTER_KEY,
+      PEGASUS_PERF_COUNTER_TAGS_KEY
+    };
+  }
 
   private final int operationTimeout;
   private final String[] metaList;
@@ -76,7 +86,7 @@ public class ClusterOptions {
         Integer.parseInt(config.getProperty(PEGASUS_ASYNC_WORKERS_KEY, PEGASUS_ASYNC_WORKERS_DEF));
     boolean enablePerfCounter =
         Boolean.parseBoolean(
-            config.getProperty(PEGASUS_ENABLE_PERF_COUNTER_KEY, PEGASUS_ENABLE_PERF_COUNTER_VALUE));
+            config.getProperty(PEGASUS_ENABLE_PERF_COUNTER_KEY, PEGASUS_ENABLE_PERF_COUNTER_DEF));
     String perfCounterTags =
         enablePerfCounter
             ? config.getProperty(PEGASUS_PERF_COUNTER_TAGS_KEY, PEGASUS_PERF_COUNTER_TAGS_DEF)
