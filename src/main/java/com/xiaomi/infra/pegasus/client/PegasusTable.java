@@ -1892,6 +1892,8 @@ public class PegasusTable implements PegasusTableInterface {
       case ERR_INVALID_STATE:
         message = " The target replica is not primary!";
         break;
+      case ERR_INVALID_DATA:
+        message = " The request maybe too large!";
     }
     promise.setFailure(
         new PException(new ReplicationException(op.rpc_error.errno, header + message)));
