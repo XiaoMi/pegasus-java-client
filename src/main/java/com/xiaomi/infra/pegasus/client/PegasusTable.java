@@ -1859,13 +1859,13 @@ public class PegasusTable implements PegasusTableInterface {
 
     String message = "";
     String header =
-        "[MetaServer = "
+        "[metaServer="
             + metaList
             + ",table="
             + table.getTableName()
             + ",operation="
             + op.name()
-            + ",request(head 32)= "
+            + ",request="
             + request.toString()
             + ",replicaServer="
             + replicaServer
@@ -1903,7 +1903,7 @@ public class PegasusTable implements PegasusTableInterface {
     promise.setFailure(new PException("Exceed write limit threshold:" + message));
   }
 
-  class Request {
+  public static class Request {
     byte[] hashKey = "".getBytes();
     byte[] sortKey = "".getBytes();
     int valueCount = 1;
