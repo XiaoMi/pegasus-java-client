@@ -1922,7 +1922,7 @@ public class PegasusTable implements PegasusTableInterface {
     @Override
     public String toString() {
       return String.format(
-          "[hashKey=\"%s\", sortKey=\"%s\", valueCount=%d]",
+          "[hashKey=\"%s\",sortKey=\"%s\",valueCount=%d]",
           getSubstring(hashKey), getSubstring(sortKey), valueCount);
     }
   }
