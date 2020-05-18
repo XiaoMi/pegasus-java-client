@@ -96,6 +96,9 @@ public final class MetricsPool {
   }
 
   private String getTableTag(String counterName) {
+    if (defaultTag.contains("table=")) {
+      return defaultTag;
+    }
     String[] result = counterName.split("@");
     if (result.length >= 2) {
       String tableName = result[1].split("\\.")[0];
