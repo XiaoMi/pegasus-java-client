@@ -1859,23 +1859,15 @@ public class PegasusTable implements PegasusTableInterface {
 
     String message = "";
     String header =
-        "[metaServer="
-            + metaList
-            + ",table="
-            + table.getTableName()
-            + ",operation="
-            + op.name()
-            + ",request="
-            + request.toString()
-            + ",replicaServer="
-            + replicaServer
-            + ",gpid=("
-            + gPid.toString()
-            + ")"
-            + ",timeout="
-            + timeout
-            + "ms"
-            + "]";
+        String.format(
+            "[metaServer=%s,table=%s,operation=%s,request=%s,replicaServer=%s,gpid=(%s),timeout=%dms]",
+            metaList,
+            table.getTableName(),
+            op.name(),
+            request.toString(),
+            replicaServer,
+            gPid.toString(),
+            timeout);
     switch (op.rpc_error.errno) {
       case ERR_SESSION_RESET:
         message = " Disconnected from the replica-server due to internal error!";
@@ -1929,14 +1921,9 @@ public class PegasusTable implements PegasusTableInterface {
 
     @Override
     public String toString() {
-      return "Request{"
-          + "hashKey(head 32)="
-          + getSubstring(hashKey)
-          + ", sortKey(head 32)="
-          + getSubstring(sortKey)
-          + ", valueCount="
-          + valueCount
-          + '}';
+      return String.format(
+          "[hashKey=\"%s\", sortKey=\"%s\", valueCount=%d]",
+          getSubstring(hashKey), getSubstring(sortKey), valueCount);
     }
   }
 }
