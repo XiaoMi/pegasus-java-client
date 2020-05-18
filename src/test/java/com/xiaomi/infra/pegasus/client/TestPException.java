@@ -22,17 +22,14 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestPException {
-  String metaList = "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
-  Request request = new Request("hashKey".getBytes(), "sortKey".getBytes());
+  private String metaList = "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
+  private Request request = new Request("hashKey".getBytes(), "sortKey".getBytes());
 
   @Test
   public void testThreadInterrupted() throws Exception {
-    PException ex =
-        PException.threadInterrupted(metaList, "test", request, new InterruptedException("intxxx"));
+    PException ex = PException.threadInterrupted("test", new InterruptedException("intxxx"));
     String exceptionInfo =
-        String.format(
-            "{version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [metaServer=%s, table=test, request=%s] Thread was interrupted: intxxx",
-            metaList, request.toString());
+        "{version}: com.xiaomi.infra.pegasus.rpc.ReplicationException: ERR_THREAD_INTERRUPTED: [table=test] Thread was interrupted: intxxx";
     Assert.assertEquals(exceptionInfo, ex.getMessage());
   }
 

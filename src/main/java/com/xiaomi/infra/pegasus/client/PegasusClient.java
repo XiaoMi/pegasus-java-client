@@ -100,7 +100,7 @@ public class PegasusClient implements PegasusClientInterface {
     return enableWriteLimit;
   }
 
-  public String getMetaList() {
+  String getMetaList() {
     return Arrays.toString(metaList);
   }
 

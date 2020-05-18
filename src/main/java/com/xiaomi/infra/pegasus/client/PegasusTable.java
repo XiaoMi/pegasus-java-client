@@ -920,8 +920,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncExist(hashKey, sortKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -936,7 +935,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncSortKeyCount(hashKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(metaList, table.getTableName(), new Request(hashKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(metaList, table.getTableName(), new Request(hashKey), timeout, e);
     } catch (ExecutionException e) {
@@ -950,8 +949,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncGet(hashKey, sortKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1032,8 +1030,7 @@ public class PegasusTable implements PegasusTableInterface {
       return asyncMultiGet(hashKey, sortKeys, maxFetchCount, maxFetchSize, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1050,8 +1047,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncMultiGet(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1076,8 +1072,7 @@ public class PegasusTable implements PegasusTableInterface {
               hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, maxFetchCount), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, maxFetchCount), timeout, e);
@@ -1099,7 +1094,7 @@ public class PegasusTable implements PegasusTableInterface {
       return asyncMultiGet(hashKey, startSortKey, stopSortKey, options, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(metaList, table.getTableName(), new Request(hashKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(metaList, table.getTableName(), new Request(hashKey), timeout, e);
     } catch (ExecutionException e) {
@@ -1182,8 +1177,7 @@ public class PegasusTable implements PegasusTableInterface {
       return asyncMultiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, maxFetchCount), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, maxFetchCount), timeout, e);
@@ -1198,7 +1192,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncMultiGetSortKeys(hashKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(metaList, table.getTableName(), new Request(hashKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(metaList, table.getTableName(), new Request(hashKey), timeout, e);
     } catch (ExecutionException e) {
@@ -1213,8 +1207,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncSet(hashKey, sortKey, value, ttlSeconds, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1229,8 +1222,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncSet(hashKey, sortKey, value, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1292,8 +1284,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncMultiSet(hashKey, values, ttlSeconds, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1310,8 +1301,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncMultiSet(hashKey, values, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1386,8 +1376,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncDel(hashKey, sortKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1453,8 +1442,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1610,8 +1598,7 @@ public class PegasusTable implements PegasusTableInterface {
       return asyncIncr(hashKey, sortKey, increment, ttlSeconds, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1626,8 +1613,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncIncr(hashKey, sortKey, increment, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1660,8 +1646,7 @@ public class PegasusTable implements PegasusTableInterface {
               timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, setSortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, setSortKey), timeout, e);
@@ -1687,8 +1672,7 @@ public class PegasusTable implements PegasusTableInterface {
               hashKey, checkSortKey, checkType, checkOperand, mutations, options, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, count), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, count), timeout, e);
@@ -1712,8 +1696,7 @@ public class PegasusTable implements PegasusTableInterface {
               hashKey, sortKey, expectedValue, desiredValue, ttlSeconds, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1728,8 +1711,7 @@ public class PegasusTable implements PegasusTableInterface {
     try {
       return asyncTTL(hashKey, sortKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      throw PException.threadInterrupted(
-          metaList, table.getTableName(), new Request(hashKey, sortKey), e);
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey, sortKey), timeout, e);
@@ -1895,23 +1877,23 @@ public class PegasusTable implements PegasusTableInterface {
     promise.setFailure(new PException("Exceed write limit threshold:" + message));
   }
 
-  public static class Request {
-    byte[] hashKey = "".getBytes();
-    byte[] sortKey = "".getBytes();
-    int valueCount = 1;
+  static class Request {
+    byte[] hashKey = null;
+    byte[] sortKey = null;
+    int sortKeyCount = 0;
 
-    public Request(byte[] hashKey) {
+    Request(byte[] hashKey) {
       this.hashKey = hashKey;
     }
 
-    public Request(byte[] hashKey, byte[] sortKey) {
+    Request(byte[] hashKey, byte[] sortKey) {
       this.hashKey = hashKey;
       this.sortKey = sortKey;
     }
 
-    public Request(byte[] hashKey, int valueCount) {
+    Request(byte[] hashKey, int sortKeyCount) {
       this.hashKey = hashKey;
-      this.valueCount = valueCount;
+      this.sortKeyCount = sortKeyCount;
     }
 
     private String getSubstring(byte[] key) {
@@ -1921,9 +1903,18 @@ public class PegasusTable implements PegasusTableInterface {
 
     @Override
     public String toString() {
-      return String.format(
-          "[hashKey=\"%s\",sortKey=\"%s\",valueCount=%d]",
-          getSubstring(hashKey), getSubstring(sortKey), valueCount);
+      if (sortKey != null) {
+        return String.format(
+            "[hashKey[:32]=\"%s\",sortKey[:32]=\"%s\"]",
+            getSubstring(hashKey), getSubstring(sortKey));
+      }
+
+      if (sortKeyCount > 0) {
+        return String.format(
+            "[hashKey[:32]=\"%s\",sortKeyCount=%d]", getSubstring(hashKey), sortKeyCount);
+      }
+
+      return String.format("[hashKey[:32]=\"%s\"]", getSubstring(hashKey));
     }
   }
 }
