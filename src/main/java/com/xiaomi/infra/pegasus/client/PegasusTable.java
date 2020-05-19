@@ -1280,7 +1280,7 @@ public class PegasusTable implements PegasusTableInterface {
       byte[] hashKey, List<Pair<byte[], byte[]>> values, int ttlSeconds, int timeout)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    int count = values == null ? 1 : values.size();
+    int count = values == null ? 0 : values.size();
     try {
       asyncMultiSet(hashKey, values, ttlSeconds, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
@@ -1297,7 +1297,7 @@ public class PegasusTable implements PegasusTableInterface {
   public void multiSet(byte[] hashKey, List<Pair<byte[], byte[]>> values, int timeout)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    int count = values == null ? 1 : values.size();
+    int count = values == null ? 0 : values.size();
     try {
       asyncMultiSet(hashKey, values, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
