@@ -1025,7 +1025,7 @@ public class PegasusTable implements PegasusTableInterface {
       byte[] hashKey, List<byte[]> sortKeys, int maxFetchCount, int maxFetchSize, int timeout)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    int count = sortKeys == null ? 1 : sortKeys.size();
+    int count = sortKeys == null ? 0 : sortKeys.size();
     try {
       return asyncMultiGet(hashKey, sortKeys, maxFetchCount, maxFetchSize, timeout)
           .get(timeout, TimeUnit.MILLISECONDS);
