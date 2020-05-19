@@ -1438,7 +1438,7 @@ public class PegasusTable implements PegasusTableInterface {
   @Override
   public void multiDel(byte[] hashKey, List<byte[]> sortKeys, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    int count = sortKeys == null ? 1 : sortKeys.size();
+    int count = sortKeys == null ? 0 : sortKeys.size();
     try {
       asyncMultiDel(hashKey, sortKeys, timeout).get(timeout, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
