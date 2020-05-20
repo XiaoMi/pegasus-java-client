@@ -2490,7 +2490,6 @@ public class TestBasic {
     DelRangeOptions delRangeOptions2 = new DelRangeOptions();
 
     // test hashKey can't be null or ""
-
     try {
       client.delRange(
           tableName, "delRange".getBytes(), "k1".getBytes(), "k2".getBytes(), delRangeOptions2);
