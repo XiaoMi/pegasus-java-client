@@ -1469,7 +1469,7 @@ public class PegasusTable implements PegasusTableInterface {
     scanOptions.sortKeyFilterType = options.sortKeyFilterType;
     scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
 
-    options.nextSortKey = new String(startSortKey);
+    options.nextSortKey = startSortKey;
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
     lastCheckTime = System.currentTimeMillis();
@@ -1494,7 +1494,7 @@ public class PegasusTable implements PegasusTableInterface {
       while ((pairs = pegasusScanner.next()) != null) {
         sortKeys.add(pairs.getKey().getValue());
         if (sortKeys.size() == maxBatchDelCount) {
-          options.nextSortKey = new String(sortKeys.get(0));
+          options.nextSortKey = sortKeys.get(0);
           asyncMultiDel(hashKey, sortKeys, remainingTime).get(remainingTime, TimeUnit.MILLISECONDS);
           lastCheckTime = System.currentTimeMillis();
           remainingTime = (int) (deadlineTime - lastCheckTime);
@@ -1514,7 +1514,7 @@ public class PegasusTable implements PegasusTableInterface {
           "delRange of hashKey:"
               + new String(hashKey)
               + " from sortKey:"
-              + options.nextSortKey
+              + new String(options.nextSortKey)
               + "[index:"
               + count * maxBatchDelCount
               + "]"
