@@ -2364,6 +2364,8 @@ public class TestBasic {
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
     DelRangeOptions delRangeOptions = new DelRangeOptions();
 
+    String tableName = "temp";
+
     // multi set values
     List<Pair<byte[], byte[]>> values = new ArrayList<Pair<byte[], byte[]>>();
     int count = 0;
@@ -2372,7 +2374,7 @@ public class TestBasic {
         values.add(Pair.of(("k_" + count).getBytes(), ("v_" + count).getBytes()));
         count++;
       }
-      client.multiSet("temp", "delRange".getBytes(), values);
+      client.multiSet(tableName, "delRange".getBytes(), values);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2381,7 +2383,7 @@ public class TestBasic {
     // delRange with default delRangeOptions
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "k_0".getBytes(), "k_90".getBytes(), delRangeOptions);
+          tableName, "delRange".getBytes(), "k_0".getBytes(), "k_90".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2403,7 +2405,7 @@ public class TestBasic {
     List<Pair<byte[], byte[]>> remainingValue = new ArrayList<Pair<byte[], byte[]>>();
 
     try {
-      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+      client.multiGet(tableName, "delRange".getBytes(), remainingSortKey, remainingValue);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2430,7 +2432,7 @@ public class TestBasic {
     delRangeOptions.sortKeyFilterPattern = "k_93".getBytes();
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
+          tableName, "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2439,7 +2441,7 @@ public class TestBasic {
     remainingValue.clear();
     valueStr.clear();
     try {
-      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+      client.multiGet(tableName, "delRange".getBytes(), remainingSortKey, remainingValue);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2458,7 +2460,7 @@ public class TestBasic {
     delRangeOptions.sortKeyFilterPattern = null;
     try {
       client.delRange(
-          "temp", "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
+          tableName, "delRange".getBytes(), "k_90".getBytes(), "k_95".getBytes(), delRangeOptions);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2467,7 +2469,7 @@ public class TestBasic {
     remainingValue.clear();
     valueStr.clear();
     try {
-      client.multiGet("temp", "delRange".getBytes(), remainingSortKey, remainingValue);
+      client.multiGet(tableName, "delRange".getBytes(), remainingSortKey, remainingValue);
     } catch (Exception e) {
       e.printStackTrace();
       Assert.assertTrue(false);
@@ -2482,6 +2484,42 @@ public class TestBasic {
     Assert.assertTrue(valueStr.contains("v_97"));
     Assert.assertTrue(valueStr.contains("v_98"));
     Assert.assertTrue(valueStr.contains("v_99"));
+
+    remainingValue.clear();
+    valueStr.clear();
+    DelRangeOptions delRangeOptions2 = new DelRangeOptions();
+
+    // test hashKey can't be null or ""
+
+    try {
+      client.delRange(
+          tableName, "delRange".getBytes(), "k1".getBytes(), "k2".getBytes(), delRangeOptions2);
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("Invalid parameter: hash key can't be empty"));
+    }
+
+    try {
+      client.delRange(tableName, "".getBytes(), "k1".getBytes(), "k2".getBytes(), delRangeOptions2);
+    } catch (Exception e) {
+      Assert.assertTrue(e.getMessage().contains("Invalid parameter: hash key can't be empty"));
+    }
+
+    // test sortKey can be null, means delete from first to last
+    try {
+      client.multiSet(tableName, "delRange".getBytes(), values);
+      client.delRange(tableName, "delRange".getBytes(), null, null, delRangeOptions2);
+      client.multiGet(tableName, "delRange".getBytes(), remainingSortKey, remainingValue);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Assert.assertTrue(false);
+    }
+
+    for (Pair<byte[], byte[]> pair : remainingValue) {
+      valueStr.add(new String(pair.getValue()));
+    }
+
+    Assert.assertNull(delRangeOptions.nextSortKey);
+    Assert.assertEquals(valueStr.size(), 0);
   }
 
   @Test
