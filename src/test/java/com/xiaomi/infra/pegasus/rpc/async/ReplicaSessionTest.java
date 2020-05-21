@@ -12,11 +12,9 @@ import com.xiaomi.infra.pegasus.client.PegasusClient;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_get_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_put_operator;
+import com.xiaomi.infra.pegasus.rpc.ClusterOptions;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession.ConnState;
-import com.xiaomi.infra.pegasus.thrift.TException;
-import com.xiaomi.infra.pegasus.thrift.protocol.TMessage;
-import com.xiaomi.infra.pegasus.thrift.protocol.TProtocol;
 import com.xiaomi.infra.pegasus.tools.Toollet;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import io.netty.channel.EventLoopGroup;
@@ -26,6 +24,9 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TProtocol;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,7 +41,7 @@ public class ReplicaSessionTest {
 
   @Before
   public void before() throws Exception {
-    manager = new ClusterManager(1000, 1, false, null, 60, metaList);
+    manager = new ClusterManager(ClusterOptions.forTest(metaList));
   }
 
   @After
@@ -178,9 +179,8 @@ public class ReplicaSessionTest {
       // should be called on ThriftFrameDecoder#decode
       @Override
       public void recv_data(TProtocol iprot) throws TException {
-        throw new com.xiaomi.infra.pegasus.thrift.TApplicationException(
-            com.xiaomi.infra.pegasus.thrift.TApplicationException.MISSING_RESULT,
-            "get failed: unknown result");
+        throw new org.apache.thrift.TApplicationException(
+            org.apache.thrift.TApplicationException.MISSING_RESULT, "get failed: unknown result");
       }
     }
 

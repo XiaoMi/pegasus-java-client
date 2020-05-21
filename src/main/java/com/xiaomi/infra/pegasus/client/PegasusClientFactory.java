@@ -54,6 +54,9 @@ public class PegasusClientFactory {
     pegasusConfig.setProperty("perf_counter_tags", String.valueOf(options.isEnablePerfCounter()));
     pegasusConfig.setProperty(
         "push_counter_interval_secs", String.valueOf(options.getFalconPushInterval().getSeconds()));
+    pegasusConfig.setProperty("enable_write_limit", String.valueOf(options.isWriteLimitEnabled()));
+    pegasusConfig.setProperty(
+        "meta_query_timeout", String.valueOf(options.getMetaQueryTimeout().toMillis()));
     return new PegasusClient(pegasusConfig);
   }
 

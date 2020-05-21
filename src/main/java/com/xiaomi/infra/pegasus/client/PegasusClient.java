@@ -3,12 +3,14 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
-import com.xiaomi.infra.pegasus.rpc.Cluster;
-import com.xiaomi.infra.pegasus.rpc.KeyHasher;
+import com.xiaomi.infra.pegasus.rpc.*;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -23,9 +25,14 @@ import org.slf4j.LoggerFactory;
 public class PegasusClient implements PegasusClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
 
+  public static final String PEGASUS_ENABLE_WRITE_LIMIT = "enable_write_limit";
+  public static final String PEGASUS_ENABLE_WRITE_LIMIT_DEF = "true";
+
+  private boolean enableWriteLimit;
   private final Properties config;
   private final ConcurrentHashMap<String, PegasusTable> tableMap;
   private final Object tableMapLock;
+  private final String[] metaList;
   private Cluster cluster;
 
   private static class PegasusHasher implements KeyHasher {
@@ -52,9 +59,9 @@ public class PegasusClient implements PegasusClientInterface {
         table = tableMap.get(tableName);
         if (table == null) {
           try {
-            table =
-                new PegasusTable(
-                    this, cluster.openTable(tableName, new PegasusHasher(), backupRequestDelayMs));
+            TableOptions options = new TableOptions(new PegasusHasher(), backupRequestDelayMs);
+            Table internalTable = cluster.openTable(tableName, options);
+            table = new PegasusTable(this, internalTable);
           } catch (Throwable e) {
             throw new PException(e);
           }
@@ -67,13 +74,7 @@ public class PegasusClient implements PegasusClientInterface {
 
   // pegasus client configuration keys
   public static final String[] PEGASUS_CLIENT_CONFIG_KEYS =
-      new String[] {
-        Cluster.PEGASUS_META_SERVERS_KEY,
-        Cluster.PEGASUS_OPERATION_TIMEOUT_KEY,
-        Cluster.PEGASUS_ASYNC_WORKERS_KEY,
-        Cluster.PEGASUS_ENABLE_PERF_COUNTER_KEY,
-        Cluster.PEGASUS_PERF_COUNTER_TAGS_KEY
-      };
+      ArrayUtils.add(ClusterOptions.allKeys(), PEGASUS_ENABLE_WRITE_LIMIT);
 
   // configPath could be:
   // - zk path: zk://host1:port1,host2:port2,host3:port3/path/to/config
@@ -88,7 +89,19 @@ public class PegasusClient implements PegasusClientInterface {
     this.cluster = Cluster.createCluster(config);
     this.tableMap = new ConcurrentHashMap<String, PegasusTable>();
     this.tableMapLock = new Object();
+    this.metaList = cluster.getMetaList();
+    this.enableWriteLimit =
+        Boolean.parseBoolean(
+            config.getProperty(PEGASUS_ENABLE_WRITE_LIMIT, PEGASUS_ENABLE_WRITE_LIMIT_DEF));
     LOGGER.info(getConfigurationString());
+  }
+
+  public boolean isWriteLimitEnabled() {
+    return enableWriteLimit;
+  }
+
+  String getMetaList() {
+    return Arrays.toString(metaList);
   }
 
   @Override
@@ -542,8 +555,8 @@ public class PegasusClient implements PegasusClientInterface {
 
   @Override
   public List<PegasusScannerInterface> getUnorderedScanners(
-      String tableName, int maxSplitCount, ScanOptions options) throws PException {
+      String tableName, int maxScannerCount, ScanOptions options) throws PException {
     PegasusTable tb = getTable(tableName);
-    return tb.getUnorderedScanners(maxSplitCount, options);
+    return tb.getUnorderedScanners(maxScannerCount, options);
   }
 }
