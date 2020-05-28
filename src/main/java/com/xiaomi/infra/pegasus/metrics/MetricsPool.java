@@ -42,7 +42,6 @@ public final class MetricsPool {
     theMetric.tags = getTableTag(name);
     theMetric.value = meter.getMeanRate();
     oneMetricToJson(theMetric, output);
-    output.append(',');
   }
 
   public void genJsonsFromHistogram(String name, Histogram hist, StringBuilder output)
@@ -60,7 +59,6 @@ public final class MetricsPool {
     theMetric.tags = getTableTag(name);
     theMetric.value = s.get999thPercentile();
     oneMetricToJson(theMetric, output);
-    output.append(',');
   }
 
   public static void oneMetricToJson(FalconMetric metric, StringBuilder output)
@@ -84,10 +82,12 @@ public final class MetricsPool {
     SortedMap<String, Meter> meters = registry.getMeters();
     for (Map.Entry<String, Meter> entry : meters.entrySet()) {
       genJsonsFromMeter(entry.getKey(), entry.getValue(), builder);
+      builder.append(',');
     }
 
     for (Map.Entry<String, Histogram> entry : registry.getHistograms().entrySet()) {
       genJsonsFromHistogram(entry.getKey(), entry.getValue(), builder);
+      builder.append(',');
     }
     builder.deleteCharAt(builder.length() - 1);
     builder.append("]");
