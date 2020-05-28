@@ -101,7 +101,9 @@ public final class MetricsPool {
     }
     String[] result = counterName.split("@");
     if (result.length >= 2) {
-      return defaultTags.equals("") ? ("table=" + result[1]) : (defaultTags + ",table=" + result[1]);
+      return defaultTags.equals("")
+          ? ("table=" + result[1])
+          : (defaultTags + ",table=" + result[1]);
     }
     return defaultTags;
   }
