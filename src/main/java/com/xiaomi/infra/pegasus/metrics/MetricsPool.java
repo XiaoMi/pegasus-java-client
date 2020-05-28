@@ -16,14 +16,14 @@ import org.json.JSONObject;
 /** Created by weijiesun on 18-3-9. */
 public final class MetricsPool {
 
-  private final String defaultTag;
+  private final String defaultTags;
 
   public MetricsPool(String host, String tags, int reportStepSec) {
     theMetric = new FalconMetric();
     theMetric.endpoint = host;
     theMetric.step = reportStepSec;
     theMetric.tags = tags;
-    defaultTag = tags;
+    defaultTags = tags;
   }
 
   public void setMeter(String counterName, long count) {
@@ -96,14 +96,14 @@ public final class MetricsPool {
   }
 
   private String getTableTag(String counterName) {
-    if (defaultTag.contains("table=")) {
-      return defaultTag;
+    if (defaultTags.contains("table=")) {
+      return defaultTags;
     }
     String[] result = counterName.split("@");
     if (result.length >= 2) {
-      return defaultTag.equals("") ? ("table=" + result[1]) : (defaultTag + ",table=" + result[1]);
+      return defaultTags.equals("") ? ("table=" + result[1]) : (defaultTags + ",table=" + result[1]);
     }
-    return defaultTag;
+    return defaultTags;
   }
 
   static final class FalconMetric {
