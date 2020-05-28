@@ -89,7 +89,11 @@ public final class MetricsPool {
       genJsonsFromHistogram(entry.getKey(), entry.getValue(), builder);
       builder.append(',');
     }
-    builder.deleteCharAt(builder.length() - 1);
+
+    if (builder.charAt(builder.length() - 1) == ',') {
+      builder.deleteCharAt(builder.length() - 1);
+    }
+
     builder.append("]");
 
     return builder.toString();
