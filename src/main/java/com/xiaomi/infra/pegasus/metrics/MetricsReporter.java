@@ -141,22 +141,22 @@ public class MetricsReporter {
   }
 
   public void reportMetrics(final Channel channel) {
-    String json_metrics;
+    String result;
     try {
-      json_metrics = metrics.metricsToJson();
+      result = metrics.metricToCollector();
     } catch (JSONException ex) {
       logger.warn("encode metrics to json failed, skip current report, retry later: ", ex);
       scheduleNextReport(channel);
       return;
     }
 
-    logger.debug("generate metrics {} and try to report", json_metrics);
+    logger.debug("generate metrics {} and try to report", result);
     FullHttpRequest request =
         new DefaultFullHttpRequest(
             HttpVersion.HTTP_1_1,
             HttpMethod.POST,
             falconRequestPath,
-            Unpooled.copiedBuffer(json_metrics.getBytes()));
+            Unpooled.copiedBuffer(result.getBytes()));
     request.headers().add(HttpHeaders.Names.HOST, falconAgentSocket);
     request.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
     request.headers().add(HttpHeaders.Names.CONTENT_LENGTH, request.content().readableBytes());
