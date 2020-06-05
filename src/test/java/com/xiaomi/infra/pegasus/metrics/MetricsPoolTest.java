@@ -23,14 +23,14 @@ public class MetricsPoolTest {
   public void genJsonsFromMeter() throws Exception {
     String host = "simple-test-host.bj";
     String tags = "what=you,like=another";
-    MetricsPool pool = new MetricsPool(host, tags, 20);
+    Falcon falcon = new Falcon(host, tags, 20, r);
     Meter m = r.meter("TestName");
 
     m.mark(1);
     m.mark(1);
 
     StringBuilder builder = new StringBuilder();
-    pool.genJsonsFromMeter("TestName", m, builder);
+    falcon.genJsonsFromMeter("TestName", m, builder);
 
     JSONArray array = new JSONArray("[" + builder.toString() + "]");
     Assert.assertEquals(1, array.length());
@@ -54,12 +54,12 @@ public class MetricsPoolTest {
   public void genJsonFromHistogram() throws Exception {
     String host = "simple-test-host.bj";
     String tags = "what=you,like=another";
-    MetricsPool pool = new MetricsPool(host, tags, 20);
+    Falcon falcon = new Falcon(host, tags, 20, r);
     Histogram h = r.histogram("TestHist");
     for (int i = 0; i < 1000000; ++i) h.update((long) i);
 
     StringBuilder builder = new StringBuilder();
-    pool.genJsonsFromHistogram("TestHist", h, builder);
+    falcon.genJsonsFromHistogram("TestHist", h, builder);
 
     JSONArray array = new JSONArray("[" + builder.toString() + "]");
     Assert.assertEquals(2, array.length());
@@ -79,7 +79,7 @@ public class MetricsPoolTest {
 
   @Test
   public void oneMetricToJson() throws Exception {
-    MetricsPool.FalconMetric metric = new MetricsPool.FalconMetric();
+    Falcon.FalconMetric metric = new Falcon.FalconMetric();
     metric.endpoint = "1.2.3.4";
     metric.metric = "simple_metric";
     metric.timestamp = 12343455L;
@@ -89,7 +89,7 @@ public class MetricsPoolTest {
     metric.tags = "cluster=onebox,app=new";
 
     StringBuilder builder = new StringBuilder();
-    MetricsPool.oneMetricToJson(metric, builder);
+    Falcon.oneMetricToJson(metric, builder);
 
     JSONObject obj = new JSONObject(builder.toString());
     Assert.assertEquals(metric.endpoint, obj.getString("endpoint"));
@@ -102,7 +102,7 @@ public class MetricsPoolTest {
 
     builder.setLength(0);
     metric.tags = "";
-    MetricsPool.oneMetricToJson(metric, builder);
+    Falcon.oneMetricToJson(metric, builder);
     obj = new JSONObject(builder.toString());
     Assert.assertEquals(metric.endpoint, obj.getString("endpoint"));
     Assert.assertEquals(metric.metric, obj.getString("metric"));
@@ -117,7 +117,7 @@ public class MetricsPoolTest {
   public void metricsToJson() throws Exception {
     String host = "simple-test-host.bj";
     String tags = "what=you,like=another";
-    MetricsPool pool = new MetricsPool(host, tags, 20);
+    MetricsPool pool = new MetricsPool(host, tags, 20, "falcon");
 
     pool.setMeter("aaa@temp", 1);
     pool.setMeter("aaa", 2);
@@ -127,7 +127,7 @@ public class MetricsPoolTest {
       pool.setHistorgram("ccc@temp", i);
     }
 
-    JSONArray array = new JSONArray(pool.metricsToJson());
+    JSONArray array = new JSONArray(MetricsPool.collector.updateMetric());
     Assert.assertEquals(6, array.length());
     for (int i = 0; i < array.length(); ++i) {
       JSONObject j = array.getJSONObject(i);

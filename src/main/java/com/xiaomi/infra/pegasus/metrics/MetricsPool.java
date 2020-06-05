@@ -12,7 +12,7 @@ public final class MetricsPool {
 
   private final MetricRegistry registry = new MetricRegistry();
   public static MetricsReporter reporter;
-  private static PegasusCollector collector;
+  public static PegasusCollector collector;
 
   public MetricsPool(String host, String tags, int reportStepSec, String type) {
     metricType = type;
