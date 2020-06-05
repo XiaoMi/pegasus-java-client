@@ -12,20 +12,19 @@ import java.util.SortedMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Falcon implements PegasusCollector {
-
+public class FalconCollector {
   private FalconMetric falconMetric = new FalconMetric();
   private final MetricRegistry registry;
   public final String defaultTags;
 
-  public Falcon(String host, String tags, int reportStepSec, MetricRegistry registry) {
+  public FalconCollector(String host, String tags, int reportStepSec, MetricRegistry registry) {
     this.defaultTags = tags;
     this.registry = registry;
     falconMetric.endpoint = host;
     falconMetric.step = reportStepSec;
   }
 
-  public String updateMetric() {
+  public String metricsToJson() {
     falconMetric.timestamp = Tools.unixEpochMills() / 1000;
 
     StringBuilder builder = new StringBuilder();
@@ -54,8 +53,8 @@ public class Falcon implements PegasusCollector {
       throws JSONException {
     falconMetric.counterType = "GAUGE";
 
-    falconMetric.metric = name + ".cps-1sec";
-    falconMetric.tags = getTableTag(name, defaultTags, "@");
+    falconMetric.metric = name + "_cps_1sec";
+    falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = meter.getMeanRate();
     oneMetricToJson(falconMetric, output);
   }
@@ -65,14 +64,14 @@ public class Falcon implements PegasusCollector {
     falconMetric.counterType = "GAUGE";
     Snapshot s = hist.getSnapshot();
 
-    falconMetric.metric = name + ".p99";
-    falconMetric.tags = getTableTag(name, defaultTags, "@");
+    falconMetric.metric = name + "_p99";
+    falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = s.get99thPercentile();
     oneMetricToJson(falconMetric, output);
     output.append(',');
 
-    falconMetric.metric = name + ".p999";
-    falconMetric.tags = getTableTag(name, defaultTags, "@");
+    falconMetric.metric = name + "_p999";
+    falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = s.get999thPercentile();
     oneMetricToJson(falconMetric, output);
   }

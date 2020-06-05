@@ -8,31 +8,25 @@ import com.codahale.metrics.MetricRegistry;
 /** Created by weijiesun on 18-3-9. */
 public final class MetricsPool {
 
-  public final String metricType;
-
   private final MetricRegistry registry = new MetricRegistry();
-  public static MetricsReporter reporter;
-  public static PegasusCollector collector;
+  public static PegasusMonitor pegasusMonitor;
 
-  public MetricsPool(String host, String tags, int reportStepSec, String type) {
-    metricType = type;
-
+  public MetricsPool(String host, String tags, int reportStepSec, String metricType) {
     if (metricType.equals("falcon")) {
-      collector = new Falcon(host, tags, reportStepSec, registry);
-      reporter = new MetricsReporter(reportStepSec, collector);
-      reporter.start();
-    } else if (type.equals("prometheus")) {
-      collector = new Prometheus(tags, reportStepSec, registry);
-      ((Prometheus) collector).start();
+      pegasusMonitor =
+          new FalconReporter(
+              reportStepSec, new FalconCollector(host, tags, reportStepSec, registry));
+    } else if (metricType.equals("prometheus")) {
+      pegasusMonitor = new PrometheusCollector(tags, registry);
     }
   }
 
+  public void start() {
+    pegasusMonitor.start();
+  }
+
   public void stop() {
-    if (metricType.equals("falcon")) {
-      reporter.stop();
-    } else if (metricType.equals("prometheus")) {
-      ((Prometheus) collector).stop();
-    }
+    pegasusMonitor.stop();
   }
 
   public void setMeter(String counterName, long count) {
@@ -43,11 +37,11 @@ public final class MetricsPool {
     registry.histogram(counterName).update(value);
   }
 
-  public static String getTableTag(String counterName, String defaultTags, String regex) {
+  public static String getTableTag(String counterName, String defaultTags) {
     if (defaultTags.contains("table=")) {
       return defaultTags;
     }
-    String[] result = counterName.split(regex);
+    String[] result = counterName.split(":");
     if (result.length >= 2) {
       return defaultTags.equals("")
           ? ("table=" + result[1])

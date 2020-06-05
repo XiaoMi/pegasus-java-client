@@ -56,23 +56,23 @@ public abstract class client_operator {
         break;
     }
 
-    // pegasus.client.put.succ.qps
+    // pegasus_client_put_succ_qps
     return new StringBuilder()
-        .append("pegasus.client.")
+        .append("pegasus_client_")
         .append(name())
-        .append(".")
+        .append("_")
         .append(mark)
-        .append(".qps@")
+        .append("_qps:")
         .append(tableName)
         .toString();
   }
 
   public String getLatencyCounter() {
-    // pegasus.client.put.latency
+    // pegasus_client_put_latency
     return new StringBuilder()
-        .append("pegasus.client.")
+        .append("pegasus_client_")
         .append(name())
-        .append(".latency@")
+        .append("_latency:")
         .append(tableName)
         .toString();
   }

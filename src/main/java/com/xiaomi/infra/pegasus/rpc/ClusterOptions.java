@@ -115,6 +115,7 @@ public class ClusterOptions {
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
     String perfCounterType =
         config.getProperty(PEGASUS_PUSH_COUNTER_TYPE_KEY, PEGASUS_PUSH_COUNTER_TYPE_DEF);
+    assert ((perfCounterType.equals("falcon") || perfCounterType.equals("prometheus")));
     int metaQueryTimeout =
         Integer.parseInt(
             config.getProperty(PEGASUS_META_QUERY_TIMEOUT_KEY, PEGASUS_META_QUERY_TIMEOUT_DEF));

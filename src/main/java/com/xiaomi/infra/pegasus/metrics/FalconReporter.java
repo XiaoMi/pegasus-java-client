@@ -17,15 +17,15 @@ import org.json.JSONException;
 import org.slf4j.Logger;
 
 /** Created by weijiesun on 18-3-9. */
-public class MetricsReporter {
-  public MetricsReporter(int reportSecs, PegasusCollector collector) {
+public class FalconReporter implements PegasusMonitor {
+  public FalconReporter(int reportSecs, FalconCollector falconCollectorMetric) {
     falconAgentIP = "127.0.0.1";
     falconAgentPort = 1988;
     falconAgentSocket = falconAgentIP + ":" + falconAgentPort;
 
     reportIntervalSecs = reportSecs;
     falconRequestPath = "/v1/push";
-    pegasusCollector = collector;
+    falconCollector = falconCollectorMetric;
 
     boot = new Bootstrap();
     httpClientGroup = new NioEventLoopGroup(1);
@@ -51,36 +51,32 @@ public class MetricsReporter {
     reportTarget = null;
   }
 
+  @Override
   public void start() {
     reportStopped = false;
     tryConnect();
   }
 
+  @Override
   public void stop() {
     httpClientGroup.execute(
-        new Runnable() {
-          @Override
-          public void run() {
-            reportStopped = true;
-            if (actionLater != null) {
-              actionLater.cancel(false);
-            }
-            if (reportTarget != null) {
-              reportTarget
-                  .close()
-                  .addListener(
-                      new ChannelFutureListener() {
-                        @Override
-                        public void operationComplete(ChannelFuture channelFuture)
-                            throws Exception {
+        () -> {
+          reportStopped = true;
+          if (actionLater != null) {
+            actionLater.cancel(false);
+          }
+          if (reportTarget != null) {
+            reportTarget
+                .close()
+                .addListener(
+                    (ChannelFutureListener)
+                        channelFuture -> {
                           if (channelFuture.isSuccess()) {
                             logger.info("close channel to {} succeed", falconAgentSocket);
                           } else {
                             logger.warn("close channel to {} failed: ", channelFuture.cause());
                           }
-                        }
-                      });
-            }
+                        });
           }
         });
 
@@ -95,68 +91,52 @@ public class MetricsReporter {
   public void tryConnect() {
     boot.connect(falconAgentIP, falconAgentPort)
         .addListener(
-            new ChannelFutureListener() {
-              @Override
-              public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                if (channelFuture.isSuccess()) {
-                  reportTarget = channelFuture.channel();
-                  logger.info("create channel with {} succeed, wait it active", falconAgentSocket);
-                } else {
-                  logger.error(
-                      "create channel with {} failed, connect later: ",
-                      falconAgentSocket,
-                      channelFuture.cause());
-                  scheduleNextConnect();
-                }
-              }
-            });
+            (ChannelFutureListener)
+                channelFuture -> {
+                  if (channelFuture.isSuccess()) {
+                    reportTarget = channelFuture.channel();
+                    logger.info(
+                        "create channel with {} succeed, wait it active", falconAgentSocket);
+                  } else {
+                    logger.error(
+                        "create channel with {} failed, connect later: ",
+                        falconAgentSocket,
+                        channelFuture.cause());
+                    scheduleNextConnect();
+                  }
+                });
   }
 
   public void scheduleNextConnect() {
     if (reportStopped) return;
     actionLater =
-        httpClientGroup.schedule(
-            new Runnable() {
-              @Override
-              public void run() {
-                tryConnect();
-              }
-            },
-            (long) reportIntervalSecs,
-            TimeUnit.SECONDS);
+        httpClientGroup.schedule(this::tryConnect, (long) reportIntervalSecs, TimeUnit.SECONDS);
   }
 
   public void scheduleNextReport(final Channel channel) {
     if (reportStopped) return;
     actionLater =
         httpClientGroup.schedule(
-            new Runnable() {
-              @Override
-              public void run() {
-                reportMetrics(channel);
-              }
-            },
-            reportIntervalSecs,
-            TimeUnit.SECONDS);
+            () -> reportMetrics(channel), reportIntervalSecs, TimeUnit.SECONDS);
   }
 
   public void reportMetrics(final Channel channel) {
-    String result;
+    String json_metrics;
     try {
-      result = pegasusCollector.updateMetric();
+      json_metrics = falconCollector.metricsToJson();
     } catch (JSONException ex) {
       logger.warn("encode metrics to json failed, skip current report, retry later: ", ex);
       scheduleNextReport(channel);
       return;
     }
 
-    logger.debug("generate metrics {} and try to report", result);
+    logger.debug("generate metrics {} and try to report", json_metrics);
     FullHttpRequest request =
         new DefaultFullHttpRequest(
             HttpVersion.HTTP_1_1,
             HttpMethod.POST,
             falconRequestPath,
-            Unpooled.copiedBuffer(result.getBytes()));
+            Unpooled.copiedBuffer(json_metrics.getBytes()));
     request.headers().add(HttpHeaders.Names.HOST, falconAgentSocket);
     request.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
     request.headers().add(HttpHeaders.Names.CONTENT_LENGTH, request.content().readableBytes());
@@ -165,18 +145,16 @@ public class MetricsReporter {
     channel
         .writeAndFlush(request)
         .addListener(
-            new ChannelFutureListener() {
-              @Override
-              public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                if (!channelFuture.isSuccess()) {
-                  logger.warn(
-                      "report to {} failed, skip current report, retry later: ",
-                      channel.toString(),
-                      channelFuture.cause());
-                  channel.close();
-                }
-              }
-            });
+            (ChannelFutureListener)
+                channelFuture -> {
+                  if (!channelFuture.isSuccess()) {
+                    logger.warn(
+                        "report to {} failed, skip current report, retry later: ",
+                        channel.toString(),
+                        channelFuture.cause());
+                    channel.close();
+                  }
+                });
   }
 
   class HttpClientHandler extends SimpleChannelInboundHandler<HttpObject> {
@@ -226,7 +204,7 @@ public class MetricsReporter {
   private int reportIntervalSecs;
   private String falconRequestPath;
 
-  private PegasusCollector pegasusCollector;
+  public FalconCollector falconCollector;
 
   private Bootstrap boot;
   private EventLoopGroup httpClientGroup;
@@ -235,5 +213,5 @@ public class MetricsReporter {
   private boolean reportStopped;
   private Channel reportTarget;
 
-  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(MetricsReporter.class);
+  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(FalconReporter.class);
 }
