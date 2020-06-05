@@ -16,7 +16,8 @@ public final class MetricsManager {
     metrics.setHistorgram(counterName, value);
   }
 
-  public static final void initFromHost(String host, String tag, int reportIntervalSec) {
+  public static final void initFromHost(
+      String host, String tag, int reportIntervalSec, String perfCounterType) {
     synchronized (logger) {
       if (started) {
         logger.warn(
@@ -37,21 +38,21 @@ public final class MetricsManager {
       MetricsManager.host = host;
       MetricsManager.tag = tag;
       MetricsManager.reportIntervalSecs = reportIntervalSec;
-      metrics = new MetricsPool(host, tag, reportIntervalSec);
-      reporter = new MetricsReporter(reportIntervalSec, metrics);
-      reporter.start();
+      metrics = new MetricsPool(host, tag, reportIntervalSec, perfCounterType);
       started = true;
     }
   }
 
-  public static final void detectHostAndInit(String tag, int reportIntervalSec) {
-    initFromHost(Tools.getLocalHostAddress().getHostName(), tag, reportIntervalSec);
+  public static final void detectHostAndInit(
+      String tag, int reportIntervalSec, String perfCounterType) {
+    initFromHost(
+        Tools.getLocalHostAddress().getHostName(), tag, reportIntervalSec, perfCounterType);
   }
 
   public static final void finish() {
     synchronized (logger) {
       if (started) {
-        reporter.stop();
+        metrics.stop();
         started = false;
       }
     }
@@ -63,6 +64,6 @@ public final class MetricsManager {
   private static int reportIntervalSecs;
 
   private static MetricsPool metrics;
-  private static MetricsReporter reporter;
+
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(MetricsManager.class);
 }

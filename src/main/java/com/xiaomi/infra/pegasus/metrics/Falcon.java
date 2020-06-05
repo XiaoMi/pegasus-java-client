@@ -15,15 +15,17 @@ import org.json.JSONObject;
 public class Falcon implements PegasusCollector {
 
   private FalconMetric falconMetric = new FalconMetric();
+  private final MetricRegistry registry;
   public final String defaultTags;
 
-  public Falcon(String host, String tags, int reportStepSec) {
-    defaultTags = tags;
+  public Falcon(String host, String tags, int reportStepSec, MetricRegistry registry) {
+    this.defaultTags = tags;
+    this.registry = registry;
     falconMetric.endpoint = host;
     falconMetric.step = reportStepSec;
   }
 
-  public String addMetric(MetricRegistry registry) {
+  public String updateMetric() {
     falconMetric.timestamp = Tools.unixEpochMills() / 1000;
 
     StringBuilder builder = new StringBuilder();

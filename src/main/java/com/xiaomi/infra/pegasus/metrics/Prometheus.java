@@ -13,22 +13,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Prometheus extends Collector implements PegasusCollector {
+
+  private final ScheduledExecutorService collectorTask;
   private final String defaultTags;
+  private final MetricRegistry registry;
+  private int reportStepSec;
 
   private Map<String, MetricFamilySamples> metrics = new ConcurrentHashMap<>();
   private Map<String, Map<String, String>> tableLabels = new HashMap<>();
 
-  public Prometheus(String defaultTags) {
+  public Prometheus(String defaultTags, int reportStepSec, MetricRegistry registry) {
     this.defaultTags = defaultTags;
+    this.reportStepSec = reportStepSec;
+    this.registry = registry;
+    this.collectorTask = Executors.newScheduledThreadPool(1);
   }
 
   public List<MetricFamilySamples> collect() {
     return new ArrayList<>(metrics.values());
   }
 
-  public String addMetric(MetricRegistry registry) {
+  public String updateMetric() {
     for (Map.Entry<String, Meter> entry : registry.getMeters().entrySet()) {
       String QPSName = format(entry.getKey());
       updateQPSMetric(entry, QPSName);
@@ -78,6 +88,7 @@ public class Prometheus extends Collector implements PegasusCollector {
       return tableLabels.get(labels);
     }
 
+    // todo nullptr
     HashMap<String, String> labelMap = new HashMap<>();
     String[] labelsString = labels.split(",");
     for (String label : labelsString) {
@@ -89,6 +100,14 @@ public class Prometheus extends Collector implements PegasusCollector {
   }
 
   private String format(String name) {
-    return name.replaceAll("\\.", "-");
+    return name.replaceAll("\\.", "_").replaceAll("@", ":");
+  }
+
+  public void start() {
+    collectorTask.scheduleAtFixedRate(() -> updateMetric(), 0, 10, TimeUnit.SECONDS);
+  }
+
+  public void stop() {
+    collectorTask.shutdown();
   }
 }

@@ -18,14 +18,14 @@ import org.slf4j.Logger;
 
 /** Created by weijiesun on 18-3-9. */
 public class MetricsReporter {
-  public MetricsReporter(int reportSecs, MetricsPool pool) {
+  public MetricsReporter(int reportSecs, PegasusCollector collector) {
     falconAgentIP = "127.0.0.1";
     falconAgentPort = 1988;
-    falconAgentSocket = falconAgentIP + ":" + String.valueOf(falconAgentPort);
+    falconAgentSocket = falconAgentIP + ":" + falconAgentPort;
 
     reportIntervalSecs = reportSecs;
     falconRequestPath = "/v1/push";
-    metrics = pool;
+    pegasusCollector = collector;
 
     boot = new Bootstrap();
     httpClientGroup = new NioEventLoopGroup(1);
@@ -143,7 +143,7 @@ public class MetricsReporter {
   public void reportMetrics(final Channel channel) {
     String result;
     try {
-      result = metrics.metricToCollector();
+      result = pegasusCollector.updateMetric();
     } catch (JSONException ex) {
       logger.warn("encode metrics to json failed, skip current report, retry later: ", ex);
       scheduleNextReport(channel);
@@ -226,7 +226,7 @@ public class MetricsReporter {
   private int reportIntervalSecs;
   private String falconRequestPath;
 
-  private MetricsPool metrics;
+  private PegasusCollector pegasusCollector;
 
   private Bootstrap boot;
   private EventLoopGroup httpClientGroup;

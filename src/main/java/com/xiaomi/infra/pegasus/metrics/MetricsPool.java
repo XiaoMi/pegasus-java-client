@@ -10,14 +10,29 @@ public final class MetricsPool {
 
   public final String metricType;
 
+  private final MetricRegistry registry = new MetricRegistry();
+  public static MetricsReporter reporter;
+  private static PegasusCollector collector;
+
   public MetricsPool(String host, String tags, int reportStepSec, String type) {
     metricType = type;
-    collector = new Falcon(host, tags, reportStepSec);
+
+    if (metricType.equals("falcon")) {
+      collector = new Falcon(host, tags, reportStepSec, registry);
+      reporter = new MetricsReporter(reportStepSec, collector);
+      reporter.start();
+    } else if (type.equals("prometheus")) {
+      collector = new Prometheus(tags, reportStepSec, registry);
+      ((Prometheus) collector).start();
+    }
   }
 
-  public MetricsPool(String tags, String type) {
-    metricType = type;
-    collector = new Prometheus(tags);
+  public void stop() {
+    if (metricType.equals("falcon")) {
+      reporter.stop();
+    } else if (metricType.equals("prometheus")) {
+      ((Prometheus) collector).stop();
+    }
   }
 
   public void setMeter(String counterName, long count) {
@@ -26,10 +41,6 @@ public final class MetricsPool {
 
   public void setHistorgram(String counterName, long value) {
     registry.histogram(counterName).update(value);
-  }
-
-  public String metricToCollector() {
-    return collector.addMetric(registry);
   }
 
   public static String getTableTag(String counterName, String defaultTags) {
@@ -44,7 +55,4 @@ public final class MetricsPool {
     }
     return defaultTags;
   }
-
-  private PegasusCollector collector;
-  private final MetricRegistry registry = new MetricRegistry();
 }

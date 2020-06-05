@@ -27,6 +27,9 @@ public class ClusterOptions {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF = "60";
 
+  public static final String PEGASUS_PUSH_COUNTER_TYPE_KEY = "push_counter_type";
+  public static final String PEGASUS_PUSH_COUNTER_TYPE_DEF = "falcon";
+
   public static final String PEGASUS_META_QUERY_TIMEOUT_KEY = "meta_query_timeout";
   public static final String PEGASUS_META_QUERY_TIMEOUT_DEF = "5000";
 
@@ -47,6 +50,7 @@ public class ClusterOptions {
   private final int asyncWorkers;
   private final boolean enablePerfCounter;
   private final String perfCounterTags;
+  private final String perfCounterType;
   private final int pushCounterIntervalSecs;
   private final int metaQueryTimeout;
 
@@ -78,6 +82,10 @@ public class ClusterOptions {
     return this.metaQueryTimeout;
   }
 
+  public String pushCounterType() {
+    return this.perfCounterType;
+  }
+
   public static ClusterOptions create(Properties config) {
     int operationTimeout =
         Integer.parseInt(
@@ -105,6 +113,8 @@ public class ClusterOptions {
         Integer.parseInt(
             config.getProperty(
                 PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY, PEGASUS_PUSH_COUNTER_INTERVAL_SECS_DEF));
+    String perfCounterType =
+        config.getProperty(PEGASUS_PUSH_COUNTER_TYPE_KEY, PEGASUS_PUSH_COUNTER_TYPE_DEF);
     int metaQueryTimeout =
         Integer.parseInt(
             config.getProperty(PEGASUS_META_QUERY_TIMEOUT_KEY, PEGASUS_META_QUERY_TIMEOUT_DEF));
@@ -115,12 +125,13 @@ public class ClusterOptions {
         asyncWorkers,
         enablePerfCounter,
         perfCounterTags,
+        perfCounterType,
         pushIntervalSecs,
         metaQueryTimeout);
   }
 
   public static ClusterOptions forTest(String[] metaList) {
-    return new ClusterOptions(1000, metaList, 1, false, null, 60, 1000);
+    return new ClusterOptions(1000, metaList, 1, false, null, "falcon", 60, 1000);
   }
 
   private ClusterOptions(
@@ -129,6 +140,7 @@ public class ClusterOptions {
       int asyncWorkers,
       boolean enablePerfCounter,
       String perfCounterTags,
+      String perfCounterType,
       int pushCounterIntervalSecs,
       int metaQueryTimeout) {
     this.operationTimeout = operationTimeout;
@@ -136,6 +148,7 @@ public class ClusterOptions {
     this.asyncWorkers = asyncWorkers;
     this.enablePerfCounter = enablePerfCounter;
     this.perfCounterTags = perfCounterTags;
+    this.perfCounterType = perfCounterType;
     this.pushCounterIntervalSecs = pushCounterIntervalSecs;
     this.metaQueryTimeout = metaQueryTimeout;
   }
