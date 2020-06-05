@@ -55,7 +55,7 @@ public class Falcon implements PegasusCollector {
     falconMetric.counterType = "GAUGE";
 
     falconMetric.metric = name + ".cps-1sec";
-    falconMetric.tags = getTableTag(name, defaultTags);
+    falconMetric.tags = getTableTag(name, defaultTags, "@");
     falconMetric.value = meter.getMeanRate();
     oneMetricToJson(falconMetric, output);
   }
@@ -66,13 +66,13 @@ public class Falcon implements PegasusCollector {
     Snapshot s = hist.getSnapshot();
 
     falconMetric.metric = name + ".p99";
-    falconMetric.tags = getTableTag(name, defaultTags);
+    falconMetric.tags = getTableTag(name, defaultTags, "@");
     falconMetric.value = s.get99thPercentile();
     oneMetricToJson(falconMetric, output);
     output.append(',');
 
     falconMetric.metric = name + ".p999";
-    falconMetric.tags = getTableTag(name, defaultTags);
+    falconMetric.tags = getTableTag(name, defaultTags, "@");
     falconMetric.value = s.get999thPercentile();
     oneMetricToJson(falconMetric, output);
   }

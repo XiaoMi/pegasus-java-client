@@ -43,11 +43,11 @@ public final class MetricsPool {
     registry.histogram(counterName).update(value);
   }
 
-  public static String getTableTag(String counterName, String defaultTags) {
+  public static String getTableTag(String counterName, String defaultTags, String regex) {
     if (defaultTags.contains("table=")) {
       return defaultTags;
     }
-    String[] result = counterName.split("@");
+    String[] result = counterName.split(regex);
     if (result.length >= 2) {
       return defaultTags.equals("")
           ? ("table=" + result[1])

@@ -8,6 +8,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Snapshot;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
+import io.prometheus.client.exporter.HTTPServer;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +56,7 @@ public class Prometheus extends Collector implements PegasusCollector {
   }
 
   private void updateQPSMetric(Map.Entry<String, Meter> meter, String name) {
-    Map<String, String> labels = getLabel(getTableTag(name, defaultTags));
+    Map<String, String> labels = getLabel(getTableTag(name, defaultTags, ":"));
     if (!metrics.containsKey(name)) {
       // assert labels != null;
       GaugeMetricFamily labeledGauge =
@@ -67,7 +69,7 @@ public class Prometheus extends Collector implements PegasusCollector {
   }
 
   private void updateLatencyMetric(Map.Entry<String, Histogram> meter, String name) {
-    Map<String, String> labels = getLabel(getTableTag(name, defaultTags));
+    Map<String, String> labels = getLabel(getTableTag(name, defaultTags, ":"));
     ArrayList<String> labelList = new ArrayList<>(labels.values());
     Snapshot snapshot = meter.getValue().getSnapshot();
     double value =
@@ -104,7 +106,14 @@ public class Prometheus extends Collector implements PegasusCollector {
   }
 
   public void start() {
-    collectorTask.scheduleAtFixedRate(() -> updateMetric(), 0, 10, TimeUnit.SECONDS);
+    try {
+      register();
+      new HTTPServer(9091);
+      collectorTask.scheduleAtFixedRate(this::updateMetric, 0, 10, TimeUnit.SECONDS);
+      System.out.println("XXXX");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public void stop() {

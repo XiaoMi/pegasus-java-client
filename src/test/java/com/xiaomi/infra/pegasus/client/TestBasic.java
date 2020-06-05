@@ -136,44 +136,53 @@ public class TestBasic {
 
     try {
       // set
-      client.set(
-          tableName, hashKey, "basic_test_sort_key_1".getBytes(), "basic_test_value_1".getBytes());
+      while (true) {
+        Thread.sleep(1000);
 
-      // check exist
-      boolean exist = client.exist(tableName, hashKey, "basic_test_sort_key_1".getBytes());
-      Assert.assertTrue(exist);
+        client.set(
+            tableName,
+            hashKey,
+            "basic_test_sort_key_1".getBytes(),
+            "basic_test_value_1".getBytes());
 
-      exist = client.exist(tableName, hashKey, "basic_test_sort_key_2".getBytes());
-      Assert.assertFalse(exist);
+        // check exist
+        boolean exist = client.exist(tableName, hashKey, "basic_test_sort_key_1".getBytes());
+        Assert.assertTrue(exist);
 
-      // check sortkey count
-      long sortKeyCount = client.sortKeyCount(tableName, hashKey);
-      Assert.assertEquals(1, sortKeyCount);
+        exist = client.exist(tableName, hashKey, "basic_test_sort_key_2".getBytes());
+        Assert.assertFalse(exist);
 
-      // get
-      byte[] value = client.get(tableName, hashKey, "basic_test_sort_key_1".getBytes());
-      Assert.assertArrayEquals("basic_test_value_1".getBytes(), value);
+        // check sortkey count
+        long sortKeyCount = client.sortKeyCount(tableName, hashKey);
+        Assert.assertEquals(1, sortKeyCount);
 
-      value = client.get(tableName, hashKey, "basic_test_sort_key_2".getBytes());
-      Assert.assertEquals(null, value);
+        // get
+        byte[] value = client.get(tableName, hashKey, "basic_test_sort_key_1".getBytes());
+        Assert.assertArrayEquals("basic_test_value_1".getBytes(), value);
 
-      // del
-      client.del(tableName, hashKey, "basic_test_sort_key_1".getBytes());
+        value = client.get(tableName, hashKey, "basic_test_sort_key_2".getBytes());
+        Assert.assertEquals(null, value);
 
-      // check exist
-      exist = client.exist(tableName, hashKey, "basic_test_sort_key_1".getBytes());
-      Assert.assertFalse(exist);
+        // del
+        client.del(tableName, hashKey, "basic_test_sort_key_1".getBytes());
 
-      // check sortkey count
-      sortKeyCount = client.sortKeyCount(tableName, hashKey);
-      Assert.assertEquals(0, sortKeyCount);
+        // check exist
+        exist = client.exist(tableName, hashKey, "basic_test_sort_key_1".getBytes());
+        Assert.assertFalse(exist);
 
-      // check deleted
-      value = client.get(tableName, hashKey, "basic_test_sort_key_1".getBytes());
-      Assert.assertEquals(null, value);
+        // check sortkey count
+        sortKeyCount = client.sortKeyCount(tableName, hashKey);
+        Assert.assertEquals(0, sortKeyCount);
+
+        // check deleted
+        value = client.get(tableName, hashKey, "basic_test_sort_key_1".getBytes());
+        Assert.assertEquals(null, value);
+      }
     } catch (PException e) {
       e.printStackTrace();
       Assert.assertTrue(false);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
 
     PegasusClientFactory.closeSingletonClient();
