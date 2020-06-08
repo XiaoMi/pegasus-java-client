@@ -40,7 +40,7 @@ public class MetricsPoolTest {
     Assert.assertEquals(1, array.length());
 
     String[] metrics = {
-      "TestName.cps-1sec", "TestName.cps-1min", "TestName.cps-5min", "TestName.cps-15min"
+      "TestName_cps_1sec", "TestName_cps_1min", "TestName_cps_5min", "TestName_cps_15min"
     };
 
     for (int i = 0; i < array.length(); ++i) {
@@ -68,7 +68,7 @@ public class MetricsPoolTest {
     JSONArray array = new JSONArray("[" + builder.toString() + "]");
     Assert.assertEquals(2, array.length());
 
-    String[] metrics = {"TestHist.p99", "TestHist.p999"};
+    String[] metrics = {"TestHist_p99", "TestHist_p999"};
 
     for (int i = 0; i < array.length(); ++i) {
       JSONObject j = array.getJSONObject(i);
@@ -121,14 +121,14 @@ public class MetricsPoolTest {
   public void metricsToJson() throws Exception {
     String host = "simple-test-host.bj";
     String tags = "what=you,like=another";
-    MetricsPool pool = new MetricsPool(host, tags, 20, "falconCollector");
+    MetricsPool pool = new MetricsPool(host, tags, 20, "falcon");
 
-    pool.setMeter("aaa@temp", 1);
+    pool.setMeter("aaa:temp", 1);
     pool.setMeter("aaa", 2);
 
     for (int i = 0; i < 10000; ++i) {
       pool.setHistorgram("ccc", i);
-      pool.setHistorgram("ccc@temp", i);
+      pool.setHistorgram("ccc:temp", i);
     }
 
     JSONArray array =
@@ -138,7 +138,7 @@ public class MetricsPoolTest {
     for (int i = 0; i < array.length(); ++i) {
       JSONObject j = array.getJSONObject(i);
 
-      if (j.getString("metric").contains("@")) {
+      if (j.getString("metric").contains(":")) {
         Assert.assertEquals(tags + ",table=temp", j.getString("tags"));
       } else {
         Assert.assertEquals(tags, j.getString("tags"));
