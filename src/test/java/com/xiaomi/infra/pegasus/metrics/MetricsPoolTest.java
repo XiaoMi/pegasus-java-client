@@ -6,11 +6,15 @@ package com.xiaomi.infra.pegasus.metrics;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import io.prometheus.client.Collector.MetricFamilySamples;
+import java.util.Arrays;
+import java.util.List;
 import junit.framework.Assert;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 /** Created by weijiesun on 18-3-9. */
 public class MetricsPoolTest {
@@ -143,6 +147,33 @@ public class MetricsPoolTest {
       Assert.assertEquals(20, j.getInt("step"));
       Assert.assertEquals(host, j.getString("endpoint"));
     }
+  }
+
+  @Test
+  public void testPrometheus() {
+
+    String tags = "what=you,like=another";
+    PrometheusCollector prometheusCollector = new PrometheusCollector(tags, r);
+
+    Meter m = r.meter("TestQPSName:temp");
+    for (int i = 0; i < 100; ++i) m.mark(1);
+
+    Histogram h = r.histogram("testLatency:temp");
+    for (int i = 0; i < 10000; ++i) h.update((long) i);
+
+    List<MetricFamilySamples> metricFamilySamples = prometheusCollector.collect();
+
+    Assertions.assertEquals(3, metricFamilySamples.size());
+
+    MetricFamilySamples QPSMetric = metricFamilySamples.get(0);
+    Assertions.assertEquals("TestQPSName", QPSMetric.name);
+    Assertions.assertArrayEquals(
+        QPSMetric.samples.get(0).labelNames.toArray(),
+        Arrays.asList("what", "like", "table").toArray());
+    Assertions.assertArrayEquals(
+        QPSMetric.samples.get(0).labelValues.toArray(),
+        Arrays.asList("you", "another", "temp").toArray());
+    Assertions.assertTrue(QPSMetric.samples.get(0).value != 0);
   }
 
   MetricRegistry r;
