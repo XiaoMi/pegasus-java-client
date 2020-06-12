@@ -41,12 +41,18 @@ public final class MetricsPool {
     if (defaultTags.contains("table=")) {
       return defaultTags;
     }
-    String[] result = counterName.split(":");
+    String[] result = counterName.split("@");
     if (result.length >= 2) {
       return defaultTags.equals("")
           ? ("table=" + result[1])
           : (defaultTags + ",table=" + result[1]);
     }
     return defaultTags;
+  }
+
+  public static String getMetricName(String name, String suffix) {
+    String[] result = name.split("@");
+    assert (result.length == 2);
+    return result[0] + suffix;
   }
 }

@@ -1,5 +1,6 @@
 package com.xiaomi.infra.pegasus.metrics;
 
+import static com.xiaomi.infra.pegasus.metrics.MetricsPool.getMetricName;
 import static com.xiaomi.infra.pegasus.metrics.MetricsPool.getTableTag;
 
 import com.codahale.metrics.Histogram;
@@ -52,8 +53,7 @@ public class FalconCollector {
   public void genJsonsFromMeter(String name, Meter meter, StringBuilder output)
       throws JSONException {
     falconMetric.counterType = "GAUGE";
-
-    falconMetric.metric = name + "_cps_1sec";
+    falconMetric.metric = getMetricName(name, "");
     falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = meter.getMeanRate();
     oneMetricToJson(falconMetric, output);
@@ -64,13 +64,13 @@ public class FalconCollector {
     falconMetric.counterType = "GAUGE";
     Snapshot s = hist.getSnapshot();
 
-    falconMetric.metric = name + "_p99";
+    falconMetric.metric = getMetricName(name, "_p99");
     falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = s.get99thPercentile();
     oneMetricToJson(falconMetric, output);
     output.append(',');
 
-    falconMetric.metric = name + "_p999";
+    falconMetric.metric = getMetricName(name, "_p999");
     falconMetric.tags = getTableTag(name, defaultTags);
     falconMetric.value = s.get999thPercentile();
     oneMetricToJson(falconMetric, output);

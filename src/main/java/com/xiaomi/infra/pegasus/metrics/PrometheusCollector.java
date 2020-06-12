@@ -1,5 +1,6 @@
 package com.xiaomi.infra.pegasus.metrics;
 
+import static com.xiaomi.infra.pegasus.metrics.MetricsPool.getMetricName;
 import static com.xiaomi.infra.pegasus.metrics.MetricsPool.getTableTag;
 
 import com.codahale.metrics.Histogram;
@@ -55,7 +56,7 @@ public class PrometheusCollector extends Collector implements PegasusMonitor {
     Map<String, String> labels = getLabel(getTableTag(name, defaultTags));
     GaugeMetricFamily labeledGauge =
         new GaugeMetricFamily(
-            formatQPSMetricName(name), "pegasus operation qps", new ArrayList<>(labels.keySet()));
+            getMetricName(name, ""), "pegasus operation qps", new ArrayList<>(labels.keySet()));
     labeledGauge.addMetric(new ArrayList<>(labels.values()), meter.getValue().getMeanRate());
     builder.add(labeledGauge);
   }
@@ -66,10 +67,9 @@ public class PrometheusCollector extends Collector implements PegasusMonitor {
       final ImmutableList.Builder<MetricFamilySamples> builder) {
     Map<String, String> labels = getLabel(getTableTag(name, defaultTags));
     Snapshot snapshot = meter.getValue().getSnapshot();
+    updateLatencyMetric(getMetricName(name, "_p99"), snapshot.get99thPercentile(), labels, builder);
     updateLatencyMetric(
-        formatLatencyMetricName(name, "p99"), snapshot.get99thPercentile(), labels, builder);
-    updateLatencyMetric(
-        formatLatencyMetricName(name, "p999"), snapshot.get999thPercentile(), labels, builder);
+        getMetricName(name, "_p999"), snapshot.get999thPercentile(), labels, builder);
   }
 
   private void updateLatencyMetric(
@@ -97,18 +97,6 @@ public class PrometheusCollector extends Collector implements PegasusMonitor {
     }
     tableLabels.put(labels, labelMap);
     return labelMap;
-  }
-
-  private String formatLatencyMetricName(String name, String percentage) {
-    String[] metricName = name.split(":");
-    assert (metricName.length == 2);
-    return metricName[0] + "_" + percentage;
-  }
-
-  private String formatQPSMetricName(String name) {
-    String[] metricName = name.split(":");
-    assert (metricName.length == 2);
-    return metricName[0];
   }
 
   @Override

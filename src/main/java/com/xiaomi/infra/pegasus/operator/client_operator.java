@@ -62,7 +62,7 @@ public abstract class client_operator {
         .append(name())
         .append("_")
         .append(mark)
-        .append("_qps:")
+        .append("_qps@")
         .append(tableName)
         .toString();
   }
@@ -72,7 +72,7 @@ public abstract class client_operator {
     return new StringBuilder()
         .append("pegasus_client_")
         .append(name())
-        .append("_latency:")
+        .append("_latency@")
         .append(tableName)
         .toString();
   }
