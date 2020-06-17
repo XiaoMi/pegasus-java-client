@@ -52,7 +52,9 @@ public final class MetricsPool {
 
   public static String getMetricName(String name, String suffix) {
     String[] result = name.split("@");
-    assert (result.length == 2);
-    return result[0] + suffix;
+    if (result.length >= 2) {
+      return result[0] + suffix;
+    }
+    return name + suffix;
   }
 }

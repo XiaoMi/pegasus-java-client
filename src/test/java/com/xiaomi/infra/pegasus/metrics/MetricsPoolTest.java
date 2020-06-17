@@ -39,15 +39,13 @@ public class MetricsPoolTest {
     JSONArray array = new JSONArray("[" + builder.toString() + "]");
     Assert.assertEquals(1, array.length());
 
-    String[] metrics = {
-      "TestName_cps_1sec", "TestName_cps_1min", "TestName_cps_5min", "TestName_cps_15min"
-    };
+    String metric = "TestName";
 
     for (int i = 0; i < array.length(); ++i) {
       JSONObject j = array.getJSONObject(i);
 
       Assert.assertEquals(tags, j.getString("tags"));
-      Assert.assertEquals(metrics[i], j.getString("metric"));
+      Assert.assertEquals(metric, j.getString("metric"));
       Assert.assertEquals("GAUGE", j.getString("counterType"));
       Assert.assertEquals(20, j.getInt("step"));
       Assert.assertEquals(host, j.getString("endpoint"));
@@ -123,22 +121,20 @@ public class MetricsPoolTest {
     String tags = "what=you,like=another";
     MetricsPool pool = new MetricsPool(host, tags, 20, "falcon");
 
-    pool.setMeter("aaa:temp", 1);
-    pool.setMeter("aaa", 2);
+    pool.setMeter("aaa@temp", 1);
 
     for (int i = 0; i < 10000; ++i) {
       pool.setHistorgram("ccc", i);
-      pool.setHistorgram("ccc:temp", i);
     }
 
     JSONArray array =
         new JSONArray(
             ((FalconReporter) MetricsPool.pegasusMonitor).falconCollector.metricsToJson());
-    Assert.assertEquals(6, array.length());
+    Assert.assertEquals(3, array.length());
     for (int i = 0; i < array.length(); ++i) {
       JSONObject j = array.getJSONObject(i);
 
-      if (j.getString("metric").contains(":")) {
+      if (j.getString("metric").contains("aaa")) {
         Assert.assertEquals(tags + ",table=temp", j.getString("tags"));
       } else {
         Assert.assertEquals(tags, j.getString("tags"));
@@ -155,10 +151,10 @@ public class MetricsPoolTest {
     String tags = "what=you,like=another";
     PrometheusCollector prometheusCollector = new PrometheusCollector(tags, r);
 
-    Meter m = r.meter("TestQPSName:temp");
+    Meter m = r.meter("TestQPSName@temp");
     for (int i = 0; i < 100; ++i) m.mark(1);
 
-    Histogram h = r.histogram("testLatency:temp");
+    Histogram h = r.histogram("testLatency@temp");
     for (int i = 0; i < 10000; ++i) h.update((long) i);
 
     List<MetricFamilySamples> metricFamilySamples = prometheusCollector.collect();
