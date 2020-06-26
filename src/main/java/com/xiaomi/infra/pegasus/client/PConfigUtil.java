@@ -61,11 +61,12 @@ public class PConfigUtil {
             new BufferedInputStream(
                 new FileInputStream(configPath.substring(PConfigUtil.LOCAL_FILE_PREFIX.length()))));
       } else if (PConfigUtil.isResource(configPath)) {
-        try (InputStream stream = PegasusClient.class.getResourceAsStream(
+        try (InputStream stream =
+            PegasusClient.class.getResourceAsStream(
                 configPath.substring(PConfigUtil.RESOURCE_PREFIX.length()))) {
-            config.load(stream);
-          } catch (NullPointerException e) {
-            throw new PException("config resource not found: " + configPath);
+          config.load(stream);
+        } catch (NullPointerException e) {
+          throw new PException("config resource not found: " + configPath);
         }
       } else {
         throw new PException(
