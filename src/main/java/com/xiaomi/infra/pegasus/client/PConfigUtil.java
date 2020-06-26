@@ -64,7 +64,7 @@ public class PConfigUtil {
         try (InputStream stream = PegasusClient.class.getResourceAsStream(
                 configPath.substring(PConfigUtil.RESOURCE_PREFIX.length()))) {
             config.load(stream);
-        } catch (NullPointerException e) {
+          } catch (NullPointerException e) {
             throw new PException("config resource not found: " + configPath);
         }
       } else {
