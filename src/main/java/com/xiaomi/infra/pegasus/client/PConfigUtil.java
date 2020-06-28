@@ -52,23 +52,19 @@ public class PConfigUtil {
   // load client configuration from configPath, which could be local file path or zk path or
   // resource path.
   public static Properties loadConfiguration(String configPath) throws PException {
+    InputStream stream = null;
     try {
       Properties config = new Properties();
       if (PConfigUtil.isZkPath(configPath)) {
-        config.load(new ByteArrayInputStream(PConfigUtil.loadConfigFromZK(configPath)));
+        stream = new ByteArrayInputStream(PConfigUtil.loadConfigFromZK(configPath));
       } else if (PConfigUtil.isLocalFile(configPath)) {
-        config.load(
+        stream =
             new BufferedInputStream(
-                new FileInputStream(configPath.substring(PConfigUtil.LOCAL_FILE_PREFIX.length()))));
+                new FileInputStream(configPath.substring(PConfigUtil.LOCAL_FILE_PREFIX.length())));
       } else if (PConfigUtil.isResource(configPath)) {
-        InputStream stream =
+        stream =
             PegasusClient.class.getResourceAsStream(
                 configPath.substring(PConfigUtil.RESOURCE_PREFIX.length()));
-        if (stream == null) {
-          throw new PException("config resource not found: " + configPath);
-        }
-        config.load(stream);
-        stream.close();
       } else {
         throw new PException(
             "configPath format error, "
@@ -78,6 +74,11 @@ public class PConfigUtil {
                 + "but actual configPath is "
                 + configPath);
       }
+      if (stream == null) {
+        throw new PException("config resource not found: " + configPath);
+      }
+      config.load(stream);
+      stream.close();
       return config;
     } catch (Throwable e) {
       if (e instanceof PException) {
