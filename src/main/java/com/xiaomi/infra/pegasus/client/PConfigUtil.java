@@ -3,10 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.serialize.BytesPushThroughSerializer;
@@ -89,8 +86,8 @@ public class PConfigUtil {
       if (stream != null) {
         try {
           stream.close();
-        } catch (Exception ignore) {
-          // ignore
+        } catch (Exception e) {
+          throw new PException(e);
         }
       }
     }
