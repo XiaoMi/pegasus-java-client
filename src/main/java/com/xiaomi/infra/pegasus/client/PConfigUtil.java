@@ -78,19 +78,13 @@ public class PConfigUtil {
         throw new PException("config resource not found: " + configPath);
       }
       config.load(stream);
+      stream.close();
       return config;
     } catch (Throwable e) {
       if (e instanceof PException) {
         throw (PException) e;
       } else {
         throw new PException(e);
-      }
-    } finally {
-      try {
-        if (stream != null) {
-          stream.close();
-        }
-      } catch (Exception ignore) {
       }
     }
   }
