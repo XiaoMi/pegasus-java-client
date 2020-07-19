@@ -1,7 +1,7 @@
 // Copyright (c) 2020, Xiaomi, Inc.  All rights reserved.
 // This source code is licensed under the Apache License Version 2.0, which
 // can be found in the LICENSE file in the root directory of this source tree.
-package com.xiaomi.infra.pegasus.example;
+package com.xiaomi.infra.pegasus.examples;
 
 import com.xiaomi.infra.pegasus.client.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,16 +26,26 @@ public class FullScanSimple {
         System.out.println("Program exit!");
     }
 
+    /**
+     *
+     * @param tableName
+     * @throws PException
+     * @throws IOException
+     */
     private static void searchHistoryOneYearAgo(String tableName) throws PException, IOException {
         PegasusClientInterface client = PegasusClientFactory.createClient(ClientOptions.builder().build());
 
+        // Set up the scanners.
         ScanOptions scanOptions = new ScanOptions();
         scanOptions.setBatchSize(20);
+        // Values can be optimized out during scanning to reduce the workload.
         scanOptions.setNoValue(true);
 
         List<PegasusScannerInterface> scans = client.getUnorderedScanners(tableName, 16, scanOptions);
+        System.out.printf("opened %d scanners\n", scans.size());
 
         long oneYearAgo = LocalDateTime.now().plusYears(-1).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+        // Iterates sequentially.
         for (PegasusScannerInterface scan : scans) {
             int cnt = 0;
             LocalDateTime start = LocalDateTime.now();
@@ -60,6 +70,12 @@ public class FullScanSimple {
         }
     }
 
+    /**
+     * byte to long
+     * @param b
+     * @return
+     * @throws IOException
+     */
     public static long byteToLong(byte[] b) throws IOException {
         ByteArrayInputStream bai = new ByteArrayInputStream(b);
         DataInputStream dis =new DataInputStream(bai);
