@@ -4,7 +4,7 @@
   <groupId>com.xiaomi.infra</groupId>
   <artifactId>pegasus-client</artifactId>
   <packaging>jar</packaging>
-  <version>v2.0</version>
+  <version>v2.0.0</version>
   <name>Pegasus Java Client</name>
   <dependencies>
     <dependency>
