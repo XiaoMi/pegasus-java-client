@@ -24,7 +24,7 @@ public class ExampleSample {
     for (int t = 0; t < 10; t++) {
       List<byte[]> sortKeys = new ArrayList<>();
       for (int i = 0; i < 10; i++) {
-        sortKeys.add(("sort" + i).getBytes());
+        sortKeys.add(("sort" + i).getBytes("UTF-8"));
       }
 
       for (int i = 0; i < 10; i++) {

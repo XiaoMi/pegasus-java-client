@@ -64,10 +64,9 @@ public class FullScanSample {
         byte[] hashKey = keys.getLeft();
         byte[] sortKey = keys.getRight();
         if (sortKey.length == 13) {
-          String str = new String(sortKey, "UTF-8");
-          long res = Long.valueOf(str);
+          long res = Long.parseLong(new String(sortKey, "UTF-8"));
           if (res < oneYearAgo) {
-            System.out.printf("hashKey = %s, sortKey = %d%n", new String(hashKey), res);
+            System.out.printf("hashKey = %s, sortKey = %d%n", new String(hashKey, "UTF-8"), res);
           }
         }
         cnt++;
