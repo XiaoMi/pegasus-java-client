@@ -17,7 +17,7 @@ public class FullScanSimple {
 
     public static void main(String[] args) {
         try {
-            searchHistoryOneYearAgo("user_history");
+            searchHistoryOneYearAgo("temp");
         } catch (PException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -37,14 +37,15 @@ public class FullScanSimple {
 
         // Set up the scanners.
         ScanOptions scanOptions = new ScanOptions();
-        scanOptions.setBatchSize(20);
+        scanOptions.batchSize = 20;
+        scanOptions.noValue = true;
         // Values can be optimized out during scanning to reduce the workload.
-        scanOptions.setNoValue(true);
 
         List<PegasusScannerInterface> scans = client.getUnorderedScanners(tableName, 16, scanOptions);
         System.out.printf("opened %d scanners\n", scans.size());
 
         long oneYearAgo = LocalDateTime.now().plusYears(-1).toInstant(ZoneOffset.of("+8")).toEpochMilli();
+        System.out.println("oneYearAgo = " + oneYearAgo);
         // Iterates sequentially.
         for (PegasusScannerInterface scan : scans) {
             int cnt = 0;
@@ -55,30 +56,21 @@ public class FullScanSimple {
                 Pair<byte[], byte[]> keys = pair.getLeft();
                 byte[] hashKey = keys.getLeft();
                 byte[] sortKey = keys.getRight();
-                if (sortKey.length == 8) {
-                    long res = byteToLong(sortKey);
+                System.out.println("sortKey = " + new String(sortKey));
+                if (sortKey.length == 13) {
+                    long res = Long.valueOf(new String(sortKey));
+                    System.out.println("res = " + res);
                     if (res < oneYearAgo) {
-                        System.out.printf("hashKey = %s, sortKey = %d\n", hashKey.toString(), sortKey);
+                        System.out.printf("hashKey = %s, sortKey = %d\n", new String(hashKey), res);
                     }
                 }
                 cnt++;
                 if (start.plusMinutes(1).isAfter(LocalDateTime.now())) {
-                    System.out.printf("scan 1 min, %d rows in total", cnt);
+                    System.out.printf("scan 1 min, %d rows in total\n", cnt);
                     start = LocalDateTime.now();
                 }
             }
         }
-    }
-
-    /**
-     * byte to long
-     * @param b
-     * @return
-     * @throws IOException
-     */
-    public static long byteToLong(byte[] b) throws IOException {
-        ByteArrayInputStream bai = new ByteArrayInputStream(b);
-        DataInputStream dis =new DataInputStream(bai);
-        return dis.readLong();
+        client.close();
     }
 }
