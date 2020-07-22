@@ -16,6 +16,7 @@ SRC_FILES=(src/main/java/com/xiaomi/infra/pegasus/client/*.java
            src/test/java/com/xiaomi/infra/pegasus/rpc/async/*.java
            src/test/java/com/xiaomi/infra/pegasus/tools/*.java
            src/test/java/com/xiaomi/infra/pegasus/base/*.java
+           src/test/java/com/xiaomi/infra/pegasus/example/*.java
            )
 
 if [ ! -f "${PROJECT_DIR}"/google-java-format-1.7-all-deps.jar ]; then
