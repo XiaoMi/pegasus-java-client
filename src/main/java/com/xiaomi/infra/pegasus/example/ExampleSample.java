@@ -4,7 +4,6 @@
 package com.xiaomi.infra.pegasus.example;
 
 import com.xiaomi.infra.pegasus.client.*;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;

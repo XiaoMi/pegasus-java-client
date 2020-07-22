@@ -4,22 +4,21 @@
 package com.xiaomi.infra.pegasus.example;
 
 import com.xiaomi.infra.pegasus.client.*;
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Suppose we have a pegasus table storing user browsing history, and the requirement is to search
  * for the users that browsed one year ago. Given a table called user_history, which contains data
  * in schema：
  *
- * <p>----hashkey---- -----sortkey----- ------value--------
- * userId(string) : timestamp(uint64)=> web-content(string)
- * So we need to fully scan the table, find the hashkey that contains sortkey
- * lower than []bytes(oneYearAgoTs). Full scan example as follow
+ * <p>---------------hashkey-------------- ------------sortkey----------- ----------value----------
+ * ==============userId(string) ==================> timestamp(uint64) ========> web-content(string)
+ * So we need to fully scan the table, find the hashkey that contains sortkey lower than
+ * []bytes(oneYearAgoTs). Full scan example as follow
  */
 public class FullScanSample {
 
