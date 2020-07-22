@@ -49,7 +49,7 @@ public class FullScanSample {
     scanOptions.noValue = true;
 
     List<PegasusScannerInterface> scans = client.getUnorderedScanners(tableName, 16, scanOptions);
-    System.out.printf("opened %d scanners\n", scans.size());
+    System.out.printf("opened %d scanners%n", scans.size());
 
     long oneYearAgo =
         LocalDateTime.now().plusYears(-1).toInstant(ZoneOffset.of("+8")).toEpochMilli();
@@ -64,14 +64,15 @@ public class FullScanSample {
         byte[] hashKey = keys.getLeft();
         byte[] sortKey = keys.getRight();
         if (sortKey.length == 13) {
-          long res = Long.valueOf(new String(sortKey));
+          String str = new String(sortKey, "UTF-8");
+          long res = Long.valueOf(str);
           if (res < oneYearAgo) {
-            System.out.printf("hashKey = %s, sortKey = %d\n", new String(hashKey), res);
+            System.out.printf("hashKey = %s, sortKey = %d%n", new String(hashKey), res);
           }
         }
         cnt++;
         if (start.plusMinutes(1).isAfter(LocalDateTime.now())) {
-          System.out.printf("scan 1 min, %d rows in total\n", cnt);
+          System.out.printf("scan 1 min, %d rows in total%n", cnt);
           start = LocalDateTime.now();
         }
       }
