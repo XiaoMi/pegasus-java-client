@@ -23,7 +23,7 @@ import java.time.Duration;
  *          .operationTimeout(Duration.ofMillis(1000))
  *          .asyncWorkers(4)
  *          .enablePerfCounter(false)
- *          .falconPerfCounterTags("")
+ *          .perfCounterTags("")
  *          .falconPushInterval(Duration.ofSeconds(10))
  *          .metaQueryTimeout(Duration.ofMillis(5000))
  *          .build();
@@ -36,7 +36,8 @@ public class ClientOptions {
   public static final Duration DEFAULT_OPERATION_TIMEOUT = Duration.ofMillis(1000);
   public static final int DEFAULT_ASYNC_WORKERS = 4;
   public static final boolean DEFAULT_ENABLE_PERF_COUNTER = true;
-  public static final String DEFAULT_FALCON_PERF_COUNTER_TAGS = "";
+  public static final String DEFAULT_PERF_COUNTER_TYPE = "falcon";
+  public static final String DEFAULT_PERF_COUNTER_TAGS = "";
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_ENABLE_WRITE_LIMIT = true;
   public static final Duration DEFAULT_META_QUERY_TIMEOUT = Duration.ofMillis(5000);
@@ -45,7 +46,8 @@ public class ClientOptions {
   private final Duration operationTimeout;
   private final int asyncWorkers;
   private final boolean enablePerfCounter;
-  private final String falconPerfCounterTags;
+  private final String perfCounterType;
+  private final String perfCounterTags;
   private final Duration falconPushInterval;
   private final boolean enableWriteLimit;
   private final Duration metaQueryTimeout;
@@ -55,7 +57,8 @@ public class ClientOptions {
     this.operationTimeout = builder.operationTimeout;
     this.asyncWorkers = builder.asyncWorkers;
     this.enablePerfCounter = builder.enablePerfCounter;
-    this.falconPerfCounterTags = builder.falconPerfCounterTags;
+    this.perfCounterType = builder.perfCounterType;
+    this.perfCounterTags = builder.perfCounterTags;
     this.falconPushInterval = builder.falconPushInterval;
     this.enableWriteLimit = builder.enableWriteLimit;
     this.metaQueryTimeout = builder.metaQueryTimeout;
@@ -66,7 +69,8 @@ public class ClientOptions {
     this.operationTimeout = original.getOperationTimeout();
     this.asyncWorkers = original.getAsyncWorkers();
     this.enablePerfCounter = original.isEnablePerfCounter();
-    this.falconPerfCounterTags = original.getFalconPerfCounterTags();
+    this.perfCounterType = original.perfCounterType;
+    this.perfCounterTags = original.getPerfCounterTags();
     this.falconPushInterval = original.getFalconPushInterval();
     this.enableWriteLimit = original.isWriteLimitEnabled();
     this.metaQueryTimeout = original.getMetaQueryTimeout();
@@ -111,7 +115,8 @@ public class ClientOptions {
           && this.operationTimeout.toMillis() == clientOptions.operationTimeout.toMillis()
           && this.asyncWorkers == clientOptions.asyncWorkers
           && this.enablePerfCounter == clientOptions.enablePerfCounter
-          && this.falconPerfCounterTags.equals(clientOptions.falconPerfCounterTags)
+          && this.perfCounterType.equals(clientOptions.perfCounterType)
+          && this.perfCounterTags.equals(clientOptions.perfCounterTags)
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
           && this.enableWriteLimit == clientOptions.enableWriteLimit
           && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis();
@@ -129,10 +134,12 @@ public class ClientOptions {
         + operationTimeout.toMillis()
         + ", asyncWorkers="
         + asyncWorkers
-        + ", enablePerfCounter="
+        + ", perfCounterType="
         + enablePerfCounter
-        + ", falconPerfCounterTags='"
-        + falconPerfCounterTags
+        + ", perfCounterTags='"
+        + perfCounterType
+        + ", enablePerfCounter="
+        + perfCounterTags
         + '\''
         + ", falconPushInterval(s)="
         + falconPushInterval.getSeconds()
@@ -149,7 +156,8 @@ public class ClientOptions {
     private Duration operationTimeout = DEFAULT_OPERATION_TIMEOUT;
     private int asyncWorkers = DEFAULT_ASYNC_WORKERS;
     private boolean enablePerfCounter = DEFAULT_ENABLE_PERF_COUNTER;
-    private String falconPerfCounterTags = DEFAULT_FALCON_PERF_COUNTER_TAGS;
+    private String perfCounterType = DEFAULT_PERF_COUNTER_TYPE;
+    private String perfCounterTags = DEFAULT_PERF_COUNTER_TAGS;
     private Duration falconPushInterval = DEFAULT_FALCON_PUSH_INTERVAL;
     private boolean enableWriteLimit = DEFAULT_ENABLE_WRITE_LIMIT;
     private Duration metaQueryTimeout = DEFAULT_META_QUERY_TIMEOUT;
@@ -194,8 +202,8 @@ public class ClientOptions {
 
     /**
      * Whether to enable performance statistics. If true, the client will periodically report
-     * metrics to local falcon agent (currently we only support falcon as monitoring system).
-     * Defaults to {@literal true}, see {@link #DEFAULT_ENABLE_PERF_COUNTER}.
+     * metrics to local falcon agent (if set falcon as monitoring system) or open prometheus
+     * collector http server. Defaults to {@literal true}, see {@link #DEFAULT_ENABLE_PERF_COUNTER}.
      *
      * @param enablePerfCounter enablePerfCounter
      * @return {@code this}
@@ -206,21 +214,33 @@ public class ClientOptions {
     }
 
     /**
-     * Additional tags for falcon metrics. For example:
-     * "cluster=c3srv-ad,job=recommend-service-history". Defaults to empty string, see {@link
-     * #DEFAULT_FALCON_PERF_COUNTER_TAGS}.
+     * set the perf-counter type, now only support falcon and prometheus, Defaults to {@literal
+     * falcon}, see {@link #DEFAULT_PERF_COUNTER_TYPE}
      *
-     * @param falconPerfCounterTags falconPerfCounterTags
-     * @return {@code this}
+     * @param perfCounterType perfCounterType
+     * @return this
      */
-    public Builder falconPerfCounterTags(String falconPerfCounterTags) {
-      this.falconPerfCounterTags = falconPerfCounterTags;
+    public Builder perfCounterType(String perfCounterType) {
+      this.perfCounterType = perfCounterType;
       return this;
     }
 
     /**
-     * The interval to report metrics to local falcon agent. Defaults to {@literal 10s}, see {@link
-     * #DEFAULT_FALCON_PUSH_INTERVAL}.
+     * Additional tags for falcon metrics. For example:
+     * "cluster=c3srv-ad,job=recommend-service-history". Defaults to empty string, see {@link
+     * #DEFAULT_PERF_COUNTER_TAGS}.
+     *
+     * @param perfCounterTags perfCounterTags
+     * @return {@code this}
+     */
+    public Builder perfCounterTags(String perfCounterTags) {
+      this.perfCounterTags = perfCounterTags;
+      return this;
+    }
+
+    /**
+     * The interval to report metrics to local falcon agent(if set falcon as monitor system).
+     * Defaults to {@literal 10s}, see {@link #DEFAULT_FALCON_PUSH_INTERVAL}.
      *
      * @param falconPushInterval falconPushInterval
      * @return {@code this}
@@ -279,7 +299,8 @@ public class ClientOptions {
         .operationTimeout(getOperationTimeout())
         .asyncWorkers(getAsyncWorkers())
         .enablePerfCounter(isEnablePerfCounter())
-        .falconPerfCounterTags(getFalconPerfCounterTags())
+        .perfCounterType(getPerfCounterType())
+        .perfCounterTags(getPerfCounterTags())
         .falconPushInterval(getFalconPushInterval())
         .enableWriteLimit(isWriteLimitEnabled())
         .metaQueryTimeout(getMetaQueryTimeout());
@@ -316,8 +337,8 @@ public class ClientOptions {
 
   /**
    * Whether to enable performance statistics. If true, the client will periodically report metrics
-   * to local falcon agent (currently we only support falcon as monitoring system). Defaults to
-   * {@literal true}.
+   * to local falcon agent (if set falcon as monitoring system) or open prometheus collector http
+   * server. Defaults to {@literal true}.
    *
    * @return whether to enable performance statistics.
    */
@@ -326,16 +347,26 @@ public class ClientOptions {
   }
 
   /**
-   * Additional tags for falcon metrics. Defaults to empty string.
+   * get perf-counter type, now only support falcon and prometheus
    *
-   * @return additional tags for falcon metrics.
+   * @return perf-counter type
    */
-  public String getFalconPerfCounterTags() {
-    return falconPerfCounterTags;
+  public String getPerfCounterType() {
+    return perfCounterType;
   }
 
   /**
-   * The interval to report metrics to local falcon agent. Defaults to {@literal 10s}.
+   * Additional tags for metrics. Defaults to empty string.
+   *
+   * @return additional tags for falcon metrics.
+   */
+  public String getPerfCounterTags() {
+    return perfCounterTags;
+  }
+
+  /**
+   * The interval to report metrics to local falcon agent(if set falcon as monitor system). Defaults
+   * to {@literal 10s}.
    *
    * @return the interval to report metrics to local falcon agent.
    */

@@ -47,7 +47,8 @@ public class ClusterManager extends Cluster {
     setTimeout(opts.operationTimeout());
     this.enableCounter = opts.enablePerfCounter();
     if (enableCounter) {
-      MetricsManager.detectHostAndInit(opts.perfCounterTags(), opts.pushCounterIntervalSecs());
+      MetricsManager.detectHostAndInit(
+          opts.perfCounterTags(), opts.pushCounterIntervalSecs(), opts.pushCounterType());
     }
 
     replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
