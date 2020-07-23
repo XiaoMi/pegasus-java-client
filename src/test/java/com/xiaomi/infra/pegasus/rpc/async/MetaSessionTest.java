@@ -15,6 +15,7 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_request;
 import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.tools.Toollet;
 import com.xiaomi.infra.pegasus.tools.Tools;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -304,7 +305,11 @@ public class MetaSessionTest {
   public void testDNSMetaUnavailable() {
     // Ensures when the DNS returns meta all unavailable, finally the query will timeout.
     ClusterManager manager =
-        new ClusterManager(ClientOptions.builder().metaServers("localhost:34601").build());
+        new ClusterManager(
+            ClientOptions.builder()
+                .metaServers("localhost:34601")
+                .metaQueryTimeout(Duration.ofMillis(1000))
+                .build());
     MetaSession metaMock = Mockito.spy(manager.getMetaSession());
     List<ReplicaSession> metaList = metaMock.getMetaList();
     metaList.remove(0); // del the "localhost:34601"
