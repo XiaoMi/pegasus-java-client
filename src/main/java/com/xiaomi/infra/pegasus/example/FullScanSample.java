@@ -38,8 +38,7 @@ public class FullScanSample {
    * @throws IOException
    */
   private static void searchHistoryOneYearAgo(String tableName) throws PException, IOException {
-    PegasusClientInterface client =
-        PegasusClientFactory.createClient(ClientOptions.builder().build());
+    PegasusClientInterface client = PegasusClientFactory.createClient(ClientOptions.create());
 
     // Set up the scanners.
     ScanOptions scanOptions = new ScanOptions();

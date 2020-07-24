@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.client.*;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.RandomStringUtils;
 
 /** Example sample */
 public class ExampleSample {
@@ -14,11 +15,7 @@ public class ExampleSample {
     PegasusClientInterface client = PegasusClientFactory.createClient(ClientOptions.create());
     PegasusTableInterface table = client.openTable("temp");
 
-    byte[] value = new byte[1000];
-
-    for (int i = 0; i < 1000; i++) {
-      value[i] = 'x';
-    }
+    byte[] value = RandomStringUtils.random(1000).getBytes("UTF-8");
 
     for (int t = 0; t < 10; t++) {
       List<byte[]> sortKeys = new ArrayList<>();
