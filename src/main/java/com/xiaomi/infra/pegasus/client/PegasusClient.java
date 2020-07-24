@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 public class PegasusClient implements PegasusClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
 
-  private ClientOptions clientOptions;
+  private final ClientOptions clientOptions;
 
   private final ConcurrentHashMap<String, PegasusTable> tableMap;
   private final Object tableMapLock;
