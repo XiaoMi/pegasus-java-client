@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
-/** full scan sample */
+/** A simple example shows how to use full scan. */
 public class FullScanSample {
 
   private static final String tableName = "temp";
@@ -20,27 +20,31 @@ public class FullScanSample {
     ScanOptions scanOptions = new ScanOptions();
     scanOptions.batchSize = 20;
 
-    List<PegasusScannerInterface> scans = client.getUnorderedScanners(tableName, 16, scanOptions);
-    System.out.printf("opened %d scanners%n", scans.size());
+    List<PegasusScannerInterface> scanners =
+        client.getUnorderedScanners(tableName, 16, scanOptions);
+    System.out.printf("opened %d scanners%n", scanners.size());
 
     // Iterates sequentially.
-    for (PegasusScannerInterface scan : scans) {
+    for (PegasusScannerInterface scanner : scanners) {
       int cnt = 0;
       long start = System.currentTimeMillis();
       while (true) {
-        Pair<Pair<byte[], byte[]>, byte[]> pair = scan.next();
+        Pair<Pair<byte[], byte[]>, byte[]> pair = scanner.next();
         if (null == pair) break;
         Pair<byte[], byte[]> keys = pair.getLeft();
         byte[] hashKey = keys.getLeft();
         byte[] sortKey = keys.getRight();
         cnt++;
+        // hashKey/sortKey/value is not necessarily encoded via UTF-8.
+        // It may be ASCII encoded or using any types of encoding.
+        // Here we assume they are UTF-8 strings.
         System.out.printf(
             "hashKey = %s, sortKey = %s, value = %s%n",
             new String(hashKey, "UTF-8"),
             new String(sortKey, "UTF-8"),
             new String(pair.getValue(), "UTF-8"));
       }
-      System.out.printf("sacn %d rows cost %d ms%n", cnt, System.currentTimeMillis() - start);
+      System.out.printf("scanning %d rows costs %d ms%n", cnt, System.currentTimeMillis() - start);
     }
     client.close();
   }
