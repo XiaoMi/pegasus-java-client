@@ -4,11 +4,15 @@
 package com.xiaomi.infra.pegasus.client.request;
 
 import java.io.Serializable;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 public class Set implements Serializable {
-    public byte[] hashKey = null;
-    public byte[] sortKey = null;
-    public byte[] value = null;
+    public byte[] hashKey;
+    public byte[] sortKey;
+    @NotNull
+    public byte[] value ;
+    @Min(0)
     public int ttlSeconds = 0; // 0 means no ttl
 
     public Set() {}
