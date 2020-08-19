@@ -3,6 +3,21 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.request.BatchDelete;
+import com.xiaomi.infra.pegasus.client.request.BatchGet;
+import com.xiaomi.infra.pegasus.client.request.BatchSet;
+import com.xiaomi.infra.pegasus.client.request.DelRange;
+import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.GetRange;
+import com.xiaomi.infra.pegasus.client.request.Increment;
+import com.xiaomi.infra.pegasus.client.request.MultiDelete;
+import com.xiaomi.infra.pegasus.client.request.MultiGet;
+import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.Set;
+import com.xiaomi.infra.pegasus.client.response.BatchDelResult;
+import com.xiaomi.infra.pegasus.client.response.BatchGetResult;
+import com.xiaomi.infra.pegasus.client.response.BatchSetResult;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.List;
@@ -55,6 +70,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * <p>Please refer to the netty document for the usage of Future.
  */
+// TODO(jiashuo1): refactor as PegasusClientInterface
 public interface PegasusTableInterface {
 
   /// < -------- Exist --------
@@ -710,9 +726,127 @@ public interface PegasusTableInterface {
   /// < -------- Sync Methods --------
 
   /**
+   * Check value exist by key from the cluster
+   *
+   * @return true if exist, false if not exist
+   * @throws PException throws exception if any error occurs.
+   */
+  public boolean exist(Get get, int timeout) throws PException;
+
+  /**
+   * Get value.
+   *
+   * @return value; null if not found
+   * @throws PException throws exception if any error occurs.
+   */
+  public byte[] get(Get get, int timeout) throws PException;
+
+  /**
+   * Batch get values of different keys. Will terminate immediately if any error occurs.
+   *
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchGet(BatchGet batchGet, BatchGetResult batchGetResult, int timeout)
+      throws PException;
+
+  /**
+   * Get multiple values under the same hash key.
+   *
+   * @return true if all data is fetched; false if only partial data is fetched.
+   * @throws PException throws exception if any error occurs.
+   */
+  public MultiGetResult multiGet(MultiGet multiGet, int timeout) throws PException;
+
+  /**
+   * Get multiple key-values under the same hashKey with sortKey range limited.
+   *
+   * @return true if all data is fetched; false if only partial data is fetched.
+   * @throws PException throws exception if any error occurs.
+   */
+  public MultiGetResult getRange(GetRange getRange, int timeout) throws PException;
+
+  /**
+   * Get multiple sort keys under the same hash key.
+   *
+   * @return true if all data is fetched; false if only partial data is fetched.
+   * @throws PException throws exception if any error occurs.
+   */
+  public boolean multiGetSortKeys(MultiGet multiGet, int timeout) throws PException;
+
+  /**
+   * Set value.
+   *
+   * @throws PException throws exception if any error occurs.
+   */
+  public void set(Set set, int timeout) throws PException;
+
+  /**
+   * Batch set lots of values. Will terminate immediately if any error occurs.
+   *
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchSet(BatchSet batchSet, BatchSetResult batchSetResult, int timeout)
+      throws PException;
+
+  /**
+   * Set multiple value under the same hash key.
+   *
+   * @throws PException throws exception if any error occurs.
+   */
+  public void multiSet(MultiSet multiSet, int timeout) throws PException;
+
+  /**
+   * Delete value.
+   *
+   * @throws PException throws exception if any error occurs.
+   */
+  public void del(Delete delete, int timeout) throws PException;
+
+  /**
+   * Batch delete values of different keys. Will terminate immediately if any error occurs.
+   *
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchDel(BatchDelete batchDelete, BatchDelResult batchDelResult, int timeout)
+      throws PException;
+
+  public void multiDel(MultiDelete multiDelete, int timeout) throws PException;
+
+  /**
+   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
+   * immediately if any error occurs.
+   *
+   * @throws PException throws exception if any error occurs.
+   */
+  public void delRange(DelRange delRange, int timeout) throws PException;
+
+  /**
+   * Get ttl time.
+   *
+   * @return ttl time in seconds; -1 if no ttl set; -2 if not exist.
+   * @throws PException throws exception if any error occurs.
+   */
+  public int ttl(Get get, int timeout) throws PException;
+
+  /**
+   * Atomically increment value.
+   *
+   * @return the new value.
+   * @throws PException throws exception if any error occurs.
+   */
+  public long incr(Increment increment, int timeout) throws PException;
+
+  /**
    * sync version of Exist, please refer to the async version {@link #asyncExist(byte[], byte[],
    * int)}
    */
+  @Deprecated
   public boolean exist(byte[] hashKey, byte[] sortKey, int timeout /*ms*/) throws PException;
 
   /**
@@ -724,6 +858,7 @@ public interface PegasusTableInterface {
   /**
    * sync version of Get, please refer to the async version {@link #asyncGet(byte[], byte[], int)}
    */
+  @Deprecated
   public byte[] get(byte[] hashKey, byte[] sortKey, int timeout /*ms*/) throws PException;
 
   /**
@@ -740,6 +875,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchGet(List<Pair<byte[], byte[]>> keys, List<byte[]> values, int timeout /*ms*/)
       throws PException;
 
@@ -759,6 +895,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchGet2(
       List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout /*ms*/)
       throws PException;
@@ -767,6 +904,7 @@ public interface PegasusTableInterface {
    * sync version of MultiGet, please refer to the async version {@link #asyncMultiGet(byte[], List,
    * int, int, int)} and {@link #asyncMultiGet(byte[], List, int)}
    */
+  @Deprecated
   public MultiGetResult multiGet(
       byte[] hashKey,
       List<byte[]> sortKeys,
@@ -775,6 +913,7 @@ public interface PegasusTableInterface {
       int timeout /*ms*/)
       throws PException;
 
+  @Deprecated
   public MultiGetResult multiGet(byte[] hashKey, List<byte[]> sortKeys, int timeout /*ms*/)
       throws PException;
 
@@ -783,6 +922,7 @@ public interface PegasusTableInterface {
    * byte[], byte[], MultiGetOptions, int, int, int)} and {@link #asyncMultiGet(byte[], byte[],
    * byte[], MultiGetOptions, int)}
    */
+  @Deprecated
   public MultiGetResult multiGet(
       byte[] hashKey,
       byte[] startSortKey,
@@ -793,6 +933,7 @@ public interface PegasusTableInterface {
       int timeout /*ms*/)
       throws PException;
 
+  @Deprecated
   public MultiGetResult multiGet(
       byte[] hashKey,
       byte[] startSortKey,
@@ -815,6 +956,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiGet(
       List<Pair<byte[], List<byte[]>>> keys, List<HashKeyData> values, int timeout /*ms*/)
       throws PException;
@@ -834,6 +976,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiGet2(
       List<Pair<byte[], List<byte[]>>> keys,
       List<Pair<PException, HashKeyData>> results,
@@ -844,9 +987,11 @@ public interface PegasusTableInterface {
    * sync version of MultiGetSortKeys, please refer to the async version {@link
    * #asyncMultiGetSortKeys(byte[], int, int, int)} and {@link #asyncMultiGetSortKeys(byte[], int)}
    */
+  @Deprecated
   public MultiGetSortKeysResult multiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout /*ms*/) throws PException;
 
+  @Deprecated
   public MultiGetSortKeysResult multiGetSortKeys(byte[] hashKey, int timeout /*ms*/)
       throws PException;
 
@@ -854,9 +999,11 @@ public interface PegasusTableInterface {
    * sync version of Set, please refer to the async version {@link #asyncSet(byte[], byte[], byte[],
    * int, int)} and {@link #asyncSet(byte[], byte[], byte[], int)}
    */
+  @Deprecated
   public void set(byte[] hashKey, byte[] sortKey, byte[] value, int ttlSeconds, int timeout /*ms*/)
       throws PException;
 
+  @Deprecated
   public void set(byte[] hashKey, byte[] sortKey, byte[] value, int timeout /*ms*/)
       throws PException;
 
@@ -871,6 +1018,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchSet(List<SetItem> items, int timeout /*ms*/) throws PException;
 
   /**
@@ -889,6 +1037,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchSet2(List<SetItem> items, List<PException> results, int timeout /*ms*/)
       throws PException;
 
@@ -896,10 +1045,12 @@ public interface PegasusTableInterface {
    * sync version of MultiSet, please refer to the async version {@link #asyncMultiSet(byte[], List,
    * int, int)} and {@link #asyncMultiSet(byte[], List, int)}
    */
+  @Deprecated
   public void multiSet(
       byte[] hashKey, List<Pair<byte[], byte[]>> values, int ttlSeconds, int timeout /*ms*/)
       throws PException;
 
+  @Deprecated
   public void multiSet(byte[] hashKey, List<Pair<byte[], byte[]>> values, int timeout /*ms*/)
       throws PException;
 
@@ -916,6 +1067,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiSet(List<HashKeyData> items, int ttlSeconds, int timeout /*ms*/)
       throws PException;
 
@@ -937,6 +1089,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiSet2(
       List<HashKeyData> items, int ttlSeconds, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -944,6 +1097,7 @@ public interface PegasusTableInterface {
   /**
    * sync version of Del, please refer to the async version {@link #asyncDel(byte[], byte[], int)}
    */
+  @Deprecated
   public void del(byte[] hashKey, byte[] sortKey, int timeout /*ms*/) throws PException;
 
   /**
@@ -957,6 +1111,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchDel(List<Pair<byte[], byte[]>> keys, int timeout /*ms*/) throws PException;
 
   /**
@@ -976,6 +1131,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchDel2(
       List<Pair<byte[], byte[]>> keys, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -984,6 +1140,7 @@ public interface PegasusTableInterface {
    * sync version of MultiDel, please refer to the async version {@link #asyncMultiDel(byte[], List,
    * int)}
    */
+  @Deprecated
   public void multiDel(byte[] hashKey, List<byte[]> sortKeys, int timeout /*ms*/) throws PException;
 
   /**
@@ -999,6 +1156,7 @@ public interface PegasusTableInterface {
    *     used.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void delRange(
       byte[] hashKey,
       byte[] startSortKey,
@@ -1019,6 +1177,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiDel(List<Pair<byte[], List<byte[]>>> keys, int timeout /*ms*/)
       throws PException;
 
@@ -1039,6 +1198,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiDel2(
       List<Pair<byte[], List<byte[]>>> keys, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -1047,6 +1207,7 @@ public interface PegasusTableInterface {
    * sync version of Incr, please refer to the async version {@link #asyncIncr(byte[], byte[], long,
    * int, int)}
    */
+  @Deprecated
   public long incr(
       byte[] hashKey, byte[] sortKey, long increment, int ttlSeconds, int timeout /*ms*/)
       throws PException;
@@ -1055,6 +1216,7 @@ public interface PegasusTableInterface {
    * sync version of Incr, please refer to the async version {@link #asyncIncr(byte[], byte[], long,
    * int)}
    */
+  @Deprecated
   public long incr(byte[] hashKey, byte[] sortKey, long increment, int timeout /*ms*/)
       throws PException;
 

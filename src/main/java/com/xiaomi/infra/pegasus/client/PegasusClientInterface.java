@@ -3,6 +3,22 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
+import com.xiaomi.infra.pegasus.client.request.BatchDelete;
+import com.xiaomi.infra.pegasus.client.request.BatchGet;
+import com.xiaomi.infra.pegasus.client.request.BatchSet;
+import com.xiaomi.infra.pegasus.client.request.DelRange;
+import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.GetRange;
+import com.xiaomi.infra.pegasus.client.request.Increment;
+import com.xiaomi.infra.pegasus.client.request.MultiDelete;
+import com.xiaomi.infra.pegasus.client.request.MultiGet;
+import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.Set;
+import com.xiaomi.infra.pegasus.client.response.BatchDelResult;
+import com.xiaomi.infra.pegasus.client.response.BatchGetResult;
+import com.xiaomi.infra.pegasus.client.response.BatchSetResult;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -68,11 +84,133 @@ public interface PegasusClientInterface {
    * Check value exist by key from the cluster
    *
    * @param tableName TableHandler name
+   * @return true if exist, false if not exist
+   * @throws PException throws exception if any error occurs.
+   */
+  public boolean exist(String tableName, Get get) throws PException;
+
+  /**
+   * Get value.
+   *
+   * @param tableName TableHandler name
+   * @return value; null if not found
+   * @throws PException throws exception if any error occurs.
+   */
+  public byte[] get(String tableName, Get get) throws PException;
+
+  /**
+   * Batch get values of different keys. Will terminate immediately if any error occurs.
+   *
+   * @param tableName table name
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchGet(String tableName, BatchGet batchGet, BatchGetResult batchGetResult)
+      throws PException;
+
+  /**
+   * Get multiple values under the same hash key.
+   *
+   * @param tableName table name
+   * @return true if all data is fetched; false if only partial data is fetched.
+   * @throws PException throws exception if any error occurs.
+   */
+  public MultiGetResult multiGet(String tableName, MultiGet multiGet) throws PException;
+
+  /**
+   * Get multiple key-values under the same hashKey with sortKey range limited.
+   *
+   * @param tableName table name
+   * @return true if all data is fetched; false if only partial data is fetched.
+   * @throws PException throws exception if any error occurs.
+   */
+  public MultiGetResult getRange(String tableName, GetRange getRange) throws PException;
+
+  /**
+   * Set value.
+   *
+   * @param tableName TableHandler name
+   * @throws PException throws exception if any error occurs.
+   */
+  public void set(String tableName, Set set) throws PException;
+
+  /**
+   * Batch set lots of values. Will terminate immediately if any error occurs.
+   *
+   * @param tableName TableHandler name
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchSet(String tableName, BatchSet batchSet, BatchSetResult batchSetResult)
+      throws PException;
+
+  /**
+   * Set multiple value under the same hash key.
+   *
+   * @param tableName table name
+   * @throws PException throws exception if any error occurs.
+   */
+  public void multiSet(String tableName, MultiSet multiSet) throws PException;
+
+  /**
+   * Delete value.
+   *
+   * @param tableName TableHandler name
+   * @throws PException throws exception if any error occurs.
+   */
+  public void del(String tableName, Delete delete) throws PException;
+
+  /**
+   * Batch delete values of different keys. Will terminate immediately if any error occurs.
+   *
+   * @param tableName table name
+   * @throws PException throws exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
+  public void batchDel(String tableName, BatchDelete batchDelete, BatchDelResult batchDelResult)
+      throws PException;
+
+  public void multiDel(String tableName, MultiDelete multiDelete) throws PException;
+
+  /**
+   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
+   * immediately if any error occurs.
+   *
+   * @param tableName table name
+   * @throws PException throws exception if any error occurs.
+   */
+  public void delRange(String tableName, DelRange delRange) throws PException;
+
+  /**
+   * Get ttl time.
+   *
+   * @param tableName TableHandler name
+   * @return ttl time in seconds; -1 if no ttl set; -2 if not exist.
+   * @throws PException throws exception if any error occurs.
+   */
+  public int ttl(String tableName, Get get) throws PException;
+
+  /**
+   * Atomically increment value.
+   *
+   * @return the new value.
+   * @throws PException throws exception if any error occurs.
+   */
+  public long incr(String tableName, Increment increment) throws PException;
+
+  /**
+   * Check value exist by key from the cluster
+   *
+   * @param tableName TableHandler name
    * @param hashKey used to decide which partition the key may exist.
    * @param sortKey all keys under the same hashKey will be sorted by sortKey
    * @return true if exist, false if not exist
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public boolean exist(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
@@ -94,6 +232,7 @@ public interface PegasusClientInterface {
    * @return value; null if not found
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public byte[] get(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
@@ -108,6 +247,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchGet(String tableName, List<Pair<byte[], byte[]>> keys, List<byte[]> values)
       throws PException;
 
@@ -125,6 +265,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchGet2(
       String tableName, List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results)
       throws PException;
@@ -146,6 +287,7 @@ public interface PegasusClientInterface {
    * @return true if all data is fetched; false if only partial data is fetched.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public boolean multiGet(
       String tableName,
       byte[] hashKey,
@@ -155,6 +297,7 @@ public interface PegasusClientInterface {
       List<Pair<byte[], byte[]>> values)
       throws PException;
 
+  @Deprecated
   public boolean multiGet(
       String tableName, byte[] hashKey, List<byte[]> sortKeys, List<Pair<byte[], byte[]>> values)
       throws PException;
@@ -175,6 +318,7 @@ public interface PegasusClientInterface {
    * @return true if all data is fetched; false if only partial data is fetched.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public boolean multiGet(
       String tableName,
       byte[] hashKey,
@@ -186,6 +330,7 @@ public interface PegasusClientInterface {
       List<Pair<byte[], byte[]>> values)
       throws PException;
 
+  @Deprecated
   public boolean multiGet(
       String tableName,
       byte[] hashKey,
@@ -208,6 +353,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiGet(
       String tableName, List<Pair<byte[], List<byte[]>>> keys, List<HashKeyData> values)
       throws PException;
@@ -228,6 +374,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiGet2(
       String tableName,
       List<Pair<byte[], List<byte[]>>> keys,
@@ -266,9 +413,11 @@ public interface PegasusClientInterface {
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void set(String tableName, byte[] hashKey, byte[] sortKey, byte[] value, int ttlSeconds)
       throws PException;
 
+  @Deprecated
   public void set(String tableName, byte[] hashKey, byte[] sortKey, byte[] value) throws PException;
 
   /**
@@ -280,6 +429,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchSet(String tableName, List<SetItem> items) throws PException;
 
   /**
@@ -296,6 +446,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchSet2(String tableName, List<SetItem> items, List<PException> results)
       throws PException;
 
@@ -308,10 +459,12 @@ public interface PegasusClientInterface {
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void multiSet(
       String tableName, byte[] hashKey, List<Pair<byte[], byte[]>> values, int ttlSeconds)
       throws PException;
 
+  @Deprecated
   public void multiSet(String tableName, byte[] hashKey, List<Pair<byte[], byte[]>> values)
       throws PException;
 
@@ -326,9 +479,11 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiSet(String tableName, List<HashKeyData> items, int ttlSeconds)
       throws PException;
 
+  @Deprecated
   public void batchMultiSet(String tableName, List<HashKeyData> items) throws PException;
 
   /**
@@ -347,10 +502,12 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiSet2(
       String tableName, List<HashKeyData> items, int ttlSeconds, List<PException> results)
       throws PException;
 
+  @Deprecated
   public int batchMultiSet2(String tableName, List<HashKeyData> items, List<PException> results)
       throws PException;
 
@@ -364,6 +521,7 @@ public interface PegasusClientInterface {
    *     means no sort key.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void del(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
@@ -375,6 +533,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchDel(String tableName, List<Pair<byte[], byte[]>> keys) throws PException;
 
   /**
@@ -392,6 +551,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchDel2(String tableName, List<Pair<byte[], byte[]>> keys, List<PException> results)
       throws PException;
 
@@ -403,6 +563,7 @@ public interface PegasusClientInterface {
    * @param sortKeys specify sort keys to be deleted. should not be empty.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void multiDel(String tableName, byte[] hashKey, List<byte[]> sortKeys) throws PException;
 
   /**
@@ -416,6 +577,7 @@ public interface PegasusClientInterface {
    * @param options del range options.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void delRange(
       String tableName,
       byte[] hashKey,
@@ -434,6 +596,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiDel(String tableName, List<Pair<byte[], List<byte[]>>> keys)
       throws PException;
 
@@ -452,6 +615,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiDel2(
       String tableName, List<Pair<byte[], List<byte[]>>> keys, List<PException> results)
       throws PException;
@@ -467,6 +631,7 @@ public interface PegasusClientInterface {
    * @return ttl time in seconds; -1 if no ttl set; -2 if not exist.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public int ttl(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
@@ -485,9 +650,11 @@ public interface PegasusClientInterface {
    * @return the new value.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment, int ttlSeconds)
       throws PException;
 
+  @Deprecated
   public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment)
       throws PException;
 
