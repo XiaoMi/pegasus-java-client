@@ -633,12 +633,12 @@ public interface PegasusClientInterface {
   public int ttl(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
-   * Atomically value value.
+   * Atomically increment value.
    *
    * @param tableName the table name.
-   * @param hashKey the hash key to value.
-   * @param sortKey the sort key to value.
-   * @param increment the value to be added to the old value.
+   * @param hashKey the hash key to increment.
+   * @param sortKey the sort key to increment.
+   * @param increment the increment to be added to the old value.
    * @param ttlSeconds time to live in seconds for the new value. should be no less than -1. for the
    *     second method, the ttlSeconds is 0. - if ttlSeconds == 0, the semantic is the same as
    *     redis: - normally, value will preserve the original ttl. - if old data is expired by ttl,

@@ -499,17 +499,17 @@ public interface PegasusTableInterface {
   }
 
   /**
-   * atomically value value by key, async version
+   * atomically increment value by key, async version
    *
-   * @param hashKey the hash key to value.
-   * @param sortKey the sort key to value.
-   * @param increment the value to be added to the old value.
+   * @param hashKey the hash key to increment.
+   * @param sortKey the sort key to increment.
+   * @param increment the increment to be added to the old value.
    * @param ttlSeconds time to live in seconds for the new value. for the second method, the
    *     ttlSeconds is 0. should be no less than -1. for the second method, the ttlSeconds is 0. -
-   *     if ttlSeconds == 0, the semantic is the same as redis: - normally, value will preserve the
-   *     original ttl. - if old data is expired by ttl, then set initial value to 0 and set no ttl.
-   *     - if ttlSeconds > 0, then update with the new ttl if value succeed. - if ttlSeconds == -1,
-   *     then update to no ttl if value succeed.
+   *     if ttlSeconds == 0, the semantic is the same as redis: - normally, increment will preserve
+   *     the original ttl. - if old data is expired by ttl, then set initial value to 0 and set no
+   *     ttl. - if ttlSeconds > 0, then update with the new ttl if increment succeed. - if
+   *     ttlSeconds == -1, then update to no ttl if increment succeed.
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
    *     timeout value for current op, else the timeout value in the configuration file will be
    *     used.
