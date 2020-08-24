@@ -47,7 +47,7 @@ public class TestFutureGroup {
           FutureGroup<Void> group = new FutureGroup<>(1);
           group.add(promise);
           try {
-            group.waitAllCompleteOrOneFail(10000);
+            group.waitAllComplete(10000);
           } catch (PException e) {
             success.set(false);
             System.err.println(name.getMethodName() + ": " + e.toString());
@@ -78,7 +78,7 @@ public class TestFutureGroup {
     group.add(promise);
     try {
       // never wake up promise.
-      group.waitAllCompleteOrOneFail(10);
+      group.waitAllComplete(10);
     } catch (PException e) {
       // must throw exception
       System.err.println(name.getMethodName() + ": " + e.toString());

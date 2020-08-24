@@ -3,6 +3,19 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
+import com.xiaomi.infra.pegasus.client.request.BatchDelete;
+import com.xiaomi.infra.pegasus.client.request.BatchGet;
+import com.xiaomi.infra.pegasus.client.request.BatchSet;
+import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.Increment;
+import com.xiaomi.infra.pegasus.client.request.MultiDelete;
+import com.xiaomi.infra.pegasus.client.request.MultiGet;
+import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.RangeDelete;
+import com.xiaomi.infra.pegasus.client.request.RangeGet;
+import com.xiaomi.infra.pegasus.client.request.Set;
 import com.xiaomi.infra.pegasus.rpc.*;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import java.nio.ByteBuffer;
@@ -197,6 +210,94 @@ public class PegasusClient implements PegasusClientInterface {
   @Override
   public ClientOptions getConfiguration() {
     return clientOptions;
+  }
+
+  @Override
+  public boolean exist(String tableName, Get get) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.exist(get, 0);
+  }
+
+  @Override
+  public byte[] get(String tableName, Get get) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.get(get, 0);
+  }
+
+  @Override
+  public void batchGet(String tableName, BatchGet batchGet, List<Pair<PException, byte[]>> results)
+      throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.batchGet(batchGet, results, 0);
+  }
+
+  @Override
+  public MultiGetResult multiGet(String tableName, MultiGet multiGet) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.multiGet(multiGet, 0);
+  }
+
+  @Override
+  public MultiGetResult rangeGet(String tableName, RangeGet rangeGet) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.rangeGet(rangeGet, 0);
+  }
+
+  @Override
+  public void set(String tableName, Set set) throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.set(set, 0);
+  }
+
+  @Override
+  public void batchSet(String tableName, BatchSet batchSet, List<Pair<PException, Void>> results)
+      throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.batchSet(batchSet, results, 0);
+  }
+
+  @Override
+  public void multiSet(String tableName, MultiSet multiSet) throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.multiSet(multiSet, 0);
+  }
+
+  @Override
+  public void del(String tableName, Delete delete) throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.del(delete, 0);
+  }
+
+  @Override
+  public void batchDel(
+      String tableName, BatchDelete batchDelete, List<Pair<PException, Void>> results)
+      throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.batchDel(batchDelete, results, 0);
+  }
+
+  @Override
+  public void multiDel(String tableName, MultiDelete multiDelete) throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.multiDel(multiDelete, 0);
+  }
+
+  @Override
+  public void rangeDel(String tableName, RangeDelete rangeDelete) throws PException {
+    PegasusTable tb = getTable(tableName);
+    tb.rangeDel(rangeDelete, 0);
+  }
+
+  @Override
+  public int ttl(String tableName, Get get) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.ttl(get, 0);
+  }
+
+  @Override
+  public long incr(String tableName, Increment increment) throws PException {
+    PegasusTable tb = getTable(tableName);
+    return tb.incr(increment, 0);
   }
 
   @Override

@@ -7,6 +7,18 @@ import com.xiaomi.infra.pegasus.apps.*;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
+import com.xiaomi.infra.pegasus.client.request.BatchDelete;
+import com.xiaomi.infra.pegasus.client.request.BatchGet;
+import com.xiaomi.infra.pegasus.client.request.BatchSet;
+import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.Increment;
+import com.xiaomi.infra.pegasus.client.request.MultiDelete;
+import com.xiaomi.infra.pegasus.client.request.MultiGet;
+import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.RangeDelete;
+import com.xiaomi.infra.pegasus.client.request.RangeGet;
+import com.xiaomi.infra.pegasus.client.request.Set;
 import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -41,6 +53,443 @@ public class PegasusTable implements PegasusTableInterface {
     this.defaultTimeout = table.getDefaultTimeout();
     this.writeLimiter = new WriteLimiter(client.isWriteLimitEnabled());
     this.metaList = client.getMetaList();
+  }
+
+  @Override
+  public Future<Boolean> asyncExist(Get get, int timeout) {
+    final DefaultPromise<Boolean> promise = table.newPromise();
+    asyncTTL(get, timeout)
+        .addListener(
+            new TTLListener() {
+              @Override
+              public void operationComplete(Future<Integer> future) throws Exception {
+                if (future.isSuccess()) {
+                  promise.setSuccess(future.get() != -2);
+                } else {
+                  promise.setFailure(future.cause());
+                }
+              }
+            });
+    return promise;
+  }
+
+  @Override
+  public Future<Integer> asyncTTL(Get get, int timeout) {
+    final DefaultPromise<Integer> promise = table.newPromise();
+    blob request = new blob(PegasusClient.generateKey(get.hashKey, get.sortKey));
+
+    long partitionHash = table.getHash(request.data);
+    gpid pid = table.getGpidByHash(partitionHash);
+    rrdb_ttl_operator op = new rrdb_ttl_operator(pid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_ttl_operator op2 = (rrdb_ttl_operator) clientOP;
+            if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(get.hashKey, get.sortKey), promise, op, table, timeout);
+            } else if (op2.get_response().error != 0 && op2.get_response().error != 1) {
+              promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+            } else {
+              // On success: ttl time in seconds; -1 if no ttl set; -2 if not exist.
+              // If not exist, the error code of rpc response is kNotFound(1).
+              promise.setSuccess(
+                  op2.get_response().error == 1 ? -2 : op2.get_response().ttl_seconds);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<byte[]> asyncGet(Get get, int timeout) {
+    final DefaultPromise<byte[]> promise = table.newPromise();
+    blob request = new blob(PegasusClient.generateKey(get.hashKey, get.sortKey));
+    long partitionHash = table.getHash(request.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_get_operator op =
+        new rrdb_get_operator(gpid, table.getTableName(), request, partitionHash);
+    Table.ClientOPCallback callback =
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_get_operator gop = (rrdb_get_operator) clientOP;
+            if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(get.hashKey, get.sortKey), promise, op, table, timeout);
+            } else if (gop.get_response().error == 1) { // rocksdb::kNotFound
+              promise.setSuccess(null);
+            } else if (gop.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
+            } else {
+              promise.setSuccess(gop.get_response().value.data);
+            }
+          }
+        };
+
+    table.asyncOperate(op, callback, timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<MultiGetResult> asyncRangeGet(RangeGet rangeGet, int timeout) throws PException {
+    final DefaultPromise<MultiGetResult> promise = table.newPromise();
+
+    blob hashKeyBlob = new blob(rangeGet.hashKey);
+    blob startSortKeyBlob =
+        (rangeGet.startSortKey == null ? null : new blob(rangeGet.startSortKey));
+    blob stopSortKeyBlob = (rangeGet.stopSortKey == null ? null : new blob(rangeGet.stopSortKey));
+    blob sortKeyFilterPatternBlob =
+        (rangeGet.externOptions.sortKeyFilterPattern == null
+            ? null
+            : new blob(rangeGet.externOptions.sortKeyFilterPattern));
+
+    multi_get_request request =
+        new multi_get_request(
+            hashKeyBlob,
+            null,
+            rangeGet.maxFetchCount,
+            rangeGet.maxFetchSize,
+            rangeGet.externOptions.noValue,
+            startSortKeyBlob,
+            stopSortKeyBlob,
+            rangeGet.externOptions.startInclusive,
+            rangeGet.externOptions.stopInclusive,
+            filter_type.findByValue(rangeGet.externOptions.sortKeyFilterType.getValue()),
+            sortKeyFilterPatternBlob,
+            rangeGet.externOptions.reverse);
+    long partitionHash = table.getKeyHash(request.hash_key.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_multi_get_operator op =
+        new rrdb_multi_get_operator(gpid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
+            if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(rangeGet.hashKey, rangeGet.maxFetchCount),
+                  promise,
+                  op,
+                  table,
+                  timeout);
+            } else if (gop.get_response().error != 0 && gop.get_response().error != 7) {
+              // rocksdb::Status::kOk && rocksdb::Status::kIncomplete
+              promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
+            } else {
+              MultiGetResult result = new MultiGetResult();
+              result.allFetched = (gop.get_response().error == 0);
+              result.values = new ArrayList<Pair<byte[], byte[]>>(gop.get_response().kvs.size());
+              for (key_value kv : gop.get_response().kvs) {
+                result.values.add(new ImmutablePair<byte[], byte[]>(kv.key.data, kv.value.data));
+              }
+              promise.setSuccess(result);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<MultiGetResult> asyncMultiGet(MultiGet multiGet, int timeout) {
+    final DefaultPromise<MultiGetResult> promise = table.newPromise();
+
+    blob hashKeyBlob = new blob(multiGet.hashKey);
+    List<blob> sortKeyBlobs = new ArrayList<blob>();
+    Map<ByteBuffer, byte[]> setKeyMap = null;
+
+    if (multiGet.sortKeys != null && multiGet.sortKeys.size() > 0) {
+      setKeyMap = new TreeMap<ByteBuffer, byte[]>();
+      for (int i = 0; i < multiGet.sortKeys.size(); i++) {
+        byte[] sortKey = multiGet.sortKeys.get(i);
+        if (sortKey == null) {
+          promise.setFailure(
+              new PException("Invalid parameter: sortKeys[" + i + "] should not be null"));
+          return promise;
+        }
+        setKeyMap.put(ByteBuffer.wrap(sortKey), sortKey);
+      }
+      for (Map.Entry<ByteBuffer, byte[]> entry : setKeyMap.entrySet()) {
+        sortKeyBlobs.add(new blob(entry.getValue()));
+      }
+    }
+
+    multi_get_request request =
+        new multi_get_request(
+            hashKeyBlob,
+            sortKeyBlobs,
+            multiGet.maxFetchCount,
+            multiGet.maxFetchCount,
+            multiGet.noValue,
+            null,
+            null,
+            true,
+            false,
+            filter_type.FT_NO_FILTER,
+            null,
+            false);
+    long partitionHash = table.getKeyHash(request.hash_key.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_multi_get_operator op =
+        new rrdb_multi_get_operator(gpid, table.getTableName(), request, partitionHash);
+    final Map<ByteBuffer, byte[]> finalSetKeyMap = setKeyMap;
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_multi_get_operator gop = (rrdb_multi_get_operator) clientOP;
+            if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(multiGet.hashKey, sortKeyBlobs.size()), promise, op, table, timeout);
+            } else if (gop.get_response().error != 0 && gop.get_response().error != 7) {
+              // rocksdb::Status::kOk && rocksdb::Status::kIncomplete
+              promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
+            } else {
+              MultiGetResult result = new MultiGetResult();
+              result.allFetched = (gop.get_response().error == 0);
+              result.values = new ArrayList<Pair<byte[], byte[]>>(gop.get_response().kvs.size());
+              if (finalSetKeyMap == null) {
+                for (key_value kv : gop.get_response().kvs) {
+                  result.values.add(new ImmutablePair<byte[], byte[]>(kv.key.data, kv.value.data));
+                }
+              } else {
+                for (key_value kv : gop.get_response().kvs) {
+                  byte[] sortKey = finalSetKeyMap.get(ByteBuffer.wrap(kv.key.data));
+                  if (sortKey != null) {
+                    result.values.add(new ImmutablePair<byte[], byte[]>(sortKey, kv.value.data));
+                  }
+                }
+              }
+              promise.setSuccess(result);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<Void> asyncSet(Set set, int timeout) {
+    final DefaultPromise<Void> promise = table.newPromise();
+
+    try {
+      writeLimiter.validateSingleSet(set.hashKey, set.sortKey, set.value);
+    } catch (IllegalArgumentException e) {
+      handleWriteLimiterException(promise, e.getMessage());
+      return promise;
+    }
+
+    blob k = new blob(PegasusClient.generateKey(set.hashKey, set.sortKey));
+    blob v = new blob(set.value);
+    int expireSeconds = (set.ttlSeconds == 0 ? 0 : set.ttlSeconds + (int) Tools.epoch_now());
+    update_request req = new update_request(k, v, expireSeconds);
+
+    long partitionHash = table.getHash(k.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_put_operator op = new rrdb_put_operator(gpid, table.getTableName(), req, partitionHash);
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_put_operator gop = (rrdb_put_operator) clientOP;
+            if (gop.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(set.hashKey, set.sortKey), promise, op, table, timeout);
+            } else if (gop.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + gop.get_response().error));
+            } else {
+              promise.setSuccess(null);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<Void> asyncMultiSet(MultiSet multiSet, int timeout) {
+    final DefaultPromise<Void> promise = table.newPromise();
+    if (multiSet.values == null || multiSet.values.size() == 0) {
+      promise.setFailure(new PException("Invalid parameter: values should not be null or empty"));
+      return promise;
+    }
+
+    try {
+      writeLimiter.validateMultiSet(multiSet.hashKey, multiSet.values);
+    } catch (IllegalArgumentException e) {
+      handleWriteLimiterException(promise, e.getMessage());
+      return promise;
+    }
+
+    blob hash_key_blob = new blob(multiSet.hashKey);
+    List<key_value> values_blob = new ArrayList<key_value>();
+    for (int i = 0; i < multiSet.values.size(); i++) {
+      byte[] k = multiSet.values.get(i).getKey();
+      if (k == null) {
+        promise.setFailure(
+            new PException("Invalid parameter: values[" + i + "].key should not be null"));
+        return promise;
+      }
+      byte[] v = multiSet.values.get(i).getValue();
+      if (v == null) {
+        promise.setFailure(
+            new PException("Invalid parameter: values[" + i + "].value should not be null"));
+        return promise;
+      }
+      values_blob.add(new key_value(new blob(k), new blob(v)));
+    }
+    int expireTsSseconds =
+        (multiSet.ttlSeconds == 0 ? 0 : multiSet.ttlSeconds + (int) Tools.epoch_now());
+    multi_put_request request = new multi_put_request(hash_key_blob, values_blob, expireTsSseconds);
+
+    long partitionHash = table.getKeyHash(multiSet.hashKey);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_multi_put_operator op =
+        new rrdb_multi_put_operator(gpid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_multi_put_operator op2 = (rrdb_multi_put_operator) clientOP;
+            if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(multiSet.hashKey, values_blob.size()), promise, op, table, timeout);
+            } else if (op2.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+            } else {
+              promise.setSuccess(null);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<Void> asyncDel(Delete delete, int timeout) {
+    final DefaultPromise<Void> promise = table.newPromise();
+    blob request = new blob(PegasusClient.generateKey(delete.hashKey, delete.sortKey));
+    long partitionHash = table.getHash(request.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_remove_operator op =
+        new rrdb_remove_operator(gpid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_remove_operator op2 = (rrdb_remove_operator) clientOP;
+            if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(delete.hashKey, delete.sortKey), promise, op, table, timeout);
+            } else if (op2.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+            } else {
+              promise.setSuccess(null);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<Void> asyncMultiDel(MultiDelete multiDelete, int timeout) {
+    final DefaultPromise<Void> promise = table.newPromise();
+    if (multiDelete.sortKeys == null || multiDelete.sortKeys.isEmpty()) {
+      promise.setFailure(new PException("Invalid parameter: sortKeys size should be at lease 1"));
+      return promise;
+    }
+
+    List<blob> sortKeyBlobs = new ArrayList<blob>(multiDelete.sortKeys.size());
+    for (int i = 0; i < multiDelete.sortKeys.size(); i++) {
+      byte[] sortKey = multiDelete.sortKeys.get(i);
+      if (sortKey == null) {
+        promise.setFailure(
+            new PException("Invalid parameter: sortKeys[" + i + "] should not be null"));
+        return promise;
+      }
+      sortKeyBlobs.add(new blob(sortKey));
+    }
+    multi_remove_request request =
+        new multi_remove_request(new blob(multiDelete.hashKey), sortKeyBlobs, 100);
+
+    long partitionHash = table.getKeyHash(multiDelete.hashKey);
+    gpid pid = table.getGpidByHash(partitionHash);
+    rrdb_multi_remove_operator op =
+        new rrdb_multi_remove_operator(pid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          public void onCompletion(client_operator clientOP) {
+            rrdb_multi_remove_operator op2 = (rrdb_multi_remove_operator) clientOP;
+            if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(multiDelete.hashKey, sortKeyBlobs.size()),
+                  promise,
+                  op,
+                  table,
+                  timeout);
+            } else if (op2.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+            } else {
+              Validate.isTrue(op2.get_response().count == multiDelete.sortKeys.size());
+              promise.setSuccess(null);
+            }
+          }
+        },
+        timeout);
+    return promise;
+  }
+
+  @Override
+  public Future<Long> asyncIncr(Increment increment, int timeout) {
+    final DefaultPromise<Long> promise = table.newPromise();
+
+    blob key = new blob(PegasusClient.generateKey(increment.hashKey, increment.sortKey));
+    int expireSeconds =
+        (increment.ttlSeconds <= 0
+            ? increment.ttlSeconds
+            : increment.ttlSeconds + (int) Tools.epoch_now());
+    incr_request request = new incr_request(key, increment.value, expireSeconds);
+    long partitionHash = table.getHash(request.key.data);
+    gpid gpid = table.getGpidByHash(partitionHash);
+    rrdb_incr_operator op =
+        new rrdb_incr_operator(gpid, table.getTableName(), request, partitionHash);
+
+    table.asyncOperate(
+        op,
+        new Table.ClientOPCallback() {
+          @Override
+          public void onCompletion(client_operator clientOP) {
+            rrdb_incr_operator op2 = (rrdb_incr_operator) clientOP;
+            if (op2.rpc_error.errno != error_code.error_types.ERR_OK) {
+              handleReplicaException(
+                  new Request(increment.hashKey, increment.sortKey), promise, op, table, timeout);
+            } else if (op2.get_response().error != 0) {
+              promise.setFailure(new PException("rocksdb error: " + op2.get_response().error));
+            } else {
+              promise.setSuccess(op2.get_response().new_value);
+            }
+          }
+        },
+        timeout);
+    return promise;
   }
 
   @Override
@@ -915,6 +1364,310 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
+  public boolean exist(Get get, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncExist(get, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(get.hashKey, get.sortKey), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public byte[] get(Get get, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncGet(get, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(get.hashKey, get.sortKey), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public void batchGet(BatchGet batchGet, List<Pair<PException, byte[]>> results, int timeout)
+      throws PException {
+    results.clear();
+    FutureGroup<byte[]> futureGroup =
+        new FutureGroup<>(batchGet.getList.size(), batchGet.forceComplete);
+    for (Get get : batchGet.getList) {
+      futureGroup.add(asyncGet(get, timeout));
+    }
+    futureGroup.waitAllComplete(results, timeout);
+  }
+
+  @Override
+  public MultiGetResult multiGet(MultiGet multiGet, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncMultiGet(multiGet, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList,
+          table.getTableName(),
+          new Request(multiGet.hashKey, multiGet.sortKeys.size()),
+          timeout,
+          e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public MultiGetResult rangeGet(RangeGet rangeGet, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncRangeGet(rangeGet, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList,
+          table.getTableName(),
+          new Request(rangeGet.hashKey, rangeGet.maxFetchCount),
+          timeout,
+          e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public void set(Set set, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      asyncSet(set, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(set.hashKey, set.sortKey), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public int batchSet(BatchSet batchSet, List<Pair<PException, Void>> results, int timeout)
+      throws PException {
+    if (results == null) {
+      throw new PException("Invalid parameter: results should not be null");
+    }
+    results.clear();
+    FutureGroup<Void> futureGroup =
+        new FutureGroup<>(batchSet.setList.size(), batchSet.forceComplete);
+
+    for (Set set : batchSet.setList) {
+      futureGroup.add(asyncSet(set, timeout));
+    }
+    return futureGroup.waitAllComplete(results, timeout);
+  }
+
+  @Override
+  public void multiSet(MultiSet multiSet, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      asyncMultiSet(multiSet, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList,
+          table.getTableName(),
+          new Request(multiSet.hashKey, multiSet.values.size()),
+          timeout,
+          e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public void del(Delete delete, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      asyncDel(delete, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(delete.hashKey, delete.sortKey), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public int batchDel(BatchDelete batchDelete, List<Pair<PException, Void>> results, int timeout)
+      throws PException {
+
+    FutureGroup<Void> futureGroup =
+        new FutureGroup<>(batchDelete.deleteList.size(), batchDelete.forceComplete);
+
+    for (Delete delete : batchDelete.deleteList) {
+      futureGroup.add(asyncDel(delete, timeout));
+    }
+
+    return futureGroup.waitAllComplete(results, timeout);
+  }
+
+  @Override
+  public void multiDel(MultiDelete multiDelete, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      asyncMultiDel(multiDelete, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList,
+          table.getTableName(),
+          new Request(multiDelete.hashKey, multiDelete.sortKeys.size()),
+          timeout,
+          e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public void rangeDel(RangeDelete rangeDelete, int timeout) throws PException {
+
+    if (timeout <= 0) timeout = defaultTimeout;
+    long startTime = System.currentTimeMillis();
+    long lastCheckTime = startTime;
+    long deadlineTime = startTime + timeout;
+    int count = 0;
+    final int maxBatchDelCount = 100;
+
+    ScanOptions scanOptions = new ScanOptions();
+    scanOptions.noValue = true;
+    scanOptions.startInclusive = rangeDelete.options.startInclusive;
+    scanOptions.stopInclusive = rangeDelete.options.stopInclusive;
+    scanOptions.sortKeyFilterType = rangeDelete.options.sortKeyFilterType;
+    scanOptions.sortKeyFilterPattern = rangeDelete.options.sortKeyFilterPattern;
+
+    rangeDelete.options.nextSortKey = rangeDelete.startSortKey;
+    PegasusScannerInterface pegasusScanner =
+        getScanner(
+            rangeDelete.hashKey, rangeDelete.startSortKey, rangeDelete.stopSortKey, scanOptions);
+    lastCheckTime = System.currentTimeMillis();
+    if (lastCheckTime >= deadlineTime) {
+      throw new PException(
+          "Getting pegasusScanner takes too long time when delete hashKey:"
+              + new String(rangeDelete.hashKey)
+              + ",startSortKey:"
+              + new String(rangeDelete.startSortKey)
+              + ",stopSortKey:"
+              + new String(rangeDelete.stopSortKey)
+              + ",timeUsed:"
+              + (lastCheckTime - startTime)
+              + ":",
+          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    }
+
+    int remainingTime = (int) (deadlineTime - lastCheckTime);
+    List<byte[]> sortKeys = new ArrayList<byte[]>();
+    try {
+      Pair<Pair<byte[], byte[]>, byte[]> pairs;
+      while ((pairs = pegasusScanner.next()) != null) {
+        sortKeys.add(pairs.getKey().getValue());
+        if (sortKeys.size() == maxBatchDelCount) {
+          rangeDelete.options.nextSortKey = sortKeys.get(0);
+          asyncMultiDel(rangeDelete.hashKey, sortKeys, remainingTime)
+              .get(remainingTime, TimeUnit.MILLISECONDS);
+          lastCheckTime = System.currentTimeMillis();
+          remainingTime = (int) (deadlineTime - lastCheckTime);
+          if (remainingTime <= 0) {
+            throw new TimeoutException();
+          }
+          count++;
+          sortKeys.clear();
+        }
+      }
+      if (!sortKeys.isEmpty()) {
+        asyncMultiDel(new MultiDelete(rangeDelete.hashKey, sortKeys), remainingTime)
+            .get(remainingTime, TimeUnit.MILLISECONDS);
+        rangeDelete.options.nextSortKey = null;
+      }
+    } catch (InterruptedException | ExecutionException e) {
+      String nextSortKeyStr =
+          rangeDelete.options.nextSortKey == null
+              ? ""
+              : new String(rangeDelete.options.nextSortKey);
+      throw new PException(
+          "RangeDelete of hashKey:"
+              + new String(rangeDelete.hashKey)
+              + " from sortKey:"
+              + nextSortKeyStr
+              + "[index:"
+              + count * maxBatchDelCount
+              + "]"
+              + " failed:",
+          e);
+    } catch (TimeoutException e) {
+      String sortKey = sortKeys.isEmpty() ? null : new String(sortKeys.get(0));
+      int timeUsed = (int) (System.currentTimeMillis() - startTime);
+      throw new PException(
+          "RangeDelete of hashKey:"
+              + new String(rangeDelete.hashKey)
+              + " from sortKey:"
+              + sortKey
+              + "[index:"
+              + count * maxBatchDelCount
+              + "]"
+              + " failed, timeUsed:"
+              + timeUsed,
+          new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+    }
+  }
+
+  @Override
+  public int ttl(Get get, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncTTL(get, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(get.hashKey, get.sortKey), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
+  public long incr(Increment increment, int timeout) throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    try {
+      return asyncIncr(increment, timeout).get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
+    } catch (TimeoutException e) {
+      throw PException.timeout(
+          metaList,
+          table.getTableName(),
+          new Request(increment.hashKey, increment.sortKey),
+          timeout,
+          e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
+    }
+  }
+
+  @Override
   public boolean exist(byte[] hashKey, byte[] sortKey, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
     try {
@@ -1241,7 +1994,7 @@ public class PegasusTable implements PegasusTableInterface {
     for (SetItem i : items) {
       group.add(asyncSet(i.hashKey, i.sortKey, i.value, i.ttlSeconds, timeout));
     }
-    group.waitAllCompleteOrOneFail(timeout);
+    group.waitAllComplete(timeout);
   }
 
   @Override
