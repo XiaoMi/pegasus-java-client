@@ -6,29 +6,39 @@ package com.xiaomi.infra.pegasus.client;
 import io.netty.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class FutureGroup<Result> {
+  private boolean forceComplete;
 
   public FutureGroup(int initialCapacity) {
-    asyncTasks = new ArrayList<>(initialCapacity);
+    this(initialCapacity, true);
+  }
+
+  public FutureGroup(int initialCapacity, boolean forceComplete) {
+    this.asyncTasks = new ArrayList<>(initialCapacity);
+    this.forceComplete = forceComplete;
   }
 
   public void add(Future<Result> task) {
     asyncTasks.add(task);
   }
 
-  public void waitAllCompleteOrOneFail(int timeoutMillis) throws PException {
-    waitAllCompleteOrOneFail(null, timeoutMillis);
+  public void waitAllComplete(int timeoutMillis) throws PException {
+    List<Pair<PException, Result>> results = new ArrayList<>();
+    waitAllComplete(results, timeoutMillis);
   }
 
   /**
    * Waits until all future tasks complete but terminate if one fails.
    *
-   * @param results is nullable, each element is the result of the Future.
+   * @param results .
    */
-  public void waitAllCompleteOrOneFail(List<Result> results, int timeoutMillis) throws PException {
+  public int waitAllComplete(List<Pair<PException, Result>> results, int timeoutMillis)
+      throws PException {
     int timeLimit = timeoutMillis;
     long duration = 0;
+    int count = 0;
     for (int i = 0; i < asyncTasks.size(); i++) {
       Future<Result> fu = asyncTasks.get(i);
       try {
@@ -40,20 +50,26 @@ public class FutureGroup<Result> {
         throw new PException("async task #[" + i + "] await failed: " + e.toString());
       }
 
-      if (fu.isSuccess() && timeLimit >= 0) {
-        if (results != null) {
-          results.set(i, fu.getNow());
-        }
+      if (timeLimit < 0) {
+        throw new PException(
+            String.format("async task #[" + i + "] failed: timeout expired (%dms)", timeoutMillis));
+      }
+
+      if (fu.isSuccess()) {
+        count++;
+        results.add(Pair.of(null, fu.getNow()));
       } else {
         Throwable cause = fu.cause();
-        if (cause == null) {
-          throw new PException(
-              String.format(
-                  "async task #[" + i + "] failed: timeout expired (%dms)", timeoutMillis));
+        if (forceComplete) {
+          throw new PException("async task #[" + i + "] failed: " + cause.getMessage(), cause);
         }
-        throw new PException("async task #[" + i + "] failed: " + cause.getMessage(), cause);
+        results.add(
+            Pair.of(
+                new PException("async task #[" + i + "] failed: " + cause.getMessage(), cause),
+                null));
       }
     }
+    return count;
   }
 
   private List<Future<Result>> asyncTasks;

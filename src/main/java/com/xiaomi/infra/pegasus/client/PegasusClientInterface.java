@@ -7,18 +7,15 @@ import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
 import com.xiaomi.infra.pegasus.client.request.BatchDelete;
 import com.xiaomi.infra.pegasus.client.request.BatchGet;
 import com.xiaomi.infra.pegasus.client.request.BatchSet;
-import com.xiaomi.infra.pegasus.client.request.DelRange;
 import com.xiaomi.infra.pegasus.client.request.Delete;
 import com.xiaomi.infra.pegasus.client.request.Get;
-import com.xiaomi.infra.pegasus.client.request.GetRange;
 import com.xiaomi.infra.pegasus.client.request.Increment;
 import com.xiaomi.infra.pegasus.client.request.MultiDelete;
 import com.xiaomi.infra.pegasus.client.request.MultiGet;
 import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.RangeDelete;
+import com.xiaomi.infra.pegasus.client.request.RangeGet;
 import com.xiaomi.infra.pegasus.client.request.Set;
-import com.xiaomi.infra.pegasus.client.response.BatchDelResult;
-import com.xiaomi.infra.pegasus.client.response.BatchGetResult;
-import com.xiaomi.infra.pegasus.client.response.BatchSetResult;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -106,7 +103,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchGet(String tableName, BatchGet batchGet, BatchGetResult batchGetResult)
+  public void batchGet(String tableName, BatchGet batchGet, List<Pair<PException, byte[]>> results)
       throws PException;
 
   /**
@@ -125,7 +122,7 @@ public interface PegasusClientInterface {
    * @return true if all data is fetched; false if only partial data is fetched.
    * @throws PException throws exception if any error occurs.
    */
-  public MultiGetResult getRange(String tableName, GetRange getRange) throws PException;
+  public MultiGetResult rangeGet(String tableName, RangeGet rangeGet) throws PException;
 
   /**
    * Set value.
@@ -143,7 +140,7 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchSet(String tableName, BatchSet batchSet, BatchSetResult batchSetResult)
+  public void batchSet(String tableName, BatchSet batchSet, List<Pair<PException, Void>> results)
       throws PException;
 
   /**
@@ -170,7 +167,8 @@ public interface PegasusClientInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchDel(String tableName, BatchDelete batchDelete, BatchDelResult batchDelResult)
+  public void batchDel(
+      String tableName, BatchDelete batchDelete, List<Pair<PException, Void>> results)
       throws PException;
 
   public void multiDel(String tableName, MultiDelete multiDelete) throws PException;
@@ -182,7 +180,7 @@ public interface PegasusClientInterface {
    * @param tableName table name
    * @throws PException throws exception if any error occurs.
    */
-  public void delRange(String tableName, DelRange delRange) throws PException;
+  public void rangeDelete(String tableName, RangeDelete rangeDelete) throws PException;
 
   /**
    * Get ttl time.
@@ -194,7 +192,7 @@ public interface PegasusClientInterface {
   public int ttl(String tableName, Get get) throws PException;
 
   /**
-   * Atomically increment value.
+   * Atomically value value.
    *
    * @return the new value.
    * @throws PException throws exception if any error occurs.
@@ -635,18 +633,17 @@ public interface PegasusClientInterface {
   public int ttl(String tableName, byte[] hashKey, byte[] sortKey) throws PException;
 
   /**
-   * Atomically increment value.
+   * Atomically value value.
    *
    * @param tableName the table name.
-   * @param hashKey the hash key to increment.
-   * @param sortKey the sort key to increment.
-   * @param increment the increment to be added to the old value.
+   * @param hashKey the hash key to value.
+   * @param sortKey the sort key to value.
+   * @param increment the value to be added to the old value.
    * @param ttlSeconds time to live in seconds for the new value. should be no less than -1. for the
    *     second method, the ttlSeconds is 0. - if ttlSeconds == 0, the semantic is the same as
-   *     redis: - normally, increment will preserve the original ttl. - if old data is expired by
-   *     ttl, then set initial value to 0 and set no ttl. - if ttlSeconds > 0, then update with the
-   *     new ttl if increment succeed. - if ttlSeconds == -1, then update to no ttl if increment
-   *     succeed.
+   *     redis: - normally, value will preserve the original ttl. - if old data is expired by ttl,
+   *     then set initial value to 0 and set no ttl. - if ttlSeconds > 0, then update with the new
+   *     ttl if value succeed. - if ttlSeconds == -1, then update to no ttl if value succeed.
    * @return the new value.
    * @throws PException throws exception if any error occurs.
    */

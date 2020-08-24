@@ -6,18 +6,15 @@ package com.xiaomi.infra.pegasus.client;
 import com.xiaomi.infra.pegasus.client.request.BatchDelete;
 import com.xiaomi.infra.pegasus.client.request.BatchGet;
 import com.xiaomi.infra.pegasus.client.request.BatchSet;
-import com.xiaomi.infra.pegasus.client.request.DelRange;
 import com.xiaomi.infra.pegasus.client.request.Delete;
 import com.xiaomi.infra.pegasus.client.request.Get;
-import com.xiaomi.infra.pegasus.client.request.GetRange;
 import com.xiaomi.infra.pegasus.client.request.Increment;
 import com.xiaomi.infra.pegasus.client.request.MultiDelete;
 import com.xiaomi.infra.pegasus.client.request.MultiGet;
 import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.RangeDelete;
+import com.xiaomi.infra.pegasus.client.request.RangeGet;
 import com.xiaomi.infra.pegasus.client.request.Set;
-import com.xiaomi.infra.pegasus.client.response.BatchDelResult;
-import com.xiaomi.infra.pegasus.client.response.BatchGetResult;
-import com.xiaomi.infra.pegasus.client.response.BatchSetResult;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.List;
@@ -86,6 +83,27 @@ public interface PegasusTableInterface {
     @Override
     public void operationComplete(Future<Boolean> future) throws Exception;
   }
+
+  public Future<Boolean> asyncExist(Get get, int timeout /*ms*/);
+
+  public Future<Integer> asyncTTL(Get get, int timeout /*ms*/);
+
+  public Future<byte[]> asyncGet(Get get, int timeout /*ms*/);
+
+  public Future<MultiGetResult> asyncRangeGet(RangeGet rangeGet, int timeout /*ms*/)
+      throws PException;
+
+  public Future<MultiGetResult> asyncMultiGet(MultiGet multiGet, int timeout /*ms*/);
+
+  public Future<Void> asyncMultiSet(MultiSet multiSet, int timeout /*ms*/);
+
+  public Future<Void> asyncSet(Set set, int timeout /*ms*/);
+
+  public Future<Void> asyncDel(Delete delete, int timeout /*ms*/);
+
+  public Future<Void> asyncMultiDel(MultiDelete multiDelete, int timeout /*ms*/);
+
+  public Future<Long> asyncIncr(Increment increment, int timeout /*ms*/);
 
   /**
    * Check value existence for a specific (hashKey, sortKey) pair of current table, async version
@@ -481,17 +499,17 @@ public interface PegasusTableInterface {
   }
 
   /**
-   * atomically increment value by key, async version
+   * atomically value value by key, async version
    *
-   * @param hashKey the hash key to increment.
-   * @param sortKey the sort key to increment.
-   * @param increment the increment to be added to the old value.
+   * @param hashKey the hash key to value.
+   * @param sortKey the sort key to value.
+   * @param increment the value to be added to the old value.
    * @param ttlSeconds time to live in seconds for the new value. for the second method, the
    *     ttlSeconds is 0. should be no less than -1. for the second method, the ttlSeconds is 0. -
-   *     if ttlSeconds == 0, the semantic is the same as redis: - normally, increment will preserve
-   *     the original ttl. - if old data is expired by ttl, then set initial value to 0 and set no
-   *     ttl. - if ttlSeconds > 0, then update with the new ttl if increment succeed. - if
-   *     ttlSeconds == -1, then update to no ttl if increment succeed.
+   *     if ttlSeconds == 0, the semantic is the same as redis: - normally, value will preserve the
+   *     original ttl. - if old data is expired by ttl, then set initial value to 0 and set no ttl.
+   *     - if ttlSeconds > 0, then update with the new ttl if value succeed. - if ttlSeconds == -1,
+   *     then update to no ttl if value succeed.
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
    *     timeout value for current op, else the timeout value in the configuration file will be
    *     used.
@@ -748,7 +766,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchGet(BatchGet batchGet, BatchGetResult batchGetResult, int timeout)
+  public void batchGet(BatchGet batchGet, List<Pair<PException, byte[]>> results, int timeout)
       throws PException;
 
   /**
@@ -765,15 +783,7 @@ public interface PegasusTableInterface {
    * @return true if all data is fetched; false if only partial data is fetched.
    * @throws PException throws exception if any error occurs.
    */
-  public MultiGetResult getRange(GetRange getRange, int timeout) throws PException;
-
-  /**
-   * Get multiple sort keys under the same hash key.
-   *
-   * @return true if all data is fetched; false if only partial data is fetched.
-   * @throws PException throws exception if any error occurs.
-   */
-  public boolean multiGetSortKeys(MultiGet multiGet, int timeout) throws PException;
+  public MultiGetResult rangeGet(RangeGet rangeGet, int timeout) throws PException;
 
   /**
    * Set value.
@@ -789,7 +799,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchSet(BatchSet batchSet, BatchSetResult batchSetResult, int timeout)
+  public int batchSet(BatchSet batchSet, List<Pair<PException, Void>> results, int timeout)
       throws PException;
 
   /**
@@ -813,7 +823,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public void batchDel(BatchDelete batchDelete, BatchDelResult batchDelResult, int timeout)
+  public int batchDel(BatchDelete batchDelete, List<Pair<PException, Void>> results, int timeout)
       throws PException;
 
   public void multiDel(MultiDelete multiDelete, int timeout) throws PException;
@@ -824,7 +834,7 @@ public interface PegasusTableInterface {
    *
    * @throws PException throws exception if any error occurs.
    */
-  public void delRange(DelRange delRange, int timeout) throws PException;
+  public void rangeDelete(RangeDelete rangeDelete, int timeout) throws PException;
 
   /**
    * Get ttl time.
@@ -835,7 +845,7 @@ public interface PegasusTableInterface {
   public int ttl(Get get, int timeout) throws PException;
 
   /**
-   * Atomically increment value.
+   * Atomically value value.
    *
    * @return the new value.
    * @throws PException throws exception if any error occurs.

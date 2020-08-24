@@ -4,20 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BatchGet {
-    boolean forceComplete;
+  public boolean forceComplete;
 
-    public List<MultiGet> multiGetList = new ArrayList<>();
-    public List<Get> getList = new ArrayList<>();
+  public List<Get> getList = new ArrayList<>();
 
-    public BatchGet(boolean forceComplete) {
-        this.forceComplete = forceComplete;
-    }
+  public BatchGet(boolean forceComplete) {
+    this.forceComplete = forceComplete;
+  }
 
-    public void add(MultiGet multiGet){
-        multiGetList.add(multiGet);
-    }
+  public BatchGet(boolean forceComplete, List<Get> getList) {
+    this.forceComplete = forceComplete;
+    this.getList = getList;
+  }
 
-    public void add(Get get){
-        getList.add(get);
-    }
+  public void add(Get get) {
+    getList.add(get);
+  }
 }

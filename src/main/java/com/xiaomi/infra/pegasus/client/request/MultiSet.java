@@ -6,25 +6,22 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
-/**
- * @author qinzuoyan
- *     <p>Store data under the same hashKey.
- */
 public class MultiSet {
-    public byte[] hashKey;
-    public List<Pair<byte[], byte[]>> values = new ArrayList<>();
-    public int ttlSeconds = 0;
+  public byte[] hashKey;
+  public List<Pair<byte[], byte[]>> values = new ArrayList<>();
+  public int ttlSeconds;
 
-    public MultiSet(byte[] hashKey) {
-        this.hashKey = hashKey;
-    }
+  public MultiSet(byte[] hashKey) {
+    this(hashKey, 0);
+  }
 
-    public MultiSet(byte[] hashKey, int ttlSeconds) {
-        this.hashKey = hashKey;
-        this.ttlSeconds = ttlSeconds;
-    }
+  public MultiSet(byte[] hashKey, int ttlSeconds) {
+    assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF && ttlSeconds > 0);
+    this.hashKey = hashKey;
+    this.ttlSeconds = ttlSeconds;
+  }
 
-    public void add(byte[] sortKey, byte[] value) {
-        values.add(Pair.of(sortKey, value));
-    }
+  public void add(byte[] sortKey, byte[] value) {
+    values.add(Pair.of(sortKey, value));
+  }
 }

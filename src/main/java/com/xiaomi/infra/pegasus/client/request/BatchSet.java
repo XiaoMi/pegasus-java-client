@@ -4,15 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BatchSet {
-    public List<MultiSet> multiSetList = new ArrayList<>();
-    public List<Set> setList = new ArrayList<>();
+  public boolean forceComplete;
+  public List<Set> setList = new ArrayList<>();
 
-    public void add(MultiSet multiSet){
-        multiSetList.add(multiSet);
-    }
+  public BatchSet(boolean forceComplete) {
+    this.forceComplete = forceComplete;
+  }
 
-    public void add(Set set){
-        setList.add(set);
-    }
+  public BatchSet(boolean forceComplete, List<Set> setList) {
+    this.forceComplete = forceComplete;
+    this.setList = setList;
+  }
 
+  public void add(Set set) {
+    setList.add(set);
+  }
 }

@@ -7,18 +7,15 @@ import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
 import com.xiaomi.infra.pegasus.client.request.BatchDelete;
 import com.xiaomi.infra.pegasus.client.request.BatchGet;
 import com.xiaomi.infra.pegasus.client.request.BatchSet;
-import com.xiaomi.infra.pegasus.client.request.DelRange;
 import com.xiaomi.infra.pegasus.client.request.Delete;
 import com.xiaomi.infra.pegasus.client.request.Get;
-import com.xiaomi.infra.pegasus.client.request.GetRange;
 import com.xiaomi.infra.pegasus.client.request.Increment;
 import com.xiaomi.infra.pegasus.client.request.MultiDelete;
 import com.xiaomi.infra.pegasus.client.request.MultiGet;
 import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.RangeDelete;
+import com.xiaomi.infra.pegasus.client.request.RangeGet;
 import com.xiaomi.infra.pegasus.client.request.Set;
-import com.xiaomi.infra.pegasus.client.response.BatchDelResult;
-import com.xiaomi.infra.pegasus.client.response.BatchGetResult;
-import com.xiaomi.infra.pegasus.client.response.BatchSetResult;
 import com.xiaomi.infra.pegasus.rpc.*;
 import com.xiaomi.infra.pegasus.tools.Tools;
 import java.nio.ByteBuffer;
@@ -228,10 +225,10 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public void batchGet(String tableName, BatchGet batchGet, BatchGetResult batchGetResult)
+  public void batchGet(String tableName, BatchGet batchGet, List<Pair<PException, byte[]>> results)
       throws PException {
     PegasusTable tb = getTable(tableName);
-    tb.batchGet(batchGet, batchGetResult, 0);
+    tb.batchGet(batchGet, results, 0);
   }
 
   @Override
@@ -241,9 +238,9 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public MultiGetResult getRange(String tableName, GetRange getRange) throws PException {
+  public MultiGetResult rangeGet(String tableName, RangeGet rangeGet) throws PException {
     PegasusTable tb = getTable(tableName);
-    return tb.getRange(getRange, 0);
+    return tb.rangeGet(rangeGet, 0);
   }
 
   @Override
@@ -253,10 +250,10 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public void batchSet(String tableName, BatchSet batchSet, BatchSetResult batchSetResult)
+  public void batchSet(String tableName, BatchSet batchSet, List<Pair<PException, Void>> results)
       throws PException {
     PegasusTable tb = getTable(tableName);
-    tb.batchSet(batchSet, batchSetResult, 0);
+    tb.batchSet(batchSet, results, 0);
   }
 
   @Override
@@ -272,10 +269,11 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public void batchDel(String tableName, BatchDelete batchDelete, BatchDelResult batchDelResult)
+  public void batchDel(
+      String tableName, BatchDelete batchDelete, List<Pair<PException, Void>> results)
       throws PException {
     PegasusTable tb = getTable(tableName);
-    tb.batchDel(batchDelete, batchDelResult, 0);
+    tb.batchDel(batchDelete, results, 0);
   }
 
   @Override
@@ -285,9 +283,9 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public void delRange(String tableName, DelRange delRange) throws PException {
+  public void rangeDelete(String tableName, RangeDelete rangeDelete) throws PException {
     PegasusTable tb = getTable(tableName);
-    tb.delRange(delRange, 0);
+    tb.rangeDelete(rangeDelete, 0);
   }
 
   @Override
