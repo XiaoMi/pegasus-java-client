@@ -1542,7 +1542,7 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
-  public void rangeDelete(RangeDelete rangeDelete, int timeout) throws PException {
+  public void rangeDel(RangeDelete rangeDelete, int timeout) throws PException {
 
     if (timeout <= 0) timeout = defaultTimeout;
     long startTime = System.currentTimeMillis();

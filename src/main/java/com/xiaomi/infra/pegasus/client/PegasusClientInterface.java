@@ -77,126 +77,36 @@ public interface PegasusClientInterface {
   public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
       throws PException;
 
-  /**
-   * Check value exist by key from the cluster
-   *
-   * @param tableName TableHandler name
-   * @return true if exist, false if not exist
-   * @throws PException throws exception if any error occurs.
-   */
   public boolean exist(String tableName, Get get) throws PException;
 
-  /**
-   * Get value.
-   *
-   * @param tableName TableHandler name
-   * @return value; null if not found
-   * @throws PException throws exception if any error occurs.
-   */
   public byte[] get(String tableName, Get get) throws PException;
 
-  /**
-   * Batch get values of different keys. Will terminate immediately if any error occurs.
-   *
-   * @param tableName table name
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public void batchGet(String tableName, BatchGet batchGet, List<Pair<PException, byte[]>> results)
       throws PException;
 
-  /**
-   * Get multiple values under the same hash key.
-   *
-   * @param tableName table name
-   * @return true if all data is fetched; false if only partial data is fetched.
-   * @throws PException throws exception if any error occurs.
-   */
   public MultiGetResult multiGet(String tableName, MultiGet multiGet) throws PException;
 
-  /**
-   * Get multiple key-values under the same hashKey with sortKey range limited.
-   *
-   * @param tableName table name
-   * @return true if all data is fetched; false if only partial data is fetched.
-   * @throws PException throws exception if any error occurs.
-   */
   public MultiGetResult rangeGet(String tableName, RangeGet rangeGet) throws PException;
 
-  /**
-   * Set value.
-   *
-   * @param tableName TableHandler name
-   * @throws PException throws exception if any error occurs.
-   */
   public void set(String tableName, Set set) throws PException;
 
-  /**
-   * Batch set lots of values. Will terminate immediately if any error occurs.
-   *
-   * @param tableName TableHandler name
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public void batchSet(String tableName, BatchSet batchSet, List<Pair<PException, Void>> results)
       throws PException;
 
-  /**
-   * Set multiple value under the same hash key.
-   *
-   * @param tableName table name
-   * @throws PException throws exception if any error occurs.
-   */
   public void multiSet(String tableName, MultiSet multiSet) throws PException;
 
-  /**
-   * Delete value.
-   *
-   * @param tableName TableHandler name
-   * @throws PException throws exception if any error occurs.
-   */
   public void del(String tableName, Delete delete) throws PException;
 
-  /**
-   * Batch delete values of different keys. Will terminate immediately if any error occurs.
-   *
-   * @param tableName table name
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public void batchDel(
       String tableName, BatchDelete batchDelete, List<Pair<PException, Void>> results)
       throws PException;
 
   public void multiDel(String tableName, MultiDelete multiDelete) throws PException;
 
-  /**
-   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
-   * immediately if any error occurs.
-   *
-   * @param tableName table name
-   * @throws PException throws exception if any error occurs.
-   */
-  public void rangeDelete(String tableName, RangeDelete rangeDelete) throws PException;
+  public void rangeDel(String tableName, RangeDelete rangeDelete) throws PException;
 
-  /**
-   * Get ttl time.
-   *
-   * @param tableName TableHandler name
-   * @return ttl time in seconds; -1 if no ttl set; -2 if not exist.
-   * @throws PException throws exception if any error occurs.
-   */
   public int ttl(String tableName, Get get) throws PException;
 
-  /**
-   * Atomically value value.
-   *
-   * @return the new value.
-   * @throws PException throws exception if any error occurs.
-   */
   public long incr(String tableName, Increment increment) throws PException;
 
   /**

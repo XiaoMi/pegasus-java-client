@@ -283,9 +283,9 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public void rangeDelete(String tableName, RangeDelete rangeDelete) throws PException {
+  public void rangeDel(String tableName, RangeDelete rangeDelete) throws PException {
     PegasusTable tb = getTable(tableName);
-    tb.rangeDelete(rangeDelete, 0);
+    tb.rangeDel(rangeDelete, 0);
   }
 
   @Override

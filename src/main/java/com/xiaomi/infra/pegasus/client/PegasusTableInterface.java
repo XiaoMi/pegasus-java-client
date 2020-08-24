@@ -67,7 +67,6 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  * <p>Please refer to the netty document for the usage of Future.
  */
-// TODO(jiashuo1): refactor as PegasusClientInterface
 public interface PegasusTableInterface {
 
   /// < -------- Exist --------
@@ -123,6 +122,7 @@ public interface PegasusTableInterface {
    *     are guaranteed to be executed as the same order as the listeners added. But listeners for
    *     different tables are not guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Boolean> asyncExist(byte[] hashKey, byte[] sortKey, int timeout /*ms*/);
 
   /// < -------- SortKeyCount --------
@@ -154,6 +154,7 @@ public interface PegasusTableInterface {
    *     are guaranteed to be executed as the same order as the listeners added. But listeners for
    *     different tables are not guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Long> asyncSortKeyCount(byte[] hashKey, int timeout /*ms*/);
 
   /// < -------- Get --------
@@ -188,6 +189,7 @@ public interface PegasusTableInterface {
    *     are guaranteed to be executed as the same order as the listeners added. But listeners for
    *     different tables are not guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<byte[]> asyncGet(byte[] hashKey, byte[] sortKey, int timeout /*ms*/);
 
   /// < -------- MultiGet --------
@@ -240,6 +242,7 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<MultiGetResult> asyncMultiGet(
       byte[] hashKey,
       List<byte[]> sortKeys,
@@ -247,6 +250,7 @@ public interface PegasusTableInterface {
       int maxFetchSize,
       int timeout /*ms*/);
 
+  @Deprecated
   public Future<MultiGetResult> asyncMultiGet(
       byte[] hashKey, List<byte[]> sortKeys, int timeout /*ms*/);
 
@@ -272,6 +276,7 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<MultiGetResult> asyncMultiGet(
       byte[] hashKey,
       byte[] startSortKey,
@@ -281,6 +286,7 @@ public interface PegasusTableInterface {
       int maxFetchSize,
       int timeout /*ms*/);
 
+  @Deprecated
   public Future<MultiGetResult> asyncMultiGet(
       byte[] hashKey,
       byte[] startSortKey,
@@ -335,9 +341,11 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<MultiGetSortKeysResult> asyncMultiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout /*ms*/);
 
+  @Deprecated
   public Future<MultiGetSortKeysResult> asyncMultiGetSortKeys(byte[] hashKey, int timeout /*ms*/);
 
   /// < -------- Set --------
@@ -374,9 +382,11 @@ public interface PegasusTableInterface {
    *     are guaranteed to be executed as the same order as the listeners added. But listeners for
    *     different tables are not guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Void> asyncSet(
       byte[] hashKey, byte[] sortKey, byte[] value, int ttlSeconds, int timeout /*ms*/);
 
+  @Deprecated
   public Future<Void> asyncSet(byte[] hashKey, byte[] sortKey, byte[] value, int timeout /*ms*/);
 
   /// < -------- MultiGet --------
@@ -411,9 +421,11 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Void> asyncMultiSet(
       byte[] hashKey, List<Pair<byte[], byte[]>> values, int ttlSeconds, int timeout /*ms*/);
 
+  @Deprecated
   public Future<Void> asyncMultiSet(
       byte[] hashKey, List<Pair<byte[], byte[]>> values, int timeout /*ms*/);
 
@@ -449,6 +461,7 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Void> asyncDel(byte[] hashKey, byte[] sortKey, int timeout /*ms*/);
 
   /// < -------- MultiDel --------
@@ -482,6 +495,7 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Void> asyncMultiDel(byte[] hashKey, List<byte[]> sortKeys, int timeout /*ms*/);
 
   /// < -------- Incr --------
@@ -521,9 +535,11 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Long> asyncIncr(
       byte[] hashKey, byte[] sortKey, long increment, int ttlSeconds, int timeout /*ms*/);
 
+  @Deprecated
   public Future<Long> asyncIncr(byte[] hashKey, byte[] sortKey, long increment, int timeout /*ms*/);
 
   /// < -------- CheckAndSet --------
@@ -739,117 +755,40 @@ public interface PegasusTableInterface {
    *     the same order as the listeners added. But listeners for different tables are not
    *     guaranteed to be dispatched in the same thread.
    */
+  @Deprecated
   public Future<Integer> asyncTTL(byte[] hashKey, byte[] sortKey, int timeout /*ms*/);
 
   /// < -------- Sync Methods --------
 
-  /**
-   * Check value exist by key from the cluster
-   *
-   * @return true if exist, false if not exist
-   * @throws PException throws exception if any error occurs.
-   */
   public boolean exist(Get get, int timeout) throws PException;
 
-  /**
-   * Get value.
-   *
-   * @return value; null if not found
-   * @throws PException throws exception if any error occurs.
-   */
   public byte[] get(Get get, int timeout) throws PException;
 
-  /**
-   * Batch get values of different keys. Will terminate immediately if any error occurs.
-   *
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public void batchGet(BatchGet batchGet, List<Pair<PException, byte[]>> results, int timeout)
       throws PException;
 
-  /**
-   * Get multiple values under the same hash key.
-   *
-   * @return true if all data is fetched; false if only partial data is fetched.
-   * @throws PException throws exception if any error occurs.
-   */
   public MultiGetResult multiGet(MultiGet multiGet, int timeout) throws PException;
 
-  /**
-   * Get multiple key-values under the same hashKey with sortKey range limited.
-   *
-   * @return true if all data is fetched; false if only partial data is fetched.
-   * @throws PException throws exception if any error occurs.
-   */
   public MultiGetResult rangeGet(RangeGet rangeGet, int timeout) throws PException;
 
-  /**
-   * Set value.
-   *
-   * @throws PException throws exception if any error occurs.
-   */
   public void set(Set set, int timeout) throws PException;
 
-  /**
-   * Batch set lots of values. Will terminate immediately if any error occurs.
-   *
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public int batchSet(BatchSet batchSet, List<Pair<PException, Void>> results, int timeout)
       throws PException;
 
-  /**
-   * Set multiple value under the same hash key.
-   *
-   * @throws PException throws exception if any error occurs.
-   */
   public void multiSet(MultiSet multiSet, int timeout) throws PException;
 
-  /**
-   * Delete value.
-   *
-   * @throws PException throws exception if any error occurs.
-   */
   public void del(Delete delete, int timeout) throws PException;
 
-  /**
-   * Batch delete values of different keys. Will terminate immediately if any error occurs.
-   *
-   * @throws PException throws exception if any error occurs.
-   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
-   *     failed.
-   */
   public int batchDel(BatchDelete batchDelete, List<Pair<PException, Void>> results, int timeout)
       throws PException;
 
   public void multiDel(MultiDelete multiDelete, int timeout) throws PException;
 
-  /**
-   * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
-   * immediately if any error occurs.
-   *
-   * @throws PException throws exception if any error occurs.
-   */
-  public void rangeDelete(RangeDelete rangeDelete, int timeout) throws PException;
+  public void rangeDel(RangeDelete rangeDelete, int timeout) throws PException;
 
-  /**
-   * Get ttl time.
-   *
-   * @return ttl time in seconds; -1 if no ttl set; -2 if not exist.
-   * @throws PException throws exception if any error occurs.
-   */
   public int ttl(Get get, int timeout) throws PException;
 
-  /**
-   * Atomically value value.
-   *
-   * @return the new value.
-   * @throws PException throws exception if any error occurs.
-   */
   public long incr(Increment increment, int timeout) throws PException;
 
   /**
