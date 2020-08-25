@@ -15,13 +15,14 @@ public final class ClientRequestRound {
 
   client_operator operator;
   Table.ClientOPCallback callback;
-  long timeoutMs;
+  public long timeoutMs;
 
   boolean enableCounter;
   long createNanoTime;
   long expireNanoTime;
   boolean isCompleted;
-  ScheduledFuture<?> backupRequestTask;
+  int tryId;
+  public ScheduledFuture<?> backupRequestTask;
 
   /**
    * Constructor.
@@ -42,6 +43,7 @@ public final class ClientRequestRound {
     this.createNanoTime = System.nanoTime();
     this.expireNanoTime = createNanoTime + timeoutInMilliseconds;
     this.isCompleted = false;
+    this.tryId = 1;
     this.backupRequestTask = null;
   }
 

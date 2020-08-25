@@ -38,19 +38,19 @@ public class TableHandler extends Table {
     public List<ReplicaSession> secondarySessions = new ArrayList<>();
   }
 
-  static final class TableConfiguration {
-    ArrayList<ReplicaConfiguration> replicas;
-    long updateVersion;
+  public static final class TableConfiguration {
+    public ArrayList<ReplicaConfiguration> replicas;
+    public long updateVersion;
   }
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandler.class);
   ClusterManager manager_;
-  EventExecutor executor_; // should be only one thread in this service
+  public EventExecutor executor_; // should be only one thread in this service
 
-  AtomicReference<TableConfiguration> tableConfig_;
+  public AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  int backupRequestDelayMs;
+  public int backupRequestDelayMs;
 
   public TableHandler(ClusterManager mgr, String name, TableOptions options)
       throws ReplicationException {
@@ -237,8 +237,7 @@ public class TableHandler extends Table {
     return true;
   }
 
-  void onRpcReply(
-      ClientRequestRound round, int tryId, long cachedConfigVersion, String serverAddr) {
+  public void onRpcReply(ClientRequestRound round, long cachedConfigVersion, String serverAddr) {
     // judge if it is the first response
     if (round.isCompleted) {
       return;
@@ -272,7 +271,7 @@ public class TableHandler extends Table {
             serverAddr,
             operator.get_gpid().toString(),
             operator,
-            tryId,
+            round.tryId,
             operator.rpc_error.errno.toString());
         break;
 
@@ -286,7 +285,7 @@ public class TableHandler extends Table {
             serverAddr,
             operator.get_gpid().toString(),
             operator,
-            tryId,
+            round.tryId,
             operator.rpc_error.errno.toString());
         needQueryMeta = true;
         break;
@@ -300,7 +299,7 @@ public class TableHandler extends Table {
             serverAddr,
             operator.get_gpid().toString(),
             operator,
-            tryId,
+            round.tryId,
             operator.rpc_error.errno.toString());
         break;
 
@@ -312,7 +311,7 @@ public class TableHandler extends Table {
             serverAddr,
             operator.get_gpid().toString(),
             operator,
-            tryId,
+            round.tryId,
             operator.rpc_error.errno.toString());
         round.thisRoundCompletion();
         return;
@@ -332,17 +331,18 @@ public class TableHandler extends Table {
             round.enableCounter,
             round.expireNanoTime,
             round.timeoutMs);
-    tryDelayCall(delayRequestRound, tryId + 1);
+    tryDelayCall(delayRequestRound);
   }
 
-  void tryDelayCall(final ClientRequestRound round, final int tryId) {
+  void tryDelayCall(final ClientRequestRound round) {
+    round.tryId++;
     long nanoDelay = manager_.getRetryDelay(round.timeoutMs) * 1000000L;
     if (round.expireNanoTime - System.nanoTime() > nanoDelay) {
       executor_.schedule(
           new Runnable() {
             @Override
             public void run() {
-              call(round, tryId);
+              call(round);
             }
           },
           nanoDelay,
@@ -357,7 +357,7 @@ public class TableHandler extends Table {
     }
   }
 
-  void call(final ClientRequestRound round, final int tryId) {
+  void call(final ClientRequestRound round) {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
@@ -366,7 +366,7 @@ public class TableHandler extends Table {
     if (handle.primarySession != null) {
       // if backup request is enabled, schedule to send to secondary
       if (round.operator.enableBackupRequest && isBackupRequestEnabled()) {
-        backupCall(round, tryId);
+        backupCall(round);
       }
 
       // send request to primary
@@ -375,7 +375,7 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              onRpcReply(round, tryId, tableConfig.updateVersion, handle.primarySession.name());
+              onRpcReply(round, tableConfig.updateVersion, handle.primarySession.name());
             }
           },
           round.timeoutMs,
@@ -386,13 +386,13 @@ public class TableHandler extends Table {
           tableName_,
           round.getOperator().get_gpid().toString(),
           round.getOperator(),
-          tryId);
+          round.tryId);
       tryQueryMeta(tableConfig.updateVersion);
-      tryDelayCall(round, tryId + 1);
+      tryDelayCall(round);
     }
   }
 
-  void backupCall(final ClientRequestRound round, final int tryId) {
+  void backupCall(final ClientRequestRound round) {
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
@@ -411,8 +411,7 @@ public class TableHandler extends Table {
                     new Runnable() {
                       @Override
                       public void run() {
-                        onRpcReply(
-                            round, tryId, tableConfig.updateVersion, secondarySession.name());
+                        onRpcReply(round, tableConfig.updateVersion, secondarySession.name());
                       }
                     },
                     round.timeoutMs,
@@ -483,7 +482,7 @@ public class TableHandler extends Table {
 
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
-    call(round, 1);
+    call(round);
   }
 
   private void handleMetaException(error_types err_type, ClusterManager mgr, String name)
