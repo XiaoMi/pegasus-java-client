@@ -1,5 +1,6 @@
 package com.xiaomi.infra.pegasus.tools.interceptor;
 
+import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
@@ -9,32 +10,28 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class BackupRequestInterceptor implements TableInterceptor {
-  private boolean isEnable;
 
-  private TableHandler tableHandler;
-  private ClientRequestRound clientRequestRound;
+  private boolean isOpen;
 
-  public BackupRequestInterceptor(
-      boolean isEnable, TableHandler tableHandler, ClientRequestRound clientRequestRound) {
-    this.isEnable = isEnable;
-    this.tableHandler = tableHandler;
-    this.clientRequestRound = clientRequestRound;
+  public BackupRequestInterceptor(boolean isOpen) {
+    this.isOpen = isOpen;
   }
 
   @Override
-  public void interceptBefore() throws Exception {
-    backupCall();
+  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
+    backupCall(clientRequestRound, tableHandler);
   }
 
   @Override
-  public void interceptAfter() throws Exception {}
+  public void interceptAfter(
+      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {}
 
-  @Override
-  public boolean isEnable() {
-    return isEnable;
-  }
+  private void backupCall(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
 
-  private void backupCall() {
+    if (!isOpen || !clientRequestRound.getOperator().enableBackupRequest) {
+      return;
+    }
+
     final TableConfiguration tableConfig = tableHandler.tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(clientRequestRound.getOperator().get_gpid().get_pidx());
@@ -48,13 +45,9 @@ public class BackupRequestInterceptor implements TableInterceptor {
                       new Random().nextInt(handle.secondarySessions.size()));
               secondarySession.asyncSend(
                   clientRequestRound.getOperator(),
-                  new Runnable() {
-                    @Override
-                    public void run() {
+                  () ->
                       tableHandler.onRpcReply(
-                          clientRequestRound, tableConfig.updateVersion, secondarySession.name());
-                    }
-                  },
+                          clientRequestRound, tableConfig.updateVersion, secondarySession.name()),
                   clientRequestRound.timeoutMs,
                   true);
             },

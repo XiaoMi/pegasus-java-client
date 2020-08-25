@@ -16,12 +16,13 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
+import com.xiaomi.infra.pegasus.tools.interceptor.BackupRequestInterceptor;
+import com.xiaomi.infra.pegasus.tools.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +52,7 @@ public class TableHandler extends Table {
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
   public int backupRequestDelayMs;
+  private InterceptorManger interceptorManger;
 
   public TableHandler(ClusterManager mgr, String name, TableOptions options)
       throws ReplicationException {
@@ -107,6 +109,10 @@ public class TableHandler extends Table {
 
     inQuerying_ = new AtomicBoolean(false);
     lastQueryTime_ = 0;
+
+    this.interceptorManger = new InterceptorManger();
+
+    interceptorManger.add(new BackupRequestInterceptor(options.enableBackupRequest()));
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -365,9 +371,7 @@ public class TableHandler extends Table {
 
     if (handle.primarySession != null) {
       // if backup request is enabled, schedule to send to secondary
-      if (round.operator.enableBackupRequest && isBackupRequestEnabled()) {
-        backupCall(round);
-      }
+      interceptorManger.executeBefore(round, this);
 
       // send request to primary
       handle.primarySession.asyncSend(
@@ -390,36 +394,6 @@ public class TableHandler extends Table {
       tryQueryMeta(tableConfig.updateVersion);
       tryDelayCall(round);
     }
-  }
-
-  void backupCall(final ClientRequestRound round) {
-    final TableConfiguration tableConfig = tableConfig_.get();
-    final ReplicaConfiguration handle =
-        tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
-
-    round.backupRequestTask =
-        executor_.schedule(
-            new Runnable() {
-              @Override
-              public void run() {
-                // pick a secondary at random
-                ReplicaSession secondarySession =
-                    handle.secondarySessions.get(
-                        new Random().nextInt(handle.secondarySessions.size()));
-                secondarySession.asyncSend(
-                    round.getOperator(),
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        onRpcReply(round, tableConfig.updateVersion, secondarySession.name());
-                      }
-                    },
-                    round.timeoutMs,
-                    true);
-              }
-            },
-            backupRequestDelayMs,
-            TimeUnit.MILLISECONDS);
   }
 
   @Override
