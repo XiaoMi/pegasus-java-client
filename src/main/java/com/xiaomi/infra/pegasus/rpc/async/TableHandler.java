@@ -17,6 +17,7 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import com.xiaomi.infra.pegasus.tools.interceptor.BackupRequestInterceptor;
+import com.xiaomi.infra.pegasus.tools.interceptor.CompressInterceptor;
 import com.xiaomi.infra.pegasus.tools.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
@@ -112,7 +113,9 @@ public class TableHandler extends Table {
 
     this.interceptorManger = new InterceptorManger();
 
-    interceptorManger.add(new BackupRequestInterceptor(options.enableBackupRequest()));
+    interceptorManger
+        .add(new BackupRequestInterceptor(options.enableBackupRequest()))
+        .add(new CompressInterceptor(options.enableCompress()));
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -263,6 +266,11 @@ public class TableHandler extends Table {
     }
 
     client_operator operator = round.getOperator();
+    try {
+      interceptorManger.executeAfter(round, operator.rpc_error.errno, this);
+    } catch (PException e) {
+      logger.warn("interceptorManger executeAfter failed!");
+    }
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
@@ -348,7 +356,11 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              call(round);
+              try {
+                call(round);
+              } catch (PException e) {
+                logger.warn("try delay call failed");
+              }
             }
           },
           nanoDelay,
@@ -363,7 +375,7 @@ public class TableHandler extends Table {
     }
   }
 
-  void call(final ClientRequestRound round) {
+  void call(final ClientRequestRound round) throws PException {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
@@ -456,7 +468,11 @@ public class TableHandler extends Table {
 
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
-    call(round);
+    try {
+      call(round);
+    } catch (PException e) {
+      logger.warn("call failed");
+    }
   }
 
   private void handleMetaException(error_types err_type, ClusterManager mgr, String name)

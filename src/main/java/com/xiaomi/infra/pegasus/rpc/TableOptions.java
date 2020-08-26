@@ -7,6 +7,7 @@ package com.xiaomi.infra.pegasus.rpc;
 public class TableOptions {
   private final KeyHasher keyHasher;
   private final int backupRequestDelayMs;
+  private final boolean enableCompress;
 
   public KeyHasher keyHasher() {
     return this.keyHasher;
@@ -17,15 +18,20 @@ public class TableOptions {
   }
 
   public static TableOptions forTest() {
-    return new TableOptions(KeyHasher.DEFAULT, 0);
+    return new TableOptions(KeyHasher.DEFAULT, 0, false);
   }
 
-  public TableOptions(KeyHasher h, int backupRequestDelay) {
+  public TableOptions(KeyHasher h, int backupRequestDelay, boolean enableCompress) {
     this.keyHasher = h;
     this.backupRequestDelayMs = backupRequestDelay;
+    this.enableCompress = enableCompress;
   }
 
   public boolean enableBackupRequest() {
     return backupRequestDelayMs > 0;
+  }
+
+  public boolean enableCompress() {
+    return enableCompress;
   }
 }
