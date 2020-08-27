@@ -16,6 +16,7 @@ public final class ClientRequestRound {
   client_operator operator;
   Table.ClientOPCallback callback;
   public long timeoutMs;
+  public long remainingTime;
 
   boolean enableCounter;
   long createNanoTime;

@@ -16,6 +16,7 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
+import com.xiaomi.infra.pegasus.tools.interceptor.AutoRetryInterceptor;
 import com.xiaomi.infra.pegasus.tools.interceptor.BackupRequestInterceptor;
 import com.xiaomi.infra.pegasus.tools.interceptor.CompressInterceptor;
 import com.xiaomi.infra.pegasus.tools.interceptor.InterceptorManger;
@@ -115,7 +116,10 @@ public class TableHandler extends Table {
 
     interceptorManger
         .add(new BackupRequestInterceptor(options.enableBackupRequest()))
-        .add(new CompressInterceptor(options.enableCompress()));
+        .add(new CompressInterceptor(options.enableCompress()))
+        .add(
+            new AutoRetryInterceptor(
+                options.enableAutoRetry(), options.retryTimeMs, mgr.getTimeout()));
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -375,7 +379,7 @@ public class TableHandler extends Table {
     }
   }
 
-  void call(final ClientRequestRound round) throws PException {
+  public void call(final ClientRequestRound round) throws PException {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
