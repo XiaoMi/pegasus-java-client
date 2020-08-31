@@ -17,7 +17,7 @@ public abstract class client_operator {
    * Generally, only read-operations supports backup request which sacrifices strong-consistency.
    */
   public boolean supportBackupRequest() {
-    return true;
+    return false;
   }
 
   public client_operator(gpid gpid, String tableName, long partitionHash) {
