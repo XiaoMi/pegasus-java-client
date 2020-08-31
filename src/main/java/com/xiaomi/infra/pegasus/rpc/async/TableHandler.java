@@ -367,7 +367,6 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      // if backup request is enabled, schedule to send to secondary
       interceptorManger.interceptBefore(round, this);
 
       // send request to primary
