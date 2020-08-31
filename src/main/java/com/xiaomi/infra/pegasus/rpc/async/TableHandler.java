@@ -16,8 +16,8 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.tools.interceptor.BackupRequestInterceptor;
-import com.xiaomi.infra.pegasus.tools.interceptor.InterceptorManger;
+import com.xiaomi.infra.pegasus.rpc.interceptor.BackupRequestInterceptor;
+import com.xiaomi.infra.pegasus.rpc.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
@@ -248,7 +248,7 @@ public class TableHandler extends Table {
     if (round.isCompleted) {
       return;
     } else {
-      synchronized (round) {
+      synchronized (TableHandler.class) {
         // the fastest response has been received
         if (round.isCompleted) {
           return;
@@ -257,10 +257,7 @@ public class TableHandler extends Table {
       }
     }
 
-    // cancel the backup request task
-    if (round.backupRequestTask != null) {
-      round.backupRequestTask.cancel(true);
-    }
+    interceptorManger.executeAfter(round, round.getOperator().rpc_error.errno, this);
 
     client_operator operator = round.getOperator();
     boolean needQueryMeta = false;

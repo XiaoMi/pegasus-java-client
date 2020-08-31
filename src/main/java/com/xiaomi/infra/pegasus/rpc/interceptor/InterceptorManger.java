@@ -1,4 +1,4 @@
-package com.xiaomi.infra.pegasus.tools.interceptor;
+package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
