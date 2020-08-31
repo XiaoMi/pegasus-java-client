@@ -257,9 +257,8 @@ public class TableHandler extends Table {
       }
     }
 
-    interceptorManger.interceptAfter(round, round.getOperator().rpc_error.errno, this);
-
     client_operator operator = round.getOperator();
+    interceptorManger.interceptAfter(round, operator.rpc_error.errno, this);
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
