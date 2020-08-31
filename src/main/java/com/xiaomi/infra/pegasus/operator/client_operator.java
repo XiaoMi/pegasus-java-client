@@ -14,7 +14,7 @@ public abstract class client_operator {
 
   /**
    * Whether does this RPC support backup request.<br>
-   * Generally, only read-operations supports backup request which sacrifices strong-consistency.
+   * Generally, only read-operations support backup-request which sacrifices strong-consistency.
    */
   public boolean supportBackupRequest() {
     return false;
