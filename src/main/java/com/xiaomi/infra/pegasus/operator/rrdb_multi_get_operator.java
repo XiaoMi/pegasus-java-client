@@ -16,7 +16,7 @@ public class rrdb_multi_get_operator extends client_operator {
       String tableName,
       multi_get_request request,
       long partitionHash) {
-    super(gpid, tableName, partitionHash, true);
+    super(gpid, tableName, partitionHash);
     this.request = request;
   }
 
