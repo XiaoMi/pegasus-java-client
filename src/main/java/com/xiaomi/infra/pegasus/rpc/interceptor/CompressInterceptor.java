@@ -1,4 +1,4 @@
-package com.xiaomi.infra.pegasus.tools.interceptor;
+package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.apps.key_value;
 import com.xiaomi.infra.pegasus.apps.mutate;

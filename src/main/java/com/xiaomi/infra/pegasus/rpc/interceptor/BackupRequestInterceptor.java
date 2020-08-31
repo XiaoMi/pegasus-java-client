@@ -1,4 +1,4 @@
-package com.xiaomi.infra.pegasus.tools.interceptor;
+package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
@@ -24,10 +24,14 @@ public class BackupRequestInterceptor implements TableInterceptor {
 
   @Override
   public void interceptAfter(
-      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {}
+      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
+    // cancel the backup request task
+    if (clientRequestRound.backupRequestTask != null) {
+      clientRequestRound.backupRequestTask.cancel(true);
+    }
+  }
 
   private void backupCall(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
-
     if (!isOpen || !clientRequestRound.getOperator().enableBackupRequest) {
       return;
     }
