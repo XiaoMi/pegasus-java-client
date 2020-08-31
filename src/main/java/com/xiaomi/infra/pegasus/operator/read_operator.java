@@ -20,8 +20,8 @@ package com.xiaomi.infra.pegasus.operator;
 import com.xiaomi.infra.pegasus.base.gpid;
 
 /** Identifies that an RPC is a pure read-operation. */
-abstract class ReadOperator extends client_operator {
-  public ReadOperator(gpid gpid, String tableName, long partitionHash) {
+abstract class read_operator extends client_operator {
+  public read_operator(gpid gpid, String tableName, long partitionHash) {
     super(gpid, tableName, partitionHash);
   }
 
