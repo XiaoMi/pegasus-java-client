@@ -15,13 +15,13 @@ public class InterceptorManger {
     return this;
   }
 
-  public void executeBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
+  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
       interceptor.interceptBefore(clientRequestRound, tableHandler);
     }
   }
 
-  public void executeAfter(
+  public void interceptAfter(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
       interceptor.interceptAfter(clientRequestRound, errno, tableHandler);

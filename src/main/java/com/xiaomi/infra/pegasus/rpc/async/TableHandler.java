@@ -257,7 +257,7 @@ public class TableHandler extends Table {
       }
     }
 
-    interceptorManger.executeAfter(round, round.getOperator().rpc_error.errno, this);
+    interceptorManger.interceptAfter(round, round.getOperator().rpc_error.errno, this);
 
     client_operator operator = round.getOperator();
     boolean needQueryMeta = false;
@@ -368,7 +368,7 @@ public class TableHandler extends Table {
 
     if (handle.primarySession != null) {
       // if backup request is enabled, schedule to send to secondary
-      interceptorManger.executeBefore(round, this);
+      interceptorManger.interceptBefore(round, this);
 
       // send request to primary
       handle.primarySession.asyncSend(

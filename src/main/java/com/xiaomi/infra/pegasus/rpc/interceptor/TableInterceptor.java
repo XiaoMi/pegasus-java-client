@@ -5,9 +5,9 @@ import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 
 public interface TableInterceptor {
-  // The behavior before the ReplicaSession sends the RPC.
+  // The behavior before sending the RPC to a table.
   void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler);
-  // The behavior after the ReplicaSession get reply or failure of the RPC.
+  // The behavior after  getting reply or failure of the RPC.
   void interceptAfter(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler);
 }
