@@ -40,18 +40,26 @@ public class TableHandler extends Table {
   }
 
   public static final class TableConfiguration {
-    public ArrayList<ReplicaConfiguration> replicas;
-    public long updateVersion;
+    ArrayList<ReplicaConfiguration> replicas;
+    long updateVersion;
+
+    public ArrayList<ReplicaConfiguration> replicas() {
+      return replicas;
+    }
+
+    public long updateVersion() {
+      return updateVersion;
+    }
   }
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandler.class);
   ClusterManager manager_;
-  public EventExecutor executor_; // should be only one thread in this service
+  EventExecutor executor_; // should be only one thread in this service
 
-  public AtomicReference<TableConfiguration> tableConfig_;
+  AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  public int backupRequestDelayMs;
+  int backupRequestDelayMs;
   private InterceptorManger interceptorManger;
 
   public TableHandler(ClusterManager mgr, String name, TableOptions options)
@@ -431,6 +439,14 @@ public class TableHandler extends Table {
     if (op.rpc_error.errno != error_types.ERR_OK) {
       throw new ReplicationException(op.rpc_error.errno);
     }
+  }
+
+  public TableConfiguration tableConfiguration() {
+    return tableConfig_.get();
+  }
+
+  public int backupRequestDelayMs() {
+    return backupRequestDelayMs;
   }
 
   @Override

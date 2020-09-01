@@ -15,14 +15,14 @@ public final class ClientRequestRound {
 
   client_operator operator;
   Table.ClientOPCallback callback;
-  public long timeoutMs;
+  long timeoutMs;
 
   boolean enableCounter;
   long createNanoTime;
   long expireNanoTime;
   boolean isCompleted;
   int tryId;
-  public ScheduledFuture<?> backupRequestTask;
+  ScheduledFuture<?> backupRequestTask;
 
   /**
    * Constructor.
@@ -55,6 +55,18 @@ public final class ClientRequestRound {
       long timeoutInMilliseconds) {
     this(op, cb, enableCounter, timeoutInMilliseconds);
     this.expireNanoTime = expireNanoTime;
+  }
+
+  public long timeoutMs() {
+    return timeoutMs;
+  }
+
+  public ScheduledFuture<?> backupRequestTask() {
+    return backupRequestTask;
+  }
+
+  public void backupRequestTask(ScheduledFuture<?> task) {
+    backupRequestTask = task;
   }
 
   public com.xiaomi.infra.pegasus.operator.client_operator getOperator() {

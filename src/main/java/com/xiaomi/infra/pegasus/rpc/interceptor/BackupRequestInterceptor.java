@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.ReplicaConfiguration;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.TableConfiguration;
 import java.util.Random;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class BackupRequestInterceptor implements TableInterceptor {
@@ -26,8 +27,9 @@ public class BackupRequestInterceptor implements TableInterceptor {
   public void interceptAfter(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     // cancel the backup request task
-    if (clientRequestRound.backupRequestTask != null) {
-      clientRequestRound.backupRequestTask.cancel(true);
+    ScheduledFuture<?> backupRequestTask = clientRequestRound.backupRequestTask();
+    if (backupRequestTask != null) {
+      backupRequestTask.cancel(true);
     }
   }
 
@@ -36,26 +38,30 @@ public class BackupRequestInterceptor implements TableInterceptor {
       return;
     }
 
-    final TableConfiguration tableConfig = tableHandler.tableConfig_.get();
+    final TableConfiguration tableConfig = tableHandler.tableConfiguration();
     final ReplicaConfiguration handle =
-        tableConfig.replicas.get(clientRequestRound.getOperator().get_gpid().get_pidx());
+        tableConfig.replicas().get(clientRequestRound.getOperator().get_gpid().get_pidx());
 
-    clientRequestRound.backupRequestTask =
-        tableHandler.executor_.schedule(
-            () -> {
-              // pick a secondary at random
-              ReplicaSession secondarySession =
-                  handle.secondarySessions.get(
-                      new Random().nextInt(handle.secondarySessions.size()));
-              secondarySession.asyncSend(
-                  clientRequestRound.getOperator(),
-                  () ->
-                      tableHandler.onRpcReply(
-                          clientRequestRound, tableConfig.updateVersion, secondarySession.name()),
-                  clientRequestRound.timeoutMs,
-                  true);
-            },
-            tableHandler.backupRequestDelayMs,
-            TimeUnit.MILLISECONDS);
+    clientRequestRound.backupRequestTask(
+        tableHandler
+            .getExecutor()
+            .schedule(
+                () -> {
+                  // pick a secondary at random
+                  ReplicaSession secondarySession =
+                      handle.secondarySessions.get(
+                          new Random().nextInt(handle.secondarySessions.size()));
+                  secondarySession.asyncSend(
+                      clientRequestRound.getOperator(),
+                      () ->
+                          tableHandler.onRpcReply(
+                              clientRequestRound,
+                              tableConfig.updateVersion(),
+                              secondarySession.name()),
+                      clientRequestRound.timeoutMs(),
+                      true);
+                },
+                tableHandler.backupRequestDelayMs(),
+                TimeUnit.MILLISECONDS));
   }
 }
