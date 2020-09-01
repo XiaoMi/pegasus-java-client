@@ -111,7 +111,6 @@ public class TableHandler extends Table {
     lastQueryTime_ = 0;
 
     this.interceptorManger = new InterceptorManger();
-
     interceptorManger.add(new BackupRequestInterceptor(options.enableBackupRequest()));
   }
 
