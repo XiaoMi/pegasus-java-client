@@ -5,7 +5,6 @@ import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.ReplicaConfiguration;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler.TableConfiguration;
 import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -38,9 +37,8 @@ public class BackupRequestInterceptor implements TableInterceptor {
       return;
     }
 
-    final TableConfiguration tableConfig = tableHandler.tableConfiguration();
     final ReplicaConfiguration handle =
-        tableConfig.replicas().get(clientRequestRound.getOperator().get_gpid().get_pidx());
+        tableHandler.getReplicaConfig(clientRequestRound.getOperator().get_gpid().get_pidx());
 
     clientRequestRound.backupRequestTask(
         tableHandler
@@ -56,7 +54,7 @@ public class BackupRequestInterceptor implements TableInterceptor {
                       () ->
                           tableHandler.onRpcReply(
                               clientRequestRound,
-                              tableConfig.updateVersion(),
+                              tableHandler.updateVersion(),
                               secondarySession.name()),
                       clientRequestRound.timeoutMs(),
                       true);

@@ -39,17 +39,9 @@ public class TableHandler extends Table {
     public List<ReplicaSession> secondarySessions = new ArrayList<>();
   }
 
-  public static final class TableConfiguration {
+  static final class TableConfiguration {
     ArrayList<ReplicaConfiguration> replicas;
     long updateVersion;
-
-    public ArrayList<ReplicaConfiguration> replicas() {
-      return replicas;
-    }
-
-    public long updateVersion() {
-      return updateVersion;
-    }
   }
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandler.class);
@@ -441,12 +433,12 @@ public class TableHandler extends Table {
     }
   }
 
-  public TableConfiguration tableConfiguration() {
-    return tableConfig_.get();
-  }
-
   public int backupRequestDelayMs() {
     return backupRequestDelayMs;
+  }
+
+  public long updateVersion() {
+    return tableConfig_.get().updateVersion;
   }
 
   @Override
