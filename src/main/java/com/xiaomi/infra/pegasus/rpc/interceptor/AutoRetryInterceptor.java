@@ -6,11 +6,9 @@ import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 
 public class AutoRetryInterceptor implements TableInterceptor {
   private long retryTime;
-  private long timeout;
 
-  public AutoRetryInterceptor(long retryTime, long timeout) {
+  public AutoRetryInterceptor(long retryTime) {
     this.retryTime = retryTime;
-    this.timeout = timeout;
   }
 
   @Override
@@ -27,7 +25,7 @@ public class AutoRetryInterceptor implements TableInterceptor {
       return;
     }
 
-    clientRequestRound.remainingTime -= timeout;
+    clientRequestRound.remainingTime -= clientRequestRound.timeoutMs;
     if (clientRequestRound.remainingTime <= 0) {
       return;
     }

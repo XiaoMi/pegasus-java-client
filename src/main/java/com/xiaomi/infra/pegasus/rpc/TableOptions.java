@@ -9,13 +9,14 @@ import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
 public class TableOptions {
   private KeyHasher keyHasher;
   private int backupRequestDelayMs;
-  public long retryTimeMs;
   private boolean enableCompression;
+  public long retryTimeMs;
 
   public TableOptions() {
     this.keyHasher = new PegasusHasher();
     this.backupRequestDelayMs = 0;
     this.enableCompression = false;
+    this.retryTimeMs = 0;
   }
 
   public TableOptions withKeyHasher(KeyHasher keyHasher) {
@@ -30,6 +31,11 @@ public class TableOptions {
 
   public TableOptions withCompression(boolean enableCompression) {
     this.enableCompression = enableCompression;
+    return this;
+  }
+
+  public TableOptions withRetryTimeMs(int retryTimeMs) {
+    this.retryTimeMs = retryTimeMs;
     return this;
   }
 

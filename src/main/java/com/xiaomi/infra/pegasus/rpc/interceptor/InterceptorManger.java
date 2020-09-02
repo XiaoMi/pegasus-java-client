@@ -13,7 +13,8 @@ public class InterceptorManger {
 
   public InterceptorManger(TableOptions options) {
     this.register(new BackupRequestInterceptor(), options.enableBackupRequest())
-        .register(new CompressionInterceptor(), options.enableCompression());
+        .register(new CompressionInterceptor(), options.enableCompression())
+        .register(new AutoRetryInterceptor(options.retryTimeMs), options.enableAutoRetry());
   }
 
   private InterceptorManger register(TableInterceptor interceptor, boolean enable) {

@@ -39,6 +39,7 @@ public final class ClientRequestRound {
     this.operator = op;
     this.callback = cb;
     this.timeoutMs = timeoutInMilliseconds;
+    this.remainingTime = timeoutMs;
 
     this.enableCounter = enableCounter;
     this.createNanoTime = System.nanoTime();
