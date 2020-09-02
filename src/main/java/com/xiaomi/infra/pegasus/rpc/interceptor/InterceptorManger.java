@@ -15,12 +15,14 @@ public class InterceptorManger {
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
   public InterceptorManger(TableOptions options) {
-    this.register(new BackupRequestInterceptor(options.enableBackupRequest()))
-        .register(new CompressInterceptor(options.enableCompress()));
+    this.register(new BackupRequestInterceptor(), options.enableBackupRequest())
+        .register(new CompressInterceptor(), options.enableCompression());
   }
 
-  private InterceptorManger register(TableInterceptor interceptor) {
-    interceptors.add(interceptor);
+  private InterceptorManger register(TableInterceptor interceptor, boolean enable) {
+    if (enable) {
+      interceptors.add(interceptor);
+    }
     return this;
   }
 

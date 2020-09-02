@@ -43,17 +43,19 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   private PegasusTable getTable(String tableName) throws PException {
-    return getTable(tableName, 0);
+    return getTable(tableName, 0, false);
   }
 
-  private PegasusTable getTable(String tableName, int backupRequestDelayMs) throws PException {
+  private PegasusTable getTable(
+      String tableName, int backupRequestDelayMs, boolean enableCompression) throws PException {
     PegasusTable table = tableMap.get(tableName);
     if (table == null) {
       synchronized (tableMapLock) {
         table = tableMap.get(tableName);
         if (table == null) {
           try {
-            TableOptions options = new TableOptions(new PegasusHasher(), backupRequestDelayMs);
+            TableOptions options =
+                new TableOptions(new PegasusHasher(), backupRequestDelayMs, enableCompression);
             Table internalTable = cluster.openTable(tableName, options);
             table = new PegasusTable(this, internalTable);
           } catch (Throwable e) {
@@ -189,9 +191,9 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
-      throws PException {
-    return getTable(tableName, backupRequestDelayMs);
+  public PegasusTableInterface openTable(
+      String tableName, int backupRequestDelayMs, boolean enableCompression) throws PException {
+    return getTable(tableName, backupRequestDelayMs, enableCompression);
   }
 
   @Override

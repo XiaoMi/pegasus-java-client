@@ -11,12 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 public class BackupRequestInterceptor implements TableInterceptor {
 
-  private boolean isOpen;
-
-  public BackupRequestInterceptor(boolean isOpen) {
-    this.isOpen = isOpen;
-  }
-
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     backupCall(clientRequestRound, tableHandler);
@@ -33,7 +27,7 @@ public class BackupRequestInterceptor implements TableInterceptor {
   }
 
   private void backupCall(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
-    if (!isOpen || !clientRequestRound.getOperator().supportBackupRequest()) {
+    if (!clientRequestRound.getOperator().supportBackupRequest()) {
       return;
     }
 

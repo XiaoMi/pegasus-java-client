@@ -58,11 +58,12 @@ public interface PegasusClientInterface {
    *     administrator
    * @param backupRequestDelayMs the delay time to send backup request. If backupRequestDelayMs <=
    *     0, The backup request is disabled.
+   * @param enableCompression whether to enable the table data open auto-compress
    * @return the table handler
    * @throws PException throws exception if any error occurs.
    */
-  public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
-      throws PException;
+  public PegasusTableInterface openTable(
+      String tableName, int backupRequestDelayMs, boolean enableCompression) throws PException;
 
   /**
    * Check value exist by key from the cluster
