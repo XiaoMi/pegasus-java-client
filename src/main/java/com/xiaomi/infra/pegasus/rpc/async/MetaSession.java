@@ -38,7 +38,7 @@ public class MetaSession extends HostNameResolver {
       for (String addr : addrList) {
         rpc_address rpcAddr = new rpc_address();
         if (rpcAddr.fromString(addr)) {
-          logger.info("regester {} as meta server", addr);
+          logger.info("add {} as meta server", addr);
           metaList.add(clusterManager.getReplicaSession(rpcAddr));
         } else {
           logger.error("invalid address {}", addr);
@@ -181,7 +181,7 @@ public class MetaSession extends HostNameResolver {
             }
           }
           if (!found) {
-            logger.info("regester forward address {} as meta server", forwardAddress);
+            logger.info("add forward address {} as meta server", forwardAddress);
             metaList.add(clusterManager.getReplicaSession(forwardAddress));
             curLeader = metaList.size() - 1;
           }
@@ -278,7 +278,7 @@ public class MetaSession extends HostNameResolver {
     added.removeAll(oldSet);
     for (rpc_address addr : added) {
       metaList.add(clusterManager.getReplicaSession(addr));
-      logger.info("regester {} as meta server", addr);
+      logger.info("add {} as meta server", addr);
     }
   }
 

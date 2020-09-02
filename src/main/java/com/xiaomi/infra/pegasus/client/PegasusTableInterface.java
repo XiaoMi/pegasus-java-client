@@ -12,7 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
  * This class provides sync and async interfaces to access data of a specified table. All the async
  * interfaces use Future mode. Notice that it's {@link io.netty.util.concurrent.Future}, but not
  * {@link java.util.concurrent.Future}. You can wait the future to complete in a synchronous manner,
- * or regester completion callback in an asynchronous way.
+ * or add completion callback in an asynchronous way.
  *
  * <p>A synchronous example:
  *

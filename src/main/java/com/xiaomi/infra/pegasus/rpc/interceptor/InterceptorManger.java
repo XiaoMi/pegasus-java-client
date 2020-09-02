@@ -12,10 +12,10 @@ public class InterceptorManger {
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
   public InterceptorManger(TableOptions options) {
-    regester(new BackupRequestInterceptor(options.enableBackupRequest()));
+    register(new BackupRequestInterceptor(options.enableBackupRequest()));
   }
 
-  public InterceptorManger regester(TableInterceptor interceptor) {
+  public InterceptorManger register(TableInterceptor interceptor) {
     interceptors.add(interceptor);
     return this;
   }

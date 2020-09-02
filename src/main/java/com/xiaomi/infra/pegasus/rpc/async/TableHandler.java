@@ -16,7 +16,6 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.rpc.interceptor.BackupRequestInterceptor;
 import com.xiaomi.infra.pegasus.rpc.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
