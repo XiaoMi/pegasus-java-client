@@ -67,7 +67,8 @@ public class CompressionInterceptor implements TableInterceptor {
     client_operator operator = clientRequestRound.getOperator();
 
     if (operator instanceof rrdb_get_operator) {
-      ZstdWrapper.tryDecompress(((rrdb_get_operator) operator).get_response().value.data);
+      rrdb_get_operator get = (rrdb_get_operator) operator;
+      get.get_response().value.data = ZstdWrapper.tryDecompress(get.get_response().value.data);
       return;
     }
 
