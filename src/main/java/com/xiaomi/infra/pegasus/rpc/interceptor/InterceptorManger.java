@@ -1,10 +1,6 @@
 package com.xiaomi.infra.pegasus.rpc.interceptor;
 
-import static com.xiaomi.infra.pegasus.base.error_code.error_types.ERR_INCOMPLETE_DATA;
-
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.client.PException;
-import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
@@ -31,30 +27,14 @@ public class InterceptorManger {
 
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
-      try {
-        interceptor.before(clientRequestRound, tableHandler);
-      } catch (PException e) {
-        client_operator operator = clientRequestRound.getOperator();
-        operator.rpc_error.errno = ERR_INCOMPLETE_DATA;
-        operator.error_message = "interceptor-before execute failed! error=" + e.getMessage();
-        logger.error("interceptor-after execute failed!", e);
-        clientRequestRound.thisRoundCompletion();
-      }
+      interceptor.before(clientRequestRound, tableHandler);
     }
   }
 
   public void after(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
-      try {
-        interceptor.after(clientRequestRound, errno, tableHandler);
-      } catch (PException e) {
-        client_operator operator = clientRequestRound.getOperator();
-        operator.rpc_error.errno = ERR_INCOMPLETE_DATA;
-        operator.error_message = "interceptor-after execute failed! error=" + e.getMessage();
-        logger.error("interceptor-after execute failed!", e);
-        clientRequestRound.thisRoundCompletion();
-      }
+      interceptor.after(clientRequestRound, errno, tableHandler);
     }
   }
 }

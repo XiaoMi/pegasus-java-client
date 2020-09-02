@@ -3,7 +3,6 @@ package com.xiaomi.infra.pegasus.rpc.interceptor;
 import com.xiaomi.infra.pegasus.apps.key_value;
 import com.xiaomi.infra.pegasus.apps.mutate;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_check_and_mutate_operator;
 import com.xiaomi.infra.pegasus.operator.rrdb_check_and_set_operator;
@@ -20,22 +19,20 @@ import java.util.List;
 public class CompressionInterceptor implements TableInterceptor {
 
   @Override
-  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler)
-      throws PException {
+  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     tryCompress(clientRequestRound);
   }
 
   @Override
   public void after(
-      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler)
-      throws PException {
+      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     if (errno != error_types.ERR_OK) {
       return;
     }
     tryDecompress(clientRequestRound);
   }
 
-  private void tryCompress(ClientRequestRound clientRequestRound) throws PException {
+  private void tryCompress(ClientRequestRound clientRequestRound) {
     client_operator operator = clientRequestRound.getOperator();
     if (operator instanceof rrdb_put_operator) {
       rrdb_put_operator put = (rrdb_put_operator) operator;
@@ -63,13 +60,10 @@ public class CompressionInterceptor implements TableInterceptor {
       for (mutate mu : mutates) {
         mu.value.data = ZstdWrapper.compress(mu.value.data);
       }
-      return;
     }
-
-    throw new PException("unsupported operator = " + operator.name());
   }
 
-  private void tryDecompress(ClientRequestRound clientRequestRound) throws PException {
+  private void tryDecompress(ClientRequestRound clientRequestRound) {
     client_operator operator = clientRequestRound.getOperator();
 
     if (operator instanceof rrdb_get_operator) {
@@ -90,8 +84,6 @@ public class CompressionInterceptor implements TableInterceptor {
       for (key_value kv : kvs) {
         kv.value.data = ZstdWrapper.tryDecompress(kv.value.data);
       }
-      return;
     }
-    throw new PException("unsupported operator = " + operator.name());
   }
 }
