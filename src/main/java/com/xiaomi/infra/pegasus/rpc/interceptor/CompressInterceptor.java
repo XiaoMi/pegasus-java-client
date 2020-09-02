@@ -24,7 +24,7 @@ public class CompressInterceptor implements TableInterceptor {
   }
 
   @Override
-  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler)
+  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler)
       throws PException {
     if (!isOpen) {
       return;
@@ -33,7 +33,7 @@ public class CompressInterceptor implements TableInterceptor {
   }
 
   @Override
-  public void interceptAfter(
+  public void after(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler)
       throws PException {
     if (errno != error_types.ERR_OK || !isOpen) {

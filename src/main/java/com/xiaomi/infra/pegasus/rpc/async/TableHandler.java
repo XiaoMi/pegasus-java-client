@@ -16,8 +16,6 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.rpc.interceptor.BackupRequestInterceptor;
-import com.xiaomi.infra.pegasus.rpc.interceptor.CompressInterceptor;
 import com.xiaomi.infra.pegasus.rpc.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
@@ -40,19 +38,19 @@ public class TableHandler extends Table {
     public List<ReplicaSession> secondarySessions = new ArrayList<>();
   }
 
-  public static final class TableConfiguration {
-    public ArrayList<ReplicaConfiguration> replicas;
-    public long updateVersion;
+  static final class TableConfiguration {
+    ArrayList<ReplicaConfiguration> replicas;
+    long updateVersion;
   }
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandler.class);
   ClusterManager manager_;
-  public EventExecutor executor_; // should be only one thread in this service
+  EventExecutor executor_; // should be only one thread in this service
 
-  public AtomicReference<TableConfiguration> tableConfig_;
+  AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  public int backupRequestDelayMs;
+  int backupRequestDelayMs;
   private InterceptorManger interceptorManger;
 
   public TableHandler(ClusterManager mgr, String name, TableOptions options)
@@ -111,11 +109,7 @@ public class TableHandler extends Table {
     inQuerying_ = new AtomicBoolean(false);
     lastQueryTime_ = 0;
 
-    this.interceptorManger = new InterceptorManger();
-
-    interceptorManger
-        .add(new BackupRequestInterceptor(options.enableBackupRequest()))
-        .add(new CompressInterceptor(options.enableCompress()));
+    this.interceptorManger = new InterceptorManger(options);
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -261,7 +255,7 @@ public class TableHandler extends Table {
     }
 
     client_operator operator = round.getOperator();
-    interceptorManger.interceptAfter(round, operator.rpc_error.errno, this);
+    interceptorManger.after(round, operator.rpc_error.errno, this);
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
@@ -369,8 +363,7 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      interceptorManger.interceptBefore(round, this);
-
+      interceptorManger.before(round, this);
       // send request to primary
       handle.primarySession.asyncSend(
           round.getOperator(),
@@ -434,6 +427,14 @@ public class TableHandler extends Table {
     if (op.rpc_error.errno != error_types.ERR_OK) {
       throw new ReplicationException(op.rpc_error.errno);
     }
+  }
+
+  public int backupRequestDelayMs() {
+    return backupRequestDelayMs;
+  }
+
+  public long updateVersion() {
+    return tableConfig_.get().updateVersion;
   }
 
   @Override

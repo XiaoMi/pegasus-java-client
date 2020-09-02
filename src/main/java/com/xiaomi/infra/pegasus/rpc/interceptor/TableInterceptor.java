@@ -7,10 +7,8 @@ import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 
 public interface TableInterceptor {
   // The behavior before sending the RPC to a table.
-  void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler)
-      throws PException;
+  void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) throws PException;
   // The behavior after getting reply or failure of the RPC.
-  void interceptAfter(
-      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler)
+  void after(ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler)
       throws PException;
 }
