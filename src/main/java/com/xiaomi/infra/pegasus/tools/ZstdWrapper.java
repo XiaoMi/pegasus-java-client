@@ -15,8 +15,8 @@ public class ZstdWrapper {
   /**
    * try decompress the `src`, return `src` directly if failed
    *
-   * @param src
-   * @return
+   * @param src the origin sending value
+   * @return the decompressed value.
    */
   public static byte[] tryDecompress(byte[] src) {
     byte[] decompressedValue;
