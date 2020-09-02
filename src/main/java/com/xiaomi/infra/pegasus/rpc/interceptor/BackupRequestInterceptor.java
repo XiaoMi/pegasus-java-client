@@ -10,6 +10,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class BackupRequestInterceptor implements TableInterceptor {
+  private final int backupRequestDelayMs;
+
+  public BackupRequestInterceptor(int backupRequestDelayMs) {
+    this.backupRequestDelayMs = backupRequestDelayMs;
+  }
 
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
@@ -53,7 +58,7 @@ public class BackupRequestInterceptor implements TableInterceptor {
                       clientRequestRound.timeoutMs(),
                       true);
                 },
-                tableHandler.backupRequestDelayMs(),
+                backupRequestDelayMs,
                 TimeUnit.MILLISECONDS));
   }
 }

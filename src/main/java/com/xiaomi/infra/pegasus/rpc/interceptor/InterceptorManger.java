@@ -12,7 +12,9 @@ public class InterceptorManger {
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
   public InterceptorManger(TableOptions options) {
-    this.register(new BackupRequestInterceptor(), options.enableBackupRequest())
+    this.register(
+            new BackupRequestInterceptor(options.backupRequestDelayMs()),
+            options.enableBackupRequest())
         .register(new CompressionInterceptor(), options.enableCompression())
         .register(new AutoRetryInterceptor(options.retryTimeMs), options.enableAutoRetry());
   }
