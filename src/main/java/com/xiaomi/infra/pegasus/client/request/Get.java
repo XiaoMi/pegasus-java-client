@@ -1,12 +1,16 @@
 package com.xiaomi.infra.pegasus.client.request;
 
-public class Get extends Key {
+public class Get  {
+    public byte[] hashKey;
+    public byte[] sortKey;
 
     public Get(byte[] hashKey) {
-        super(hashKey);
+        this.hashKey = hashKey;
     }
 
     public Get(byte[] hashKey, byte[] sortKey) {
-        super(hashKey, sortKey);
+        this.hashKey = hashKey;
+        this.sortKey = sortKey;
     }
+
 }

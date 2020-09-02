@@ -6,6 +6,7 @@ package com.xiaomi.infra.pegasus.client;
 import io.netty.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class FutureGroup<Result> {
 
@@ -54,6 +55,10 @@ public class FutureGroup<Result> {
         throw new PException("async task #[" + i + "] failed: " + cause.getMessage(), cause);
       }
     }
+  }
+
+  public void waitAllcomplete(List<Pair<PException, Result>> results, int timeoutMillis) {
+
   }
 
   private List<Future<Result>> asyncTasks;
