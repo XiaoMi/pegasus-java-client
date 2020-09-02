@@ -15,7 +15,7 @@ public class InterceptorTest {
         PegasusClientFactory.createClient(ClientOptions.create()).openTable("temp");
     PegasusTableInterface compressTable =
         PegasusClientFactory.createClient(ClientOptions.create())
-            .openTable("temp", new TableOptions(0, true));
+            .openTable("temp", new TableOptions().withCompression(true));
 
     byte[] hashKey = "hashKey".getBytes();
     byte[] sortKey = "sortKey".getBytes();

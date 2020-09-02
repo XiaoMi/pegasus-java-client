@@ -7,9 +7,9 @@ import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
 
 /** TableOptions is the internal options for opening a Pegasus table. */
 public class TableOptions {
-  private final KeyHasher keyHasher;
-  private final int backupRequestDelayMs;
-  private final boolean enableCompression;
+  private KeyHasher keyHasher;
+  private int backupRequestDelayMs;
+  private boolean enableCompression;
 
   public TableOptions() {
     this.keyHasher = new PegasusHasher();
@@ -17,16 +17,19 @@ public class TableOptions {
     this.enableCompression = false;
   }
 
-  public TableOptions(int backupRequestDelay, boolean enableCompression) {
-    this.keyHasher = new PegasusHasher();
-    this.backupRequestDelayMs = backupRequestDelay;
-    this.enableCompression = enableCompression;
+  public TableOptions withKeyHasher(KeyHasher keyHasher) {
+    this.keyHasher = keyHasher;
+    return this;
   }
 
-  public TableOptions(KeyHasher h, int backupRequestDelay, boolean enableCompression) {
-    this.keyHasher = h;
-    this.backupRequestDelayMs = backupRequestDelay;
+  public TableOptions withBackupRequestDelayMs(int backupRequestDelayMs) {
+    this.backupRequestDelayMs = backupRequestDelayMs;
+    return this;
+  }
+
+  public TableOptions withCompression(boolean enableCompression) {
     this.enableCompression = enableCompression;
+    return this;
   }
 
   public KeyHasher keyHasher() {
@@ -37,15 +40,15 @@ public class TableOptions {
     return this.backupRequestDelayMs;
   }
 
-  public static TableOptions forTest() {
-    return new TableOptions(KeyHasher.DEFAULT, 0, false);
-  }
-
   public boolean enableBackupRequest() {
     return backupRequestDelayMs > 0;
   }
 
   public boolean enableCompression() {
     return enableCompression;
+  }
+
+  public static TableOptions forTest() {
+    return new TableOptions().withKeyHasher(KeyHasher.DEFAULT).withBackupRequestDelayMs(0);
   }
 }
