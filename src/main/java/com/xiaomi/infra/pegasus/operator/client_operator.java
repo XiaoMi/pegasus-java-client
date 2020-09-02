@@ -95,4 +95,5 @@ public abstract class client_operator {
   public gpid pid;
   public String tableName; // only for metrics
   public error_code rpc_error;
+  public String error_message;
 }
