@@ -49,6 +49,6 @@ public class TableOptions {
   }
 
   public static TableOptions forTest() {
-    return new TableOptions().withKeyHasher(KeyHasher.DEFAULT).withBackupRequestDelayMs(0);
+    return new TableOptions().withKeyHasher(KeyHasher.DEFAULT);
   }
 }
