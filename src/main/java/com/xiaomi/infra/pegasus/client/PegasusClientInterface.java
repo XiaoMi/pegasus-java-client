@@ -45,6 +45,9 @@ public interface PegasusClientInterface {
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
    *
+   * <p>Note: this interface is deprecated, retaining it only for compatibility, please see {@link
+   * PegasusClientInterface#openTable(String, TableOptions)}
+   *
    * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
    * provided in this class. 2. the table-interface way, which is provided by {@link
    * PegasusTableInterface}. With the client-interface, you don't need to create
