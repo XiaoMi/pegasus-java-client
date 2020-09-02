@@ -33,7 +33,7 @@ public class BackupRequestInterceptor implements TableInterceptor {
   }
 
   private void backupCall(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
-    if (!isOpen || !clientRequestRound.getOperator().enableBackupRequest) {
+    if (!isOpen || !clientRequestRound.getOperator().supportBackupRequest()) {
       return;
     }
 

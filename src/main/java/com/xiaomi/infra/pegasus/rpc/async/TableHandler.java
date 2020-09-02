@@ -110,8 +110,7 @@ public class TableHandler extends Table {
     inQuerying_ = new AtomicBoolean(false);
     lastQueryTime_ = 0;
 
-    this.interceptorManger = new InterceptorManger();
-    interceptorManger.add(new BackupRequestInterceptor(options.enableBackupRequest()));
+    this.interceptorManger = new InterceptorManger(options);
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -366,7 +365,6 @@ public class TableHandler extends Table {
 
     if (handle.primarySession != null) {
       interceptorManger.interceptBefore(round, this);
-
       // send request to primary
       handle.primarySession.asyncSend(
           round.getOperator(),
