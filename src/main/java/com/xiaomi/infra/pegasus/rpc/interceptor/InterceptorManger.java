@@ -15,21 +15,21 @@ public class InterceptorManger {
     register(new BackupRequestInterceptor(options.enableBackupRequest()));
   }
 
-  public InterceptorManger register(TableInterceptor interceptor) {
+  private InterceptorManger register(TableInterceptor interceptor) {
     interceptors.add(interceptor);
     return this;
   }
 
-  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
+  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
-      interceptor.interceptBefore(clientRequestRound, tableHandler);
+      interceptor.before(clientRequestRound, tableHandler);
     }
   }
 
-  public void interceptAfter(
+  public void after(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     for (TableInterceptor interceptor : interceptors) {
-      interceptor.interceptAfter(clientRequestRound, errno, tableHandler);
+      interceptor.after(clientRequestRound, errno, tableHandler);
     }
   }
 }

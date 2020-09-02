@@ -18,12 +18,12 @@ public class BackupRequestInterceptor implements TableInterceptor {
   }
 
   @Override
-  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
+  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     backupCall(clientRequestRound, tableHandler);
   }
 
   @Override
-  public void interceptAfter(
+  public void after(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     // cancel the backup request task
     ScheduledFuture<?> backupRequestTask = clientRequestRound.backupRequestTask();

@@ -255,7 +255,7 @@ public class TableHandler extends Table {
     }
 
     client_operator operator = round.getOperator();
-    interceptorManger.interceptAfter(round, operator.rpc_error.errno, this);
+    interceptorManger.after(round, operator.rpc_error.errno, this);
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
@@ -363,7 +363,7 @@ public class TableHandler extends Table {
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      interceptorManger.interceptBefore(round, this);
+      interceptorManger.before(round, this);
       // send request to primary
       handle.primarySession.asyncSend(
           round.getOperator(),
