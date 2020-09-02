@@ -17,7 +17,7 @@ import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import com.xiaomi.infra.pegasus.tools.ZstdWrapper;
 import java.util.List;
 
-public class CompressInterceptor implements TableInterceptor {
+public class CompressionInterceptor implements TableInterceptor {
 
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler)
