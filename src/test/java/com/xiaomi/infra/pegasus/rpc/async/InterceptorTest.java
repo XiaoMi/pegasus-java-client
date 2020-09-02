@@ -4,6 +4,7 @@ import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
+import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
@@ -11,9 +12,10 @@ public class InterceptorTest {
   @Test
   public void testCompressionInterceptor() throws PException {
     PegasusTableInterface commonTable =
-        PegasusClientFactory.createClient(ClientOptions.create()).openTable("temp", 0, false);
+        PegasusClientFactory.createClient(ClientOptions.create()).openTable("temp");
     PegasusTableInterface compressTable =
-        PegasusClientFactory.createClient(ClientOptions.create()).openTable("temp", 0, true);
+        PegasusClientFactory.createClient(ClientOptions.create())
+            .openTable("temp", new TableOptions(0, true));
 
     byte[] hashKey = "hashKey".getBytes();
     byte[] sortKey = "sortKey".getBytes();
