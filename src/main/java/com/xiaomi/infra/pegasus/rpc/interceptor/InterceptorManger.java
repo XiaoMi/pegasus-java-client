@@ -6,10 +6,8 @@ import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
 
 public class InterceptorManger {
-  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(InterceptorManger.class);
 
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
