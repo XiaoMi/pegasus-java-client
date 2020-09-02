@@ -1,36 +1,29 @@
-package com.xiaomi.infra.pegasus.tools.interceptor;
+package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 
 public class AutoRetryInterceptor implements TableInterceptor {
-  private boolean isOpen;
   private long retryTime;
   private long timeout;
 
-  public AutoRetryInterceptor(boolean isOpen, long retryTime, long timeout) {
-    this.isOpen = isOpen;
+  public AutoRetryInterceptor(long retryTime, long timeout) {
     this.retryTime = retryTime;
     this.timeout = timeout;
   }
 
   @Override
-  public void interceptBefore(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
-    if (!isOpen) {
-      return;
-    }
+  public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     clientRequestRound.timeoutMs = retryTime;
   }
 
   @Override
   // TODO(jiashuo1) open AutoRetry and backup-request at same time will result in thread-safe
   // problem on updating `clientRequestRound.timeoutMs`
-  public void interceptAfter(
-      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler)
-      throws PException {
-    if (!isOpen || errno != error_types.ERR_TIMEOUT) {
+  public void after(
+      ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
+    if (errno != error_types.ERR_TIMEOUT) {
       return;
     }
 

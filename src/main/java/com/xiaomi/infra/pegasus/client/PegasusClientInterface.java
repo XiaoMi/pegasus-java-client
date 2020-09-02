@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -44,6 +45,9 @@ public interface PegasusClientInterface {
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
    *
+   * <p>Note: this interface is deprecated, retaining it only for compatibility, please see {@link
+   * PegasusClientInterface#openTable(String, TableOptions)}
+   *
    * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
    * provided in this class. 2. the table-interface way, which is provided by {@link
    * PegasusTableInterface}. With the client-interface, you don't need to create
@@ -61,7 +65,31 @@ public interface PegasusClientInterface {
    * @return the table handler
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
+      throws PException;
+
+  /**
+   * Open a table, and prepare the sessions and route-table to the replica-servers.
+   *
+   * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
+   * provided in this class. 2. the table-interface way, which is provided by {@link
+   * PegasusTableInterface}. With the client-interface, you don't need to create
+   * PegasusTableInterface by openTable, so you can access the pegasus cluster conveniently.
+   * However, the client-interface's api also has some restrictions: 1. we don't provide async
+   * methods in client-interface. 2. the timeout in client-interface isn't as accurate as the
+   * table-interface. 3. the client-interface may throw an exception when open table fails. It means
+   * that you may need to handle this exception in every data access operation, which is annoying.
+   * 4. You can't specify a per-operation timeout. So we recommend you to use the table-interface.
+   *
+   * @param tableName the table should be exist on the server, which is created before by the system
+   *     * administrator
+   * @param tableOptions control the table feature, such as open backup-request, compress and etc,
+   *     see {@link TableOptions}
+   * @return
+   * @throws PException
+   */
+  public PegasusTableInterface openTable(String tableName, TableOptions tableOptions)
       throws PException;
 
   /**

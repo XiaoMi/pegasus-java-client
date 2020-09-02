@@ -16,10 +16,7 @@ import com.xiaomi.infra.pegasus.replication.query_cfg_response;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
 import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.tools.interceptor.AutoRetryInterceptor;
-import com.xiaomi.infra.pegasus.tools.interceptor.BackupRequestInterceptor;
-import com.xiaomi.infra.pegasus.tools.interceptor.CompressInterceptor;
-import com.xiaomi.infra.pegasus.tools.interceptor.InterceptorManger;
+import com.xiaomi.infra.pegasus.rpc.interceptor.InterceptorManger;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.EventExecutor;
 import java.util.ArrayList;
@@ -41,19 +38,19 @@ public class TableHandler extends Table {
     public List<ReplicaSession> secondarySessions = new ArrayList<>();
   }
 
-  public static final class TableConfiguration {
-    public ArrayList<ReplicaConfiguration> replicas;
-    public long updateVersion;
+  static final class TableConfiguration {
+    ArrayList<ReplicaConfiguration> replicas;
+    long updateVersion;
   }
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandler.class);
   ClusterManager manager_;
-  public EventExecutor executor_; // should be only one thread in this service
+  EventExecutor executor_; // should be only one thread in this service
 
-  public AtomicReference<TableConfiguration> tableConfig_;
+  AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  public int backupRequestDelayMs;
+  int backupRequestDelayMs;
   private InterceptorManger interceptorManger;
 
   public TableHandler(ClusterManager mgr, String name, TableOptions options)
@@ -112,14 +109,7 @@ public class TableHandler extends Table {
     inQuerying_ = new AtomicBoolean(false);
     lastQueryTime_ = 0;
 
-    this.interceptorManger = new InterceptorManger();
-
-    interceptorManger
-        .add(new BackupRequestInterceptor(options.enableBackupRequest()))
-        .add(new CompressInterceptor(options.enableCompress()))
-        .add(
-            new AutoRetryInterceptor(
-                options.enableAutoRetry(), options.retryTimeMs, mgr.getTimeout()));
+    this.interceptorManger = new InterceptorManger(options);
   }
 
   public ReplicaConfiguration getReplicaConfig(int index) {
@@ -255,7 +245,7 @@ public class TableHandler extends Table {
     if (round.isCompleted) {
       return;
     } else {
-      synchronized (round) {
+      synchronized (TableHandler.class) {
         // the fastest response has been received
         if (round.isCompleted) {
           return;
@@ -264,17 +254,8 @@ public class TableHandler extends Table {
       }
     }
 
-    // cancel the backup request task
-    if (round.backupRequestTask != null) {
-      round.backupRequestTask.cancel(true);
-    }
-
     client_operator operator = round.getOperator();
-    try {
-      interceptorManger.executeAfter(round, operator.rpc_error.errno, this);
-    } catch (PException e) {
-      logger.warn("interceptorManger executeAfter failed!");
-    }
+    interceptorManger.after(round, operator.rpc_error.errno, this);
     boolean needQueryMeta = false;
     switch (operator.rpc_error.errno) {
       case ERR_OK:
@@ -360,11 +341,7 @@ public class TableHandler extends Table {
           new Runnable() {
             @Override
             public void run() {
-              try {
-                call(round);
-              } catch (PException e) {
-                logger.warn("try delay call failed");
-              }
+              call(round);
             }
           },
           nanoDelay,
@@ -379,16 +356,14 @@ public class TableHandler extends Table {
     }
   }
 
-  public void call(final ClientRequestRound round) throws PException {
+  public void call(final ClientRequestRound round) {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
     final TableConfiguration tableConfig = tableConfig_.get();
     final ReplicaConfiguration handle =
         tableConfig.replicas.get(round.getOperator().get_gpid().get_pidx());
 
     if (handle.primarySession != null) {
-      // if backup request is enabled, schedule to send to secondary
-      interceptorManger.executeBefore(round, this);
-
+      interceptorManger.before(round, this);
       // send request to primary
       handle.primarySession.asyncSend(
           round.getOperator(),
@@ -454,6 +429,14 @@ public class TableHandler extends Table {
     }
   }
 
+  public int backupRequestDelayMs() {
+    return backupRequestDelayMs;
+  }
+
+  public long updateVersion() {
+    return tableConfig_.get().updateVersion;
+  }
+
   @Override
   public EventExecutor getExecutor() {
     return executor_;
@@ -472,11 +455,7 @@ public class TableHandler extends Table {
 
     ClientRequestRound round =
         new ClientRequestRound(op, callback, manager_.counterEnabled(), (long) timeoutMs);
-    try {
-      call(round);
-    } catch (PException e) {
-      logger.warn("call failed");
-    }
+    call(round);
   }
 
   private void handleMetaException(error_types err_type, ClusterManager mgr, String name)
