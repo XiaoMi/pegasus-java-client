@@ -4,7 +4,7 @@ import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
-import com.xiaomi.infra.pegasus.rpc.TableOptions;
+import com.xiaomi.infra.pegasus.client.TableOptions;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
