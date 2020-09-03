@@ -50,7 +50,8 @@ public class AutoRetryInterceptor implements TableInterceptor {
       Thread.sleep(retryOptions.delayTimeMs());
     } catch (InterruptedException e) {
       logger.warn(
-          "sleep {} is interrupted when ready for retrying call, which will start next call rpc immediately");
+          "sleep {} is interrupted when ready for retrying call, which will start next call rpc immediately",
+          retryOptions.delayTimeMs());
     }
 
     tableHandler.call(clientRequestRound);
