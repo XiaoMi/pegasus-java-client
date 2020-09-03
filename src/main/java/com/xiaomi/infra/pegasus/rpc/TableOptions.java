@@ -4,6 +4,8 @@
 package com.xiaomi.infra.pegasus.rpc;
 
 import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
+import com.xiaomi.infra.pegasus.operator.client_operator;
+import com.xiaomi.infra.pegasus.rpc.Table.ClientOPCallback;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor;
@@ -12,12 +14,14 @@ import com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor;
 public class TableOptions {
 
   /**
-   * this class control how to retry after call failed
+   * this class control how to retry after rpc call failed
    *
-   * <p>every rpc call has timeout, if not set the RetryOptions, the rpc timeout is equal with
-   * request timeout {@link ClientRequestRound#timeoutMs}, otherwise, the timeout is equal with
-   * retryTime or is equal with {@link ClientRequestRound#remainingTime} at last time, detail see
-   * {@link AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
+   * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set the RetryOptions,
+   * the rpc timeout is equal with request timeout, see the {@link
+   * TableHandler#asyncOperate(client_operator, ClientOPCallback, int)}, otherwise, the timeout is
+   * updated by {@link AutoRetryInterceptor} and is equal with retryTime, or is equal with {@link
+   * ClientRequestRound#remainingTime} at last time, detail see {@link
+   * AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
    *
    * <p>for example: user hope the request timeout is 1000ms and pass the retryTime=200ms and
    * delayTime=100ms, which means the call will be retried at 200+100=300ms, 300+(200+100)=600ms,

@@ -23,8 +23,12 @@ public class AutoRetryInterceptor implements TableInterceptor {
 
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
+    // if the remainingTime <= retryTimeMs + delayTimeMs, means the remainingTime only can be
+    // called one time, so set the timeout = remainingTime, it's especially note that if
+    // remainingTime <= retryTimeMs + delayTimeMs at first call, it will only call once and not
+    // trigger retry logic
     clientRequestRound.timeoutMs =
-        clientRequestRound.remainingTime < retryOptions.retryTimeMs()
+        clientRequestRound.remainingTime <= retryOptions.retryTimeMs() + retryOptions.delayTimeMs()
             ? clientRequestRound.remainingTime
             : retryOptions.retryTimeMs();
   }
@@ -37,6 +41,7 @@ public class AutoRetryInterceptor implements TableInterceptor {
     }
 
     clientRequestRound.remainingTime -= (clientRequestRound.timeoutMs + retryOptions.delayTimeMs());
+
     if (clientRequestRound.remainingTime <= 0) {
       return;
     }
