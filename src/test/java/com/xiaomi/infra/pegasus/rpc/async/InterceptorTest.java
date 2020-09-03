@@ -36,4 +36,7 @@ public class InterceptorTest {
     Assertions.assertEquals(
         new String(compressTable.get(hashKey, sortKey, 10000)), new String(compressionValue));
   }
+
+  @Test
+  public void testAutoRetryInterceptor() {}
 }
