@@ -50,7 +50,7 @@ public class ClusterManagerTest {
 
     TableHandler result = null;
     try {
-      result = testManager.openTable("testName", new InternalTableOptions());
+      result = testManager.openTable("testName", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.assertEquals(error_code.error_types.ERR_SESSION_RESET, e.getErrorType());
     } finally {
@@ -62,7 +62,7 @@ public class ClusterManagerTest {
     String address_list2 = "127.0.0.1:123,127.0.0.1:34603,127.0.0.1:34601,127.0.0.1:34602";
     testManager = new ClusterManager(ClientOptions.builder().metaServers(address_list2).build());
     try {
-      result = testManager.openTable("hehe", new InternalTableOptions());
+      result = testManager.openTable("hehe", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.assertEquals(error_code.error_types.ERR_OBJECT_NOT_FOUND, e.getErrorType());
     } finally {
@@ -71,7 +71,7 @@ public class ClusterManagerTest {
 
     // test open an valid table
     try {
-      result = testManager.openTable("temp", new InternalTableOptions());
+      result = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     } finally {

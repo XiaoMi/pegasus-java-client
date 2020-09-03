@@ -43,7 +43,7 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   private PegasusTable getTable(String tableName) throws PException {
-    return getTable(tableName, new InternalTableOptions());
+    return getTable(tableName, new InternalTableOptions(new PegasusHasher(), new TableOptions()));
   }
 
   private PegasusTable getTable(String tableName, InternalTableOptions internalTableOptions)

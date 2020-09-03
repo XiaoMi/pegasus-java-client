@@ -61,7 +61,7 @@ public class TableHandlerTest {
     System.out.println("TableHandlerTest#testOperateOp");
     TableHandler table = null;
     try {
-      table = testManager.openTable("temp", new InternalTableOptions());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -148,7 +148,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", new InternalTableOptions());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -192,7 +192,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", new InternalTableOptions());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }

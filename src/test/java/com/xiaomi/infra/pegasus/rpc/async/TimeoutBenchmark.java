@@ -68,7 +68,7 @@ public class TimeoutBenchmark {
 
     TableHandler handle;
     try {
-      handle = manager.openTable("temp", new InternalTableOptions());
+      handle = manager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       e.printStackTrace();
       Assert.fail();
