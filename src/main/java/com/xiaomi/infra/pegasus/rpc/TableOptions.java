@@ -29,7 +29,7 @@ public class TableOptions {
     private long delayTimeMs;
 
     public RetryOptions(long retryTimeMs, long delayTimeMs) {
-      assert (retryTimeMs > 0 && delayTimeMs > 0);
+      assert (retryTimeMs > 0 && delayTimeMs >= 0);
       this.retryTimeMs = retryTimeMs;
       this.delayTimeMs = delayTimeMs;
     }
