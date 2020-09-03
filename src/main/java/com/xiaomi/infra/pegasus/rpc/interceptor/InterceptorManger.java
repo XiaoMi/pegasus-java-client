@@ -14,9 +14,9 @@ public class InterceptorManger {
   /**
    * The interceptor manager
    *
-   * <p>Note: AutoRetryInterceptor must be registered and executed before BackupRequestInterceptor,
-   * for the AutoRetryInterceptor will modify the `timeout` which is used by
-   * BackupRequestInterceptor
+   * <p>Note: {@link AutoRetryInterceptor} must be registered and executed before {@link
+   * BackupRequestInterceptor}, for the {@link AutoRetryInterceptor} will modify the {@link
+   * ClientRequestRound#timeoutMs} which is used by {@link BackupRequestInterceptor}
    *
    * @param options control the interceptor switch, detail see {@link TableOptions}
    */
