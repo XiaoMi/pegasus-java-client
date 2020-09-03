@@ -73,7 +73,7 @@ public class TableOptions {
     return this;
   }
 
-  public TableOptions withRetryTimeMs(RetryOptions retryOptions) {
+  public TableOptions withRetry(RetryOptions retryOptions) {
     this.retryOptions = retryOptions;
     return this;
   }

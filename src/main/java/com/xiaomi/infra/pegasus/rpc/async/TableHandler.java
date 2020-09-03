@@ -356,6 +356,11 @@ public class TableHandler extends Table {
     }
   }
 
+  public boolean forTest(ClientRequestRound round) {
+    call(round);
+    return true;
+  }
+
   public void call(final ClientRequestRound round) {
     // tableConfig & handle is initialized in constructor, so both shouldn't be null
     final TableConfiguration tableConfig = tableConfig_.get();
