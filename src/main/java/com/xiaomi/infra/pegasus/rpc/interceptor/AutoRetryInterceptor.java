@@ -13,12 +13,13 @@ public class AutoRetryInterceptor implements TableInterceptor {
 
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
-    clientRequestRound.timeoutMs = retryTimeMs;
+    clientRequestRound.timeoutMs =
+        clientRequestRound.remainingTime < retryTimeMs
+            ? clientRequestRound.remainingTime
+            : retryTimeMs;
   }
 
   @Override
-  // TODO(jiashuo1) open AutoRetry and backup-request at same time will result in thread-safe
-  // problem on updating `clientRequestRound.timeoutMs`
   public void after(
       ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler) {
     if (errno != error_types.ERR_TIMEOUT) {
@@ -29,11 +30,6 @@ public class AutoRetryInterceptor implements TableInterceptor {
     if (clientRequestRound.remainingTime <= 0) {
       return;
     }
-
-    clientRequestRound.timeoutMs =
-        clientRequestRound.remainingTime < this.retryTimeMs
-            ? clientRequestRound.remainingTime
-            : this.retryTimeMs;
 
     tableHandler.call(clientRequestRound);
   }

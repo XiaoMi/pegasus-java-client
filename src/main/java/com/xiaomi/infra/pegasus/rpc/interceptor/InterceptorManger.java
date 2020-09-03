@@ -11,12 +11,21 @@ public class InterceptorManger {
 
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
+  /**
+   * The interceptor manager
+   *
+   * <p>Note: AutoRetryInterceptor must be registered and executed before BackupRequestInterceptor,
+   * for the AutoRetryInterceptor will modify the `timeout` which is used by
+   * BackupRequestInterceptor
+   *
+   * @param options control the interceptor switch, detail see {@link TableOptions}
+   */
   public InterceptorManger(TableOptions options) {
-    this.register(
+    this.register(new AutoRetryInterceptor(options.retryTimeMs), options.enableAutoRetry())
+        .register(
             new BackupRequestInterceptor(options.backupRequestDelayMs()),
             options.enableBackupRequest())
-        .register(new CompressionInterceptor(), options.enableCompression())
-        .register(new AutoRetryInterceptor(options.retryTimeMs), options.enableAutoRetry());
+        .register(new CompressionInterceptor(), options.enableCompression());
   }
 
   private InterceptorManger register(TableInterceptor interceptor, boolean enable) {
