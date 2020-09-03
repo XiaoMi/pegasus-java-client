@@ -3,8 +3,6 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.io.Serializable;
 
 public class Set implements Serializable {
-    public boolean response;
-
     public byte[] hashKey;
     public byte[] sortKey;
     public byte[] value;
