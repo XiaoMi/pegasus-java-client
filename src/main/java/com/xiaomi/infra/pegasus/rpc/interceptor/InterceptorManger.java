@@ -21,7 +21,7 @@ public class InterceptorManger {
    * @param options control the interceptor switch, detail see {@link TableOptions}
    */
   public InterceptorManger(TableOptions options) {
-    this.register(new AutoRetryInterceptor(options.retryTimeMs), options.enableAutoRetry())
+    this.register(new AutoRetryInterceptor(options.retryOptions()), options.enableAutoRetry())
         .register(
             new BackupRequestInterceptor(options.backupRequestDelayMs()),
             options.enableBackupRequest())

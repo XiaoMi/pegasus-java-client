@@ -4,19 +4,54 @@
 package com.xiaomi.infra.pegasus.rpc;
 
 import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
+import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
+import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor;
 
 /** TableOptions is the internal options for opening a Pegasus table. */
 public class TableOptions {
+
+  /**
+   * this class control how to retry after call failed
+   *
+   * <p>every rpc call has timeout, if not set the RetryOptions, the rpc timeout is equal with
+   * request timeout {@link ClientRequestRound#timeoutMs}, otherwise, the timeout is equal with
+   * retryTime or is equal with {@link ClientRequestRound#remainingTime} at last time, detail see
+   * {@link AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
+   *
+   * <p>for example: user hope the request timeout is 1000ms and pass the retryTime=200ms and
+   * delayTime=100ms, which means the call will be retried at 200+100=300ms, 300+(200+100)=600ms,
+   * 600+(200+100)=900 and the last retry timeout is 1000-900=100ms if every call is failed, which
+   * can guarantee return before 1000ms
+   */
+  public static class RetryOptions {
+    private long retryTimeMs;
+    private long delayTimeMs;
+
+    public RetryOptions(long retryTimeMs, long delayTimeMs) {
+      assert (retryTimeMs > 0 && delayTimeMs > 0);
+      this.retryTimeMs = retryTimeMs;
+      this.delayTimeMs = delayTimeMs;
+    }
+
+    public long retryTimeMs() {
+      return retryTimeMs;
+    }
+
+    public long delayTimeMs() {
+      return delayTimeMs;
+    }
+  }
+
   private KeyHasher keyHasher;
   private int backupRequestDelayMs;
   private boolean enableCompression;
-  public long retryTimeMs;
+  private RetryOptions retryOptions;
 
   public TableOptions() {
     this.keyHasher = new PegasusHasher();
     this.backupRequestDelayMs = 0;
     this.enableCompression = false;
-    this.retryTimeMs = 0;
   }
 
   public TableOptions withKeyHasher(KeyHasher keyHasher) {
@@ -34,8 +69,8 @@ public class TableOptions {
     return this;
   }
 
-  public TableOptions withRetryTimeMs(int retryTimeMs) {
-    this.retryTimeMs = retryTimeMs;
+  public TableOptions withRetryTimeMs(RetryOptions retryOptions) {
+    this.retryOptions = retryOptions;
     return this;
   }
 
@@ -56,7 +91,11 @@ public class TableOptions {
   }
 
   public boolean enableAutoRetry() {
-    return retryTimeMs > 0;
+    return retryOptions != null;
+  }
+
+  public RetryOptions retryOptions() {
+    return retryOptions;
   }
 
   public static TableOptions forTest() {

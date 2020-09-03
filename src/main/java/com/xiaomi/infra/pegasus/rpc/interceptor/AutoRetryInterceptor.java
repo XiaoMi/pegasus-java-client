@@ -1,22 +1,32 @@
 package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
+import com.xiaomi.infra.pegasus.rpc.TableOptions.RetryOptions;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import org.slf4j.Logger;
 
 public class AutoRetryInterceptor implements TableInterceptor {
-  private final long retryTimeMs;
+  private static final Logger logger =
+      org.slf4j.LoggerFactory.getLogger(AutoRetryInterceptor.class);
+  private RetryOptions retryOptions;
 
-  public AutoRetryInterceptor(long retryTime) {
-    this.retryTimeMs = retryTime;
+  /**
+   * the interceptor support the rpc retry, which will guarantee return in request timeout user
+   * passed.
+   *
+   * @param retryOptions how to retry after call failed, detail see {@link RetryOptions}
+   */
+  public AutoRetryInterceptor(RetryOptions retryOptions) {
+    this.retryOptions = retryOptions;
   }
 
   @Override
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
     clientRequestRound.timeoutMs =
-        clientRequestRound.remainingTime < retryTimeMs
+        clientRequestRound.remainingTime < retryOptions.retryTimeMs()
             ? clientRequestRound.remainingTime
-            : retryTimeMs;
+            : retryOptions.retryTimeMs();
   }
 
   @Override
@@ -26,9 +36,16 @@ public class AutoRetryInterceptor implements TableInterceptor {
       return;
     }
 
-    clientRequestRound.remainingTime -= clientRequestRound.timeoutMs;
+    clientRequestRound.remainingTime -= (clientRequestRound.timeoutMs + retryOptions.delayTimeMs());
     if (clientRequestRound.remainingTime <= 0) {
       return;
+    }
+
+    try {
+      Thread.sleep(retryOptions.delayTimeMs());
+    } catch (InterruptedException e) {
+      logger.warn(
+          "sleep {} is interrupted when ready for retrying call, which will start next call rpc immediately");
     }
 
     tableHandler.call(clientRequestRound);
