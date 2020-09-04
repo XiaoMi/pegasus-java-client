@@ -44,8 +44,8 @@ public interface PegasusClientInterface {
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
    *
-   * @deprecated retaining it only for compatibility, we will remove it later, don't use it any
-   *     more. the latest interface please see {@link PegasusClientInterface#openTable(String,
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusClientInterface#openTable(String,
    *     TableOptions)}
    */
   @Deprecated
