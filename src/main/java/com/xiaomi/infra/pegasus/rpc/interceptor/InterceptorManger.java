@@ -12,15 +12,13 @@ public class InterceptorManger {
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
   public InterceptorManger(TableOptions options) {
-    this.register(new BackupRequestInterceptor(), options.enableBackupRequest())
-        .register(new CompressionInterceptor(), options.enableCompression());
-  }
-
-  private InterceptorManger register(TableInterceptor interceptor, boolean enable) {
-    if (enable) {
-      interceptors.add(interceptor);
+    if (options.enableBackupRequest()) {
+      interceptors.add(new BackupRequestInterceptor(options.backupRequestDelayMs()));
     }
-    return this;
+
+    if (options.enableCompression()) {
+      interceptors.add(new CompressionInterceptor());
+    }
   }
 
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {
