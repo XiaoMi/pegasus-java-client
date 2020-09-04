@@ -17,10 +17,9 @@ import org.slf4j.Logger;
  * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set {@link
  * RetryOptions} when open table using {@link TableOptions}, the rpc timeout is equal with request
  * timeout, see the {@link TableHandler#asyncOperate(client_operator, ClientOPCallback, int)},
- * otherwise, the timeout is updated by the class and is equal with `retryTime`{@link
- * RetryOptions#tryTimeoutMs}, or is equal with `remainingTime`{@link
- * ClientRequestRound#remainingTime} at last time, detail see {@link
- * AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
+ * otherwise, the timeout is updated by the class and is equal with {@link
+ * RetryOptions#tryTimeoutMs}, or is equal with {@link ClientRequestRound#remainingTime} at last
+ * time, detail see {@link AutoRetryInterceptor#updateRequestTimeout(ClientRequestRound)}
  */
 public class AutoRetryInterceptor implements TableInterceptor {
   private static final Logger logger =
