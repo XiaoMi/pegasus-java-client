@@ -14,28 +14,58 @@ import com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor;
 public class TableOptions {
 
   /**
-   * this class control how to retry after rpc call failed
+   * this class control the retry options after rpc call failed based `Exponential Backoff`
    *
-   * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set the RetryOptions,
+   * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set the RetryOptions when open table,
    * the rpc timeout is equal with request timeout, see the {@link
    * TableHandler#asyncOperate(client_operator, ClientOPCallback, int)}, otherwise, the timeout is
-   * updated by {@link AutoRetryInterceptor} and is equal with retryTime, or is equal with {@link
+   * updated by {@link AutoRetryInterceptor} and is equal with `retryTime`{@link RetryOptions#retryTimeMs}, or is equal with `remainingTime`{@link
    * ClientRequestRound#remainingTime} at last time, detail see {@link
    * AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
    *
-   * <p>for example: user hope the request timeout is 1000ms and pass the retryTime=200ms and
-   * delayTime=100ms, which means the call will be retried at 200+100=300ms, 300+(200+100)=600ms,
-   * 600+(200+100)=900 and the last retry timeout is 1000-900=100ms if every call is failed, which
-   * can guarantee return before 1000ms
+   * after call failed, the retry call will delay `delayTimeMs`{@link RetryOptions#delayTimeMs} and delayTimeMs = random()
    */
   public static class RetryOptions {
     private long retryTimeMs;
     private long delayTimeMs;
+    private int maxRetryTime;
 
     public RetryOptions(long retryTimeMs, long delayTimeMs) {
       assert (retryTimeMs > 0 && delayTimeMs >= 0);
       this.retryTimeMs = retryTimeMs;
       this.delayTimeMs = delayTimeMs;
+    }
+
+    /**
+
+     *
+     * <p>for example:
+     *
+     * <p>user hope the request timeout is 1000ms and pass the options: retryTime=200ms, which means it will be timeout after 200ms, if the last call has not enough time, the timeout will be remaining time
+     * can guarantee return before 1000ms
+     *
+     * @param retryTimeMs the rpc timeout if enable rpc retry
+     * @return return this
+     */
+    public RetryOptions withRetryTimeMs(long retryTimeMs) {
+      this.retryTimeMs = retryTimeMs;
+      return this;
+    }
+
+    /**
+     *
+     * @param delayTimeMs if on
+     * @return
+     */
+    public RetryOptions withDelayTimeMs(long delayTimeMs) {
+      this.delayTimeMs = delayTimeMs;
+      return this;
+    }
+
+
+    public RetryOptions withMaxRetryTime(int maxRetryTime) {
+      this.maxRetryTime = maxRetryTime;
+      return this;
     }
 
     public long retryTimeMs() {
@@ -44,6 +74,10 @@ public class TableOptions {
 
     public long delayTimeMs() {
       return delayTimeMs;
+    }
+
+    public int maxRetryTime() {
+      return maxRetryTime;
     }
   }
 
