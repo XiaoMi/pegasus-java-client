@@ -11,7 +11,20 @@ public class InterceptorManger {
 
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
+  /**
+   * The interceptor manager
+   *
+   * <p>Note: {@link AutoRetryInterceptor} must be added and executed before {@link
+   * BackupRequestInterceptor}, for the {@link AutoRetryInterceptor} will modify the {@link
+   * ClientRequestRound#timeoutMs} which is used by {@link BackupRequestInterceptor}
+   *
+   * @param options control the interceptor switch, detail see {@link TableOptions}
+   */
   public InterceptorManger(TableOptions options) {
+    if (options.enableAutoRetry()) {
+      interceptors.add(new AutoRetryInterceptor(options.retryOptions()));
+    }
+
     if (options.enableBackupRequest()) {
       interceptors.add(new BackupRequestInterceptor(options.backupRequestDelayMs()));
     }

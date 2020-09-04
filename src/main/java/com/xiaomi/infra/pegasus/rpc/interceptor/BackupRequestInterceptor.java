@@ -10,9 +10,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class BackupRequestInterceptor implements TableInterceptor {
-  private final long backupRequestDelayMs;
 
-  public BackupRequestInterceptor(long backupRequestDelayMs) {
+  private final int backupRequestDelayMs;
+
+  public BackupRequestInterceptor(int backupRequestDelayMs) {
     this.backupRequestDelayMs = backupRequestDelayMs;
   }
 

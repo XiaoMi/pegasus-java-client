@@ -1,12 +1,20 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import com.xiaomi.infra.pegasus.client.TableOptions;
+import com.xiaomi.infra.pegasus.client.TableOptions.RetryOptions;
+import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
+import com.xiaomi.infra.pegasus.rpc.KeyHasher;
+import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class InterceptorTest {
   @Test
@@ -35,5 +43,36 @@ public class InterceptorTest {
         new String(commonTable.get(hashKey, sortKey, 10000)), new String(compressionValue));
     Assertions.assertEquals(
         new String(compressTable.get(hashKey, sortKey, 10000)), new String(compressionValue));
+  }
+
+  @Test
+  // TODO(jiashuo1) add test for retry
+  public void testAutoRetryInterceptor() throws ReplicationException {
+    TableHandler table = createRetryTable(300, 100);
+    table.forTest(new ClientRequestRound(null, null, false, System.nanoTime() + 1000000, 1000));
+
+    ClientRequestRound clientRequestRound =
+        new ClientRequestRound(null, null, false, System.nanoTime() + 1000000, 1000);
+    Mockito.when(table.forTest(clientRequestRound))
+        .then(
+            new Answer<Object>() {
+              @Override
+              public Object answer(InvocationOnMock invocation) throws Throwable {
+                clientRequestRound.getOperator().rpc_error.errno = error_types.ERR_TIMEOUT;
+                table.onRpcReply(clientRequestRound, 1, null);
+                return null;
+              }
+            });
+  }
+
+  private TableHandler createRetryTable(long retryTime, long delayTime)
+      throws ReplicationException {
+    return Mockito.spy(
+        new TableHandler(
+            new ClusterManager(ClientOptions.create()),
+            "temp",
+            new InternalTableOptions(
+                KeyHasher.DEFAULT,
+                new TableOptions().withRetry(new RetryOptions(retryTime, delayTime)))));
   }
 }
