@@ -29,7 +29,7 @@ public class PegasusClient implements PegasusClientInterface {
   private final Object tableMapLock;
   private Cluster cluster;
 
-  public static class PegasusHasher implements KeyHasher {
+  private static class PegasusHasher implements KeyHasher {
     @Override
     public long hash(byte[] key) {
       Validate.isTrue(key != null && key.length >= 2);
