@@ -5,7 +5,6 @@ package com.xiaomi.infra.pegasus.rpc;
 
 import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 
 /** TableOptions is for opening a Pegasus table with some feature */
 public class TableOptions {
@@ -23,16 +22,16 @@ public class TableOptions {
       assert (tryTimeoutMs > 0 && delayTimeMs >= 0);
       this.tryTimeoutMs = tryTimeoutMs;
       this.delayTimeMs = delayTimeMs;
+      this.MaxTryCount = 3;
     }
 
     /**
      * set the try timeout
      *
      * @param tryTimeoutMs try timeout, it should be greater than zero. if set RetryOptions for
-     *     {@link TableOptions}, which means the rpc timeout is updated the try timeout, detail see
+     *     {@link TableOptions}, which means the rpc timeout is updated to tryTimeout, detail see
      *     {@link
-     *     com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor#before(ClientRequestRound,
-     *     TableHandler)}
+     *     com.xiaomi.infra.pegasus.rpc.interceptor.AutoRetryInterceptor#updateRequestTimeout(ClientRequestRound)}
      * @return this
      */
     public RetryOptions withTryTimeoutMs(long tryTimeoutMs) {
@@ -54,9 +53,9 @@ public class TableOptions {
     }
 
     /**
-     * set max try count
+     * set max try call count
      *
-     * @param maxTryCount max call count
+     * @param maxTryCount max try call count, default is 3
      * @return this
      */
     public RetryOptions withMaxTryCount(int maxTryCount) {
