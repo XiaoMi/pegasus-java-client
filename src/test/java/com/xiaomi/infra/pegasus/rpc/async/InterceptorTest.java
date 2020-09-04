@@ -5,9 +5,11 @@ import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
+import com.xiaomi.infra.pegasus.client.TableOptions;
+import com.xiaomi.infra.pegasus.client.TableOptions.RetryOptions;
+import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
+import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.rpc.TableOptions.RetryOptions;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
@@ -44,19 +46,21 @@ public class InterceptorTest {
   }
 
   @Test
+  // TODO(jiashuo1) add test for retry
   public void testAutoRetryInterceptor() throws ReplicationException {
     TableHandler table = createRetryTable(300, 100);
     table.forTest(new ClientRequestRound(null, null, false, System.nanoTime() + 1000000, 1000));
 
-    ClientRequestRound clientRequestRound = new ClientRequestRound(null, null, false, System.nanoTime() + 1000000, 1000)
-    Mockito.when(
-            table.forTest(clientRequestRound))
+    ClientRequestRound clientRequestRound =
+        new ClientRequestRound(null, null, false, System.nanoTime() + 1000000, 1000);
+    Mockito.when(table.forTest(clientRequestRound))
         .then(
             new Answer<Object>() {
               @Override
               public Object answer(InvocationOnMock invocation) throws Throwable {
                 clientRequestRound.getOperator().rpc_error.errno = error_types.ERR_TIMEOUT;
                 table.onRpcReply(clientRequestRound, 1, null);
+                return null;
               }
             });
   }
@@ -67,6 +71,8 @@ public class InterceptorTest {
         new TableHandler(
             new ClusterManager(ClientOptions.create()),
             "temp",
-            new TableOptions().withRetry(new RetryOptions(retryTime, delayTime))));
+            new InternalTableOptions(
+                KeyHasher.DEFAULT,
+                new TableOptions().withRetry(new RetryOptions(retryTime, delayTime)))));
   }
 }

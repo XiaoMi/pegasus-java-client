@@ -1,10 +1,9 @@
 package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
+import com.xiaomi.infra.pegasus.client.TableOptions.RetryOptions;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.rpc.Table.ClientOPCallback;
-import com.xiaomi.infra.pegasus.rpc.TableOptions;
-import com.xiaomi.infra.pegasus.rpc.TableOptions.RetryOptions;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import org.apache.commons.lang3.RandomUtils;

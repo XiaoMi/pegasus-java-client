@@ -1,9 +1,8 @@
 // Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
 // This source code is licensed under the Apache License Version 2.0, which
 // can be found in the LICENSE file in the root directory of this source tree.
-package com.xiaomi.infra.pegasus.rpc;
+package com.xiaomi.infra.pegasus.client;
 
-import com.xiaomi.infra.pegasus.client.PegasusClient.PegasusHasher;
 import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
 
 /** TableOptions is for opening a Pegasus table with some feature */
@@ -76,20 +75,13 @@ public class TableOptions {
     }
   }
 
-  private KeyHasher keyHasher;
   private int backupRequestDelayMs;
   private boolean enableCompression;
   private RetryOptions retryOptions;
 
   public TableOptions() {
-    this.keyHasher = new PegasusHasher();
     this.backupRequestDelayMs = 0;
     this.enableCompression = false;
-  }
-
-  public TableOptions withKeyHasher(KeyHasher keyHasher) {
-    this.keyHasher = keyHasher;
-    return this;
   }
 
   public TableOptions withBackupRequestDelayMs(int backupRequestDelayMs) {
@@ -105,10 +97,6 @@ public class TableOptions {
   public TableOptions withRetry(RetryOptions retryOptions) {
     this.retryOptions = retryOptions;
     return this;
-  }
-
-  public KeyHasher keyHasher() {
-    return this.keyHasher;
   }
 
   public int backupRequestDelayMs() {
@@ -129,9 +117,5 @@ public class TableOptions {
 
   public RetryOptions retryOptions() {
     return retryOptions;
-  }
-
-  public static TableOptions forTest() {
-    return new TableOptions().withKeyHasher(KeyHasher.DEFAULT);
   }
 }
