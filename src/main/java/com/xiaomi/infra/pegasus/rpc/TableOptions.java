@@ -16,14 +16,16 @@ public class TableOptions {
   /**
    * this class control the retry options after rpc call failed based `Exponential Backoff`
    *
-   * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set the RetryOptions when open table,
-   * the rpc timeout is equal with request timeout, see the {@link
+   * <p>every rpc call has timeout{@link ClientRequestRound#timeoutMs}, if not set the RetryOptions
+   * when open table, the rpc timeout is equal with request timeout, see the {@link
    * TableHandler#asyncOperate(client_operator, ClientOPCallback, int)}, otherwise, the timeout is
-   * updated by {@link AutoRetryInterceptor} and is equal with `retryTime`{@link RetryOptions#retryTimeMs}, or is equal with `remainingTime`{@link
+   * updated by {@link AutoRetryInterceptor} and is equal with `retryTime`{@link
+   * RetryOptions#retryTimeMs}, or is equal with `remainingTime`{@link
    * ClientRequestRound#remainingTime} at last time, detail see {@link
    * AutoRetryInterceptor#before(ClientRequestRound, TableHandler)}
    *
-   * after call failed, the retry call will delay `delayTimeMs`{@link RetryOptions#delayTimeMs} and delayTimeMs = random()
+   * <p>after call failed, the retry call will delay `delayTimeMs`{@link RetryOptions#delayTimeMs}
+   * and delayTimeMs = random()
    */
   public static class RetryOptions {
     private long retryTimeMs;
@@ -37,12 +39,11 @@ public class TableOptions {
     }
 
     /**
-
+     * for example:
      *
-     * <p>for example:
-     *
-     * <p>user hope the request timeout is 1000ms and pass the options: retryTime=200ms, which means it will be timeout after 200ms, if the last call has not enough time, the timeout will be remaining time
-     * can guarantee return before 1000ms
+     * <p>user hope the request timeout is 1000ms and pass the options: retryTime=200ms, which means
+     * it will be timeout after 200ms, if the last call has not enough time, the timeout will be
+     * remaining time can guarantee return before 1000ms
      *
      * @param retryTimeMs the rpc timeout if enable rpc retry
      * @return return this
@@ -53,7 +54,6 @@ public class TableOptions {
     }
 
     /**
-     *
      * @param delayTimeMs if on
      * @return
      */
@@ -61,7 +61,6 @@ public class TableOptions {
       this.delayTimeMs = delayTimeMs;
       return this;
     }
-
 
     public RetryOptions withMaxRetryTime(int maxRetryTime) {
       this.maxRetryTime = maxRetryTime;

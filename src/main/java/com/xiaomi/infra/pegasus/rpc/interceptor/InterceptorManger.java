@@ -14,25 +14,24 @@ public class InterceptorManger {
   /**
    * The interceptor manager
    *
-   * <p>Note: {@link AutoRetryInterceptor} must be registered and executed before {@link
+   * <p>Note: {@link AutoRetryInterceptor} must be added and executed before {@link
    * BackupRequestInterceptor}, for the {@link AutoRetryInterceptor} will modify the {@link
    * ClientRequestRound#timeoutMs} which is used by {@link BackupRequestInterceptor}
    *
    * @param options control the interceptor switch, detail see {@link TableOptions}
    */
   public InterceptorManger(TableOptions options) {
-    this.register(new AutoRetryInterceptor(options.retryOptions()), options.enableAutoRetry())
-        .register(
-            new BackupRequestInterceptor(options.backupRequestDelayMs()),
-            options.enableBackupRequest())
-        .register(new CompressionInterceptor(), options.enableCompression());
-  }
-
-  private InterceptorManger register(TableInterceptor interceptor, boolean enable) {
-    if (enable) {
-      interceptors.add(interceptor);
+    if (options.enableAutoRetry()) {
+      interceptors.add(new AutoRetryInterceptor(options.retryOptions()));
     }
-    return this;
+
+    if (options.enableBackupRequest()) {
+      interceptors.add(new BackupRequestInterceptor(options.backupRequestDelayMs()));
+    }
+
+    if (options.enableCompression()) {
+      interceptors.add(new CompressionInterceptor());
+    }
   }
 
   public void before(ClientRequestRound clientRequestRound, TableHandler tableHandler) {

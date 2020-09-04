@@ -16,13 +16,14 @@ public final class ClientRequestRound {
   client_operator operator;
   Table.ClientOPCallback callback;
   public long timeoutMs;
+  public long nextDelayTime;
   public long remainingTime;
+  public int tryId;
 
   boolean enableCounter;
   long createNanoTime;
   long expireNanoTime;
   boolean isCompleted;
-  int tryId;
   ScheduledFuture<?> backupRequestTask;
 
   /**
