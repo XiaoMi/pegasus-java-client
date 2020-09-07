@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.request.Batch;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.List;
@@ -1056,6 +1057,15 @@ public interface PegasusTableInterface {
    * int)}
    */
   public long incr(byte[] hashKey, byte[] sortKey, long increment, int timeout /*ms*/)
+      throws PException;
+
+  public <Req, Res> void batch(Batch<Req, Res> batch, List<Res> responses, int timeout /*timeout*/)
+      throws PException;
+
+  public <Req, Res> void batch(Batch<Req, Res> batch, int timeout /*timeout*/) throws PException;
+
+  public <Req, Res> void batchWaitAllComplete(
+      Batch<Req, Res> batch, List<Pair<PException, Res>> responses, int timeout /*timeout*/)
       throws PException;
 
   /**

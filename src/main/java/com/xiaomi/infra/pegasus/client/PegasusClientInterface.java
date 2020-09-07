@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.request.Batch;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -489,6 +490,15 @@ public interface PegasusClientInterface {
       throws PException;
 
   public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment)
+      throws PException;
+
+  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch) throws PException;
+
+  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch, List<Res> responses)
+      throws PException;
+
+  public <Req, Res> void batchWaitAllComplete(
+      String tableName, Batch<Req, Res> batch, List<Pair<PException, Res>> responses)
       throws PException;
 
   /**

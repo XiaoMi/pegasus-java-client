@@ -3,9 +3,10 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.io.Serializable;
 
 public class Set implements Serializable {
-    public byte[] hashKey;
-    public byte[] sortKey;
-    public byte[] value;
+    public final byte[] hashKey;
+    public final byte[] sortKey;
+    public final byte[] value;
+
     public int ttlSeconds;
 
     public Set(byte[] hashKey, byte[] sortKey, byte[] value) {

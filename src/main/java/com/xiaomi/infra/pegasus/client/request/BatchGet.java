@@ -2,10 +2,17 @@ package com.xiaomi.infra.pegasus.client.request;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
+import java.util.List;
 
 public class BatchGet extends Batch<Get, byte[]> {
-    public BatchGet(PegasusTableInterface table, int timeout) {
-        super(table, timeout);
+
+    public BatchGet(List<Get> gets) {
+        super(gets);
+    }
+
+    public BatchGet(PegasusTableInterface table,
+        List<Get> gets, int timeout) {
+        super(table, gets, timeout);
     }
 
     @Override

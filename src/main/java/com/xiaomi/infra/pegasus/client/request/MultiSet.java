@@ -5,9 +5,9 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class MultiSet {
-    public byte[] hashKey;
+    public final byte[] hashKey;
+    public final List<Pair<byte[], byte[]>> values;
 
-    public List<Pair<byte[], byte[]>> values;
     public int ttlSeconds;
 
     public MultiSet(byte[] hashKey) {

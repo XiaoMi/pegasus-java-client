@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.apps.*;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
+import com.xiaomi.infra.pegasus.client.request.Batch;
 import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -1626,6 +1627,29 @@ public class PegasusTable implements PegasusTableInterface {
     } catch (ExecutionException e) {
       throw new PException(e);
     }
+  }
+
+  @Override
+  public <Req, Res> void batch(Batch<Req, Res> batch, int timeout) throws PException {
+    batch.setTable(this);
+    batch.setTimeout(timeout <= 0 ? defaultTimeout : timeout);
+    batch.commit();
+  }
+
+  @Override
+  public <Req, Res> void batch(Batch<Req, Res> batch, List<Res> responses, int timeout)
+      throws PException {
+    batch.setTable(this);
+    batch.setTimeout(timeout <= 0 ? defaultTimeout : timeout);
+    batch.commit(responses);
+  }
+
+  @Override
+  public <Req, Res> void batchWaitAllComplete(
+      Batch<Req, Res> batch, List<Pair<PException, Res>> responses, int timeout) throws PException {
+    batch.setTable(this);
+    batch.setTimeout(timeout <= 0 ? defaultTimeout : timeout);
+    batch.commitWaitAllComplete(responses);
   }
 
   @Override
