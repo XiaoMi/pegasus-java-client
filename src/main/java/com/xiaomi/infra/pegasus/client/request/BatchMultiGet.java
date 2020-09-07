@@ -11,7 +11,7 @@ public class BatchMultiGet extends Batch<MultiGet, MultiGetResult> {
     }
 
     @Override
-    Future<MultiGetResult> asyncCommit(MultiGet multiGet) {
+    public Future<MultiGetResult> asyncCommit(MultiGet multiGet) {
         return table.asyncMultiGet(multiGet.hashKey, multiGet.sortKeys,timeout);
     }
 }

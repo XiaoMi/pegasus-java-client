@@ -10,6 +10,6 @@ class BatchSet extends Batch<Set, Void> {
 
     @Override
     public Future<Void> asyncCommit(Set set) {
-        return table.asyncSet(set.hashKey, set.sortKey, set.value, timeout);
+        return table.asyncSet(set.hashKey, set.sortKey, set.value, set.ttlSeconds, timeout);
     }
 }

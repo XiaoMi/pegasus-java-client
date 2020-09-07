@@ -12,8 +12,6 @@ public abstract class Batch<Request, Response> {
     public final PegasusTableInterface table;
     public final int timeout;
 
-    private FutureGroup<Response> futureGroup;
-
     public Batch(PegasusTableInterface table, int timeout) {
         this.table = table;
         this.timeout = timeout;
@@ -21,7 +19,7 @@ public abstract class Batch<Request, Response> {
 
     public void commit(List<Request> requests) throws PException {
         assert (!requests.isEmpty());
-        asyncCommit(requests).waitAllCompleteOrOneFail(null, timeout);
+        asyncCommit(requests).waitAllCompleteOrOneFail(timeout);
     }
 
     public void commit(List<Request> requests, List<Response> responses) throws PException {
@@ -31,11 +29,11 @@ public abstract class Batch<Request, Response> {
 
     public void commitWaitAllComplete(List<Request> requests, List<Pair<PException,Response>> responses) throws PException {
         assert (!requests.isEmpty());
-        asyncCommit(requests).waitAllcomplete(responses, timeout);
+        asyncCommit(requests).waitAllComplete(responses, timeout);
     }
 
     private FutureGroup<Response> asyncCommit(List<Request> requests){
-        futureGroup = new FutureGroup<>(requests.size());
+        FutureGroup<Response> futureGroup = new FutureGroup<>(requests.size());
         for (Request request : requests) {
             futureGroup.add(asyncCommit(request));
         }

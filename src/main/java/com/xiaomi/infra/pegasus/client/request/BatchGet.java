@@ -9,7 +9,7 @@ public class BatchGet extends Batch<Get, byte[]> {
     }
 
     @Override
-    Future<byte[]> asyncCommit(Get get) {
+    public Future<byte[]> asyncCommit(Get get) {
         return table.asyncGet(get.hashKey, get.sortKey, timeout);
     }
 }
