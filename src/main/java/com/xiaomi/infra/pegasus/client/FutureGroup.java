@@ -60,9 +60,9 @@ public class FutureGroup<Result> {
   /**
    * wait for all requests done if not timeout even if some error occurs
    *
-   * @param results if one request success, it should be pair<null, result>, otherwise,
-   *     pair<PException, null>
-   * @param timeoutMillis timout
+   * @param results if one request success, it should be pair(null, result), otherwise,
+   *     pair(PException, null)
+   * @param timeoutMillis timeout
    * @throws PException throw exception if timeout
    */
   public void waitAllComplete(List<Pair<PException, Result>> results, int timeoutMillis)

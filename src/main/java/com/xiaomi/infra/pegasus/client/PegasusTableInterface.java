@@ -1213,8 +1213,8 @@ public interface PegasusTableInterface {
    * @param batch batch request, detail see {@link Batch}, default implement contains {@link
    *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
    *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
-   * @param responses mustn't be null, if the single request success, the response is <pair<null,
-   *     result>, otherwise is <pair<PException, null>
+   * @param responses mustn't be null, if the single request success, the response is pair(null,
+   *     result), otherwise is pair(PException, null)
    * @param timeout timeout, throw exception if exceed the value
    * @param <Req> generic for request
    * @param <Res> generic for response
