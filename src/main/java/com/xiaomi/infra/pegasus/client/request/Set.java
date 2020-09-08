@@ -6,6 +6,9 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.io.Serializable;
 
 public class Set implements Serializable {
+
+  private static final long serialVersionUID = -2136211461120973309L;
+
   public final byte[] hashKey;
   public final byte[] sortKey;
   public final byte[] value;

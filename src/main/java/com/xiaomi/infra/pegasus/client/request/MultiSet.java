@@ -9,6 +9,9 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class MultiSet implements Serializable {
+
+  private static final long serialVersionUID = -2236077975122224688L;
+
   public final byte[] hashKey;
   public final List<Pair<byte[], byte[]>> values;
 

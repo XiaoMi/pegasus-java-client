@@ -6,6 +6,9 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.io.Serializable;
 
 public class Delete implements Serializable {
+
+  private static final long serialVersionUID = 7472471005807908575L;
+
   public final byte[] hashKey;
   public final byte[] sortKey;
 

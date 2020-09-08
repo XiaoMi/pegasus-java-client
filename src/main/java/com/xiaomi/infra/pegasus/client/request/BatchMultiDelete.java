@@ -9,6 +9,8 @@ import java.util.List;
 
 public class BatchMultiDelete extends Batch<MultiDelete, Void> {
 
+  private static final long serialVersionUID = 4692293597610231870L;
+
   public BatchMultiDelete(List<MultiDelete> multiDeletes) {
     super(multiDeletes);
   }

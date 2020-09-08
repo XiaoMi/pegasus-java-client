@@ -9,6 +9,8 @@ import java.util.List;
 
 public class BatchGet extends Batch<Get, byte[]> {
 
+  private static final long serialVersionUID = -8713375648386293450L;
+
   public BatchGet(List<Get> gets) {
     super(gets);
   }

@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiGet implements Serializable {
+
+  private static final long serialVersionUID = 2068964280456524026L;
+
   public final byte[] hashKey;
   public final List<byte[]> sortKeys;
 

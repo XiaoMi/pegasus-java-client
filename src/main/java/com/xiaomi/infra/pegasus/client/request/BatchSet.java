@@ -9,6 +9,8 @@ import java.util.List;
 
 public class BatchSet extends Batch<Set, Void> {
 
+  private static final long serialVersionUID = 7339081203717442862L;
+
   public BatchSet(List<Set> sets) {
     super(sets);
   }

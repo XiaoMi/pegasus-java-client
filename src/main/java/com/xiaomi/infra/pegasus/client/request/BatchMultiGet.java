@@ -10,6 +10,8 @@ import java.util.List;
 
 public class BatchMultiGet extends Batch<MultiGet, MultiGetResult> {
 
+  private static final long serialVersionUID = -8398629822956682881L;
+
   public BatchMultiGet(List<MultiGet> multiGets) {
     super(multiGets);
   }

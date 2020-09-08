@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiDelete implements Serializable {
+
+  private static final long serialVersionUID = -9090489322713020570L;
+
   public final byte[] hashKey;
   public final List<byte[]> sortKeys;
 

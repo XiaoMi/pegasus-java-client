@@ -13,6 +13,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public abstract class Batch<Request, Response> implements Serializable {
 
+  private static final long serialVersionUID = -6267381453465488529L;
+
   private final List<Request> requests;
   public PegasusTableInterface table;
   public int timeout;
