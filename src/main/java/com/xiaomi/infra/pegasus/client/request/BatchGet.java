@@ -9,17 +9,16 @@ import java.util.List;
 
 public class BatchGet extends Batch<Get, byte[]> {
 
-    public BatchGet(List<Get> gets) {
-        super(gets);
-    }
+  public BatchGet(List<Get> gets) {
+    super(gets);
+  }
 
-    public BatchGet(PegasusTableInterface table,
-        List<Get> gets, int timeout) {
-        super(table, gets, timeout);
-    }
+  public BatchGet(PegasusTableInterface table, List<Get> gets, int timeout) {
+    super(table, gets, timeout);
+  }
 
-    @Override
-    public Future<byte[]> asyncCommit(Get get) {
-        return table.asyncGet(get.hashKey, get.sortKey, timeout);
-    }
+  @Override
+  public Future<byte[]> asyncCommit(Get get) {
+    return table.asyncGet(get.hashKey, get.sortKey, timeout);
+  }
 }

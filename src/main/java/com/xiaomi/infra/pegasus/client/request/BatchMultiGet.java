@@ -10,17 +10,16 @@ import java.util.List;
 
 public class BatchMultiGet extends Batch<MultiGet, MultiGetResult> {
 
-    public BatchMultiGet(List<MultiGet> multiGets) {
-        super(multiGets);
-    }
+  public BatchMultiGet(List<MultiGet> multiGets) {
+    super(multiGets);
+  }
 
-    public BatchMultiGet(PegasusTableInterface table,
-        List<MultiGet> multiGets, int timeout) {
-        super(table, multiGets, timeout);
-    }
+  public BatchMultiGet(PegasusTableInterface table, List<MultiGet> multiGets, int timeout) {
+    super(table, multiGets, timeout);
+  }
 
-    @Override
-    public Future<MultiGetResult> asyncCommit(MultiGet multiGet) {
-        return table.asyncMultiGet(multiGet.hashKey, multiGet.sortKeys,timeout);
-    }
+  @Override
+  public Future<MultiGetResult> asyncCommit(MultiGet multiGet) {
+    return table.asyncMultiGet(multiGet.hashKey, multiGet.sortKeys, timeout);
+  }
 }

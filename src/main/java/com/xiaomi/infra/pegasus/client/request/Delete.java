@@ -6,15 +6,15 @@ package com.xiaomi.infra.pegasus.client.request;
 import java.io.Serializable;
 
 public class Delete implements Serializable {
-    public final byte[] hashKey;
-    public final byte[] sortKey;
+  public final byte[] hashKey;
+  public final byte[] sortKey;
 
-    public Delete(byte[] hashKey) {
-        this(hashKey, null);
-    }
+  public Delete(byte[] hashKey) {
+    this(hashKey, null);
+  }
 
-    public Delete(byte[] hashKey, byte[] sortKey) {
-        this.hashKey = hashKey;
-        this.sortKey = sortKey;
-    }
+  public Delete(byte[] hashKey, byte[] sortKey) {
+    this.hashKey = hashKey;
+    this.sortKey = sortKey;
+  }
 }

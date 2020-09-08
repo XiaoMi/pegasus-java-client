@@ -8,28 +8,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiGet implements Serializable {
-    public final byte[] hashKey;
-    public final List<byte[]> sortKeys;
+  public final byte[] hashKey;
+  public final List<byte[]> sortKeys;
 
-    public MultiGet(byte[] hashKey) {
-        this(hashKey, new ArrayList<>());
-    }
+  public MultiGet(byte[] hashKey) {
+    this(hashKey, new ArrayList<>());
+  }
 
-    public MultiGet(byte[] hashKey, List<byte[]> sortKeys) {
-        checkArguments(hashKey,sortKeys);
-        this.hashKey = hashKey;
-        this.sortKeys = sortKeys;
-    }
+  public MultiGet(byte[] hashKey, List<byte[]> sortKeys) {
+    checkArguments(hashKey, sortKeys);
+    this.hashKey = hashKey;
+    this.sortKeys = sortKeys;
+  }
 
-    public MultiGet add(byte[] sortKey){
-        sortKeys.add(sortKey);
-        return this;
-    }
+  public MultiGet add(byte[] sortKey) {
+    sortKeys.add(sortKey);
+    return this;
+  }
 
-    private void checkArguments(byte[] hashKey, List<byte[]> sortKeys){
-        assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF) :
-            "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
-        assert (sortKeys != null && !sortKeys.isEmpty()) :
-            "sortKeys != null && !sortKeys.isEmpty()";
-    }
+  private void checkArguments(byte[] hashKey, List<byte[]> sortKeys) {
+    assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF)
+        : "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
+    assert (sortKeys != null && !sortKeys.isEmpty()) : "sortKeys != null && !sortKeys.isEmpty()";
+  }
 }

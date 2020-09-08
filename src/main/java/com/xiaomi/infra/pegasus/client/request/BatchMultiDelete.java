@@ -9,18 +9,17 @@ import java.util.List;
 
 public class BatchMultiDelete extends Batch<MultiDelete, Void> {
 
-    public BatchMultiDelete(
-        List<MultiDelete> multiDeletes) {
-        super(multiDeletes);
-    }
+  public BatchMultiDelete(List<MultiDelete> multiDeletes) {
+    super(multiDeletes);
+  }
 
-    public BatchMultiDelete(PegasusTableInterface table,
-        List<MultiDelete> multiDeletes, int timeout) {
-        super(table, multiDeletes, timeout);
-    }
+  public BatchMultiDelete(
+      PegasusTableInterface table, List<MultiDelete> multiDeletes, int timeout) {
+    super(table, multiDeletes, timeout);
+  }
 
-    @Override
-    public Future<Void> asyncCommit(MultiDelete multiDelete) {
-        return table.asyncMultiDel(multiDelete.hashKey, multiDelete.sortKeys, timeout);
-    }
+  @Override
+  public Future<Void> asyncCommit(MultiDelete multiDelete) {
+    return table.asyncMultiDel(multiDelete.hashKey, multiDelete.sortKeys, timeout);
+  }
 }

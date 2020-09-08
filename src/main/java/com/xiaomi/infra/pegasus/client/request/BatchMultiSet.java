@@ -9,17 +9,16 @@ import java.util.List;
 
 public class BatchMultiSet extends Batch<MultiSet, Void> {
 
-    public BatchMultiSet(List<MultiSet> multiSets) {
-        super(multiSets);
-    }
+  public BatchMultiSet(List<MultiSet> multiSets) {
+    super(multiSets);
+  }
 
-    public BatchMultiSet(PegasusTableInterface table,
-        List<MultiSet> multiSets, int timeout) {
-        super(table, multiSets, timeout);
-    }
+  public BatchMultiSet(PegasusTableInterface table, List<MultiSet> multiSets, int timeout) {
+    super(table, multiSets, timeout);
+  }
 
-    @Override
-    public Future<Void> asyncCommit(MultiSet multiSet) {
-        return table.asyncMultiSet(multiSet.hashKey, multiSet.values, multiSet.ttlSeconds,timeout);
-    }
+  @Override
+  public Future<Void> asyncCommit(MultiSet multiSet) {
+    return table.asyncMultiSet(multiSet.hashKey, multiSet.values, multiSet.ttlSeconds, timeout);
+  }
 }
