@@ -29,18 +29,18 @@ public abstract class Batch<Request, Response> implements Serializable {
   }
 
   public void commit() throws PException {
-    asyncCommit().waitAllCompleteOrOneFail(timeout);
+    asyncCommitRequests().waitAllCompleteOrOneFail(timeout);
   }
 
   public void commit(List<Response> responses) throws PException {
-    asyncCommit().waitAllCompleteOrOneFail(responses, timeout);
+    asyncCommitRequests().waitAllCompleteOrOneFail(responses, timeout);
   }
 
   public void commitWaitAllComplete(List<Pair<PException, Response>> responses) throws PException {
-    asyncCommit().waitAllComplete(responses, timeout);
+    asyncCommitRequests().waitAllComplete(responses, timeout);
   }
 
-  private FutureGroup<Response> asyncCommit() {
+  private FutureGroup<Response> asyncCommitRequests() {
     assert (table != null);
     FutureGroup<Response> futureGroup = new FutureGroup<>(requests.size());
     for (Request request : requests) {
