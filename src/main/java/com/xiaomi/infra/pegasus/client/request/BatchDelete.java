@@ -7,7 +7,7 @@ import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 import java.util.List;
 
-public class BatchDelete extends Batch<Delete, Void>{
+public class BatchDelete extends Batch<Delete, Void> {
 
     public BatchDelete(List<Delete> deletes) {
         super(deletes);

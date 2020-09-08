@@ -13,6 +13,7 @@ public class Set implements Serializable {
     public int ttlSeconds;
 
     public Set(byte[] hashKey, byte[] sortKey, byte[] value) {
+        assert value != null : "value != null";
         this.hashKey = hashKey;
         this.sortKey = sortKey;
         this.value = value;
@@ -20,7 +21,7 @@ public class Set implements Serializable {
     }
 
     public Set withTTLSeconds(int ttlSeconds){
-        assert ttlSeconds > 0;
+        assert ttlSeconds > 0 : "ttlSeconds > 0";
         this.ttlSeconds = ttlSeconds;
         return this;
    }

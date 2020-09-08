@@ -730,6 +730,8 @@ public interface PegasusTableInterface {
   /**
    * Batch get values of different keys. Will terminate immediately if any error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, List, int)}
    * @param keys hashKey and sortKey pair list.
    * @param values output values; should be created by caller; if succeed, the size of values will
    *     be same with keys; the value of keys[i] is stored in values[i]; if the value of keys[i] is
@@ -741,12 +743,16 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchGet(List<Pair<byte[], byte[]>> keys, List<byte[]> values, int timeout /*ms*/)
       throws PException;
 
   /**
    * Batch get values of different keys. Will wait for all requests done even if some error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link
+   *     PegasusTableInterface#batchWaitAllComplete(Batch, List, int)}
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
    *     results will be same with keys; the results[i] is a Pair: - if Pair.left != null : means
@@ -760,6 +766,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchGet2(
       List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout /*ms*/)
       throws PException;
@@ -806,6 +813,8 @@ public interface PegasusTableInterface {
    * Batch get multiple values under the same hash key. Will terminate immediately if any error
    * occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, List, int)}
    * @param keys List{hashKey,List{sortKey}}
    * @param values output values; should be created by caller; if succeed, the size of values will
    *     be same with keys; the data for keys[i] is stored in values[i].
@@ -816,6 +825,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiGet(
       List<Pair<byte[], List<byte[]>>> keys, List<HashKeyData> values, int timeout /*ms*/)
       throws PException;
@@ -824,6 +834,8 @@ public interface PegasusTableInterface {
    * Batch get multiple values under the same hash key. Will wait for all requests done even if some
    * error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, List, int)}
    * @param keys List{hashKey,List{sortKey}}; if List{sortKey} is null or empty, means fetch all
    *     sortKeys under the hashKey.
    * @param results output results; should be created by caller; after call done, the size of
@@ -835,6 +847,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiGet2(
       List<Pair<byte[], List<byte[]>>> keys,
       List<Pair<PException, HashKeyData>> results,
@@ -862,8 +875,10 @@ public interface PegasusTableInterface {
       throws PException;
 
   /**
-   * Batch set lots of values. Will terminate immediately if any error occurs.
+   * Batch set lots of values. Will terminate immediately if any error occurs. @Deprecated
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, int)}
    * @param items list of items.
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
    *     timeout value for current op, else the timeout value in the configuration file will be
@@ -872,11 +887,15 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchSet(List<SetItem> items, int timeout /*ms*/) throws PException;
 
   /**
    * Batch set lots of values. Will wait for all requests done even if some error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link
+   *     PegasusTableInterface#batchWaitAllComplete(Batch, List, int)}
    * @param items list of items.
    * @param results output results; should be created by caller; after call done, the size of
    *     results will be same with items; the results[i] is a PException: - if results[i] != null :
@@ -890,6 +909,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchSet2(List<SetItem> items, List<PException> results, int timeout /*ms*/)
       throws PException;
 
@@ -908,6 +928,8 @@ public interface PegasusTableInterface {
    * Batch set multiple value under the same hash key. Will terminate immediately if any error
    * occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, int)}
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl.
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
@@ -917,6 +939,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiSet(List<HashKeyData> items, int ttlSeconds, int timeout /*ms*/)
       throws PException;
 
@@ -924,6 +947,9 @@ public interface PegasusTableInterface {
    * Batch set multiple value under the same hash key. Will wait for all requests done even if some
    * error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link
+   *     PegasusTableInterface#batchWaitAllComplete(Batch, List, int)}
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
    * @param results output results; should be created by caller; after call done, the size of
@@ -938,6 +964,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiSet2(
       List<HashKeyData> items, int ttlSeconds, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -950,6 +977,8 @@ public interface PegasusTableInterface {
   /**
    * Batch delete values of different keys. Will terminate immediately if any error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, int)}
    * @param keys hashKey and sortKey pair list.
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
    *     timeout value for current op, else the timeout value in the configuration file will be
@@ -958,12 +987,16 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchDel(List<Pair<byte[], byte[]>> keys, int timeout /*ms*/) throws PException;
 
   /**
    * Batch delete values of different keys. Will wait for all requests done even if some error
    * occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link
+   *     PegasusTableInterface#batchWaitAllComplete(Batch, List, int)}
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
    *     results will be same with keys; the results[i] is a PException: - if results[i] != null :
@@ -977,6 +1010,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchDel2(
       List<Pair<byte[], byte[]>> keys, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -1012,6 +1046,8 @@ public interface PegasusTableInterface {
    * Batch delete specified sort keys under the same hash key. Will terminate immediately if any
    * error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link PegasusTableInterface#batch(Batch, int)}
    * @param keys List{hashKey,List{sortKey}}
    * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
    *     timeout value for current op, else the timeout value in the configuration file will be
@@ -1020,6 +1056,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public void batchMultiDel(List<Pair<byte[], List<byte[]>>> keys, int timeout /*ms*/)
       throws PException;
 
@@ -1027,6 +1064,9 @@ public interface PegasusTableInterface {
    * Batch delete specified sort keys under the same hash key. Will wait for all requests done even
    * if some error occurs.
    *
+   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
+   *     more. The latest interface please see {@link
+   *     PegasusTableInterface#batchWaitAllComplete(Batch, List, int)}
    * @param keys List{hashKey,List{sortKey}}
    * @param results output results; should be created by caller; after call done, the size of
    *     results will be same with keys; the results[i] is a PException: - if results[i] != null :
@@ -1040,6 +1080,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
+  @Deprecated
   public int batchMultiDel2(
       List<Pair<byte[], List<byte[]>>> keys, List<PException> results, int timeout /*ms*/)
       throws PException;
@@ -1057,15 +1098,6 @@ public interface PegasusTableInterface {
    * int)}
    */
   public long incr(byte[] hashKey, byte[] sortKey, long increment, int timeout /*ms*/)
-      throws PException;
-
-  public <Req, Res> void batch(Batch<Req, Res> batch, List<Res> responses, int timeout /*timeout*/)
-      throws PException;
-
-  public <Req, Res> void batch(Batch<Req, Res> batch, int timeout /*timeout*/) throws PException;
-
-  public <Req, Res> void batchWaitAllComplete(
-      Batch<Req, Res> batch, List<Pair<PException, Res>> responses, int timeout /*timeout*/)
       throws PException;
 
   /**
@@ -1139,4 +1171,56 @@ public interface PegasusTableInterface {
    */
   public List<PegasusScannerInterface> getUnorderedScanners(
       int maxScannerCount, ScanOptions options) throws PException;
+
+  /**
+   * send batch request no-atomically, but terminate immediately if any error occurs. Generally, it
+   * is for no need response result operations such as {@link
+   * com.xiaomi.infra.pegasus.client.request.BatchSet}, usage example see {@link
+   * com.xiaomi.infra.pegasus.example.BatchSample}
+   *
+   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
+   * @param timeout timeout, throw exception if exceed the value
+   * @param <Req> generic for request
+   * @param <Res> generic for response
+   * @throws PException any error occurs will throw exception
+   */
+  public <Req, Res> void batch(Batch<Req, Res> batch, int timeout /*timeout*/) throws PException;
+
+  /**
+   * send batch request no-atomically, but terminate immediately if any error occurs. Generally, it
+   * is for need response result operations such as {@link
+   * com.xiaomi.infra.pegasus.client.request.BatchGet}, usage example see {@link
+   * com.xiaomi.infra.pegasus.example.BatchSample}
+   *
+   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
+   * @param responses the batch response, mustn't be null
+   * @param timeout timeout, throw exception if exceed the value
+   * @param <Req> generic for request
+   * @param <Res> generic for response
+   * @throws PException any error occurs will throw exception
+   */
+  public <Req, Res> void batch(Batch<Req, Res> batch, List<Res> responses, int timeout /*timeout*/)
+      throws PException;
+
+  /**
+   * send batch request no-atomically, try wait for all requests done until timeout even if some
+   * other error occurs. usage example see {@link com.xiaomi.infra.pegasus.example.BatchSample}
+   *
+   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
+   * @param responses mustn't be null, if the single request success, the response is <pair<null,
+   *     result>, otherwise is <pair<PException, null>
+   * @param timeout timeout, throw exception if exceed the value
+   * @param <Req> generic for request
+   * @param <Res> generic for response
+   * @throws PException throw exception if timeout
+   */
+  public <Req, Res> void batchWaitAllComplete(
+      Batch<Req, Res> batch, List<Pair<PException, Res>> responses, int timeout /*timeout*/)
+      throws PException;
 }

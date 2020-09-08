@@ -3,10 +3,11 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client.request;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MultiDelete {
+public class MultiDelete implements Serializable {
     public final byte[] hashKey;
     public final List<byte[]> sortKeys;
 
@@ -15,7 +16,7 @@ public class MultiDelete {
     }
 
     public MultiDelete(byte[] hashKey, List<byte[]> sortKeys) {
-        assert sortKeys != null;
+        checkArguments(hashKey, sortKeys);
         this.hashKey = hashKey;
         this.sortKeys = sortKeys;
     }
@@ -23,6 +24,13 @@ public class MultiDelete {
     public MultiDelete add(byte[] sortKey){
         sortKeys.add(sortKey);
         return this;
+    }
+
+    private void checkArguments(byte[] hashKey, List<byte[]> sortKeys){
+        assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF) :
+            "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
+        assert (sortKeys != null && !sortKeys.isEmpty()) :
+            "sortKeys != null && !sortKeys.isEmpty()";
     }
 
 }

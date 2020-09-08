@@ -7,7 +7,7 @@ import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 import java.util.List;
 
-public class BatchMultiSet extends Batch<MultiSet, Void>{
+public class BatchMultiSet extends Batch<MultiSet, Void> {
 
     public BatchMultiSet(List<MultiSet> multiSets) {
         super(multiSets);

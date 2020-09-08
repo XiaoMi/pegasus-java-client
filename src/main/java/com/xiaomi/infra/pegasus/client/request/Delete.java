@@ -3,7 +3,9 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client.request;
 
-public class Delete {
+import java.io.Serializable;
+
+public class Delete implements Serializable {
     public final byte[] hashKey;
     public final byte[] sortKey;
 

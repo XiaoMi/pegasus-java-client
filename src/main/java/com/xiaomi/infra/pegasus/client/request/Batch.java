@@ -7,10 +7,11 @@ import com.xiaomi.infra.pegasus.client.FutureGroup;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
+import java.io.Serializable;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
-public abstract class Batch<Request, Response> {
+public abstract class Batch<Request, Response> implements Serializable {
 
     private final List<Request> requests;
     public PegasusTableInterface table;
