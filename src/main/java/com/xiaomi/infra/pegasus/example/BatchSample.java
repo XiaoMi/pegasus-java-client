@@ -41,27 +41,19 @@ public class BatchSample {
     deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
     List<byte[]> getResults = new ArrayList<>();
-    // use client
-    client.batch(tableName, new BatchSet(sets));
-    client.batch(tableName, new BatchDelete(deletes));
-    client.batch(tableName, new BatchGet(gets), getResults);
+    new BatchSet(table, 1000).commit(sets);
+    new BatchDelete(table, 1000).commit(deletes);
+
+    BatchGet batchGet = new BatchGet(table, 1000);
+    batchGet.commit(gets, getResults);
 
     List<Pair<PException, byte[]>> getResultsWithExp = new ArrayList<>();
-    client.batchWaitAllComplete(tableName, new BatchGet(gets), getResultsWithExp);
+    batchGet.commitWaitAllComplete(gets, getResultsWithExp);
 
-    // use table
-    table.batch(new BatchSet(sets), 1000);
-    table.batch(new BatchDelete(deletes), 1000);
-    table.batch(new BatchGet(gets), getResults, 1000);
-
-    table.batchWaitAllComplete(new BatchGet(gets), getResultsWithExp, 1000);
+    PegasusClientFactory.closeSingletonClient();
   }
 
   public void batchCustom() throws PException {
-    String tableName = "temp";
-    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
-    PegasusTableInterface table = client.openTable(tableName);
-
     class Increment {
       public final byte[] hashKey;
       public final byte[] sortKey;
@@ -74,31 +66,27 @@ public class BatchSample {
       }
     }
 
+    String tableName = "temp";
+    PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
+
+    table.del("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 1000);
+
     List<Increment> increments = new ArrayList<>();
     increments.add(new Increment("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 1));
     increments.add(new Increment("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 2));
 
     List<Long> incrResults = new ArrayList<>();
-    // use client
-    client.batch(
-        tableName,
-        new Batch<Increment, Long>(increments) {
-          @Override
-          public Future<Long> asyncCommit(Increment increment) {
-            return table.asyncIncr(increment.hashKey, increment.sortKey, increment.value, timeout);
-          }
-        },
-        incrResults);
 
-    // use table
-    table.batch(
-        new Batch<Increment, Long>(increments) {
+    Batch<Increment, Long> batchIncr =
+        new Batch<Increment, Long>(table, 1000) {
           @Override
-          public Future<Long> asyncCommit(Increment increment) {
+          protected Future<Long> asyncCommit(Increment increment) {
             return table.asyncIncr(increment.hashKey, increment.sortKey, increment.value, timeout);
           }
-        },
-        incrResults,
-        1000);
+        };
+
+    batchIncr.commit(increments, incrResults);
+
+    PegasusClientFactory.closeSingletonClient();
   }
 }

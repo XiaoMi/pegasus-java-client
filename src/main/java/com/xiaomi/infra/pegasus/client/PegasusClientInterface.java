@@ -112,8 +112,7 @@ public interface PegasusClientInterface {
    * Batch get values of different keys. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch,
-   *     List)}
+   *     more. The latest batch operation please see {@link Batch#commit(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param values output values; should be created by caller; if succeed, the size of values will
@@ -131,8 +130,7 @@ public interface PegasusClientInterface {
    * Batch get values of different keys. Will wait for all requests done even if some error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
@@ -220,8 +218,7 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch,
-   *     List)}
+   *     more. The latest batch operation please see {@link Batch#commit(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}; if List{sortKey} is null or empty, means fetch all
    *     sortKeys under the hashKey.
@@ -241,8 +238,7 @@ public interface PegasusClientInterface {
    * error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}; if List{sortKey} is null or empty, means fetch all
    *     sortKeys under the hashKey.
@@ -303,7 +299,7 @@ public interface PegasusClientInterface {
    * Batch set lots of values. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName TableHandler name
    * @param items list of items.
    * @throws PException throws exception if any error occurs.
@@ -317,8 +313,7 @@ public interface PegasusClientInterface {
    * Batch set lots of values. Will wait for all requests done even if some error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param items list of items.
    * @param results output results; should be created by caller; after call done, the size of
@@ -355,7 +350,7 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName TableHandler name
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
@@ -375,8 +370,7 @@ public interface PegasusClientInterface {
    * error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
@@ -414,7 +408,7 @@ public interface PegasusClientInterface {
    * Batch delete values of different keys. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @throws PException throws exception if any error occurs.
@@ -429,8 +423,8 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. TThe latest batch operation please see {@link Batch#commitWaitAllComplete(List,
+   *     List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
@@ -480,7 +474,7 @@ public interface PegasusClientInterface {
    * error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#batch(String, Batch)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}
    * @throws PException throws exception if any error occurs.
@@ -496,8 +490,7 @@ public interface PegasusClientInterface {
    * if some error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link
-   *     PegasusClientInterface#batchWaitAllComplete(String, Batch, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}
    * @param results output results; should be created by caller; after call done, the size of
@@ -660,56 +653,4 @@ public interface PegasusClientInterface {
    */
   public List<PegasusScannerInterface> getUnorderedScanners(
       String tableName, int maxScannerCount, ScanOptions options) throws PException;
-
-  /**
-   * send batch request no-atomically, but terminate immediately if any error occurs. Generally, it
-   * is for no need response result operations such as {@link
-   * com.xiaomi.infra.pegasus.client.request.BatchSet}, usage example see {@link
-   * com.xiaomi.infra.pegasus.example.BatchSample}
-   *
-   * @param tableName table name
-   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
-   * @param <Req> generic for request
-   * @param <Res> generic for response
-   * @throws PException any error occurs will throw exception
-   */
-  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch) throws PException;
-
-  /**
-   * send batch request no-atomically, but terminate immediately if any error occurs. Generally, it
-   * is for need response result operations such as {@link
-   * com.xiaomi.infra.pegasus.client.request.BatchGet}, usage example see {@link
-   * com.xiaomi.infra.pegasus.example.BatchSample}
-   *
-   * @param tableName table name
-   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
-   * @param responses the batch response, mustn't be null
-   * @param <Req> generic for request
-   * @param <Res> generic for response
-   * @throws PException any error occurs will throw exception
-   */
-  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch, List<Res> responses)
-      throws PException;
-
-  /**
-   * send batch request no-atomically, try wait for all requests done until timeout even if some
-   * other error occurs. usage example see {@link com.xiaomi.infra.pegasus.example.BatchSample}
-   *
-   * @param tableName table name
-   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
-   * @param responses if the single request success, the response is pair(null, result), otherwise
-   *     is pair(PException, null)
-   * @param <Req> generic for request
-   * @param <Res> generic for response
-   * @throws PException throw exception if timeout
-   */
-  public <Req, Res> void batchWaitAllComplete(
-      String tableName, Batch<Req, Res> batch, List<Pair<PException, Res>> responses)
-      throws PException;
 }

@@ -28,8 +28,8 @@ public class TestBatch {
 
   @Test
   public void testBatchSetDelGet() throws PException, InterruptedException {
-    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
     String tableName = "temp";
+    PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
 
     List<Set> sets = new ArrayList<>();
     sets.add(new Set("hashKeySet_1".getBytes(), "sortKeySet1".getBytes(), "valueSet1".getBytes()));
@@ -50,9 +50,12 @@ public class TestBatch {
     deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
     List<byte[]> getResults = new ArrayList<>();
-    client.batch(tableName, new BatchSet(sets));
-    client.batch(tableName, new BatchDelete(deletes));
-    client.batch(tableName, new BatchGet(gets), getResults);
+    new BatchSet(table, 1000).commit(sets);
+    new BatchDelete(table, 1000).commit(deletes);
+
+    BatchGet batchGet = new BatchGet(table, 1000);
+    batchGet.commit(gets, getResults);
+
     Assertions.assertNull(getResults.get(0));
     Assertions.assertNull(getResults.get(1));
     Assertions.assertEquals("valueSet3", new String(getResults.get(2)));
@@ -61,7 +64,7 @@ public class TestBatch {
     Thread.sleep(11000);
 
     List<Pair<PException, byte[]>> getResultsWithExp = new ArrayList<>();
-    client.batchWaitAllComplete(tableName, new BatchGet(gets), getResultsWithExp);
+    batchGet.commitWaitAllComplete(gets, getResultsWithExp);
     Assertions.assertNull(getResultsWithExp.get(2).getKey());
     Assertions.assertEquals("valueSet3", new String(getResultsWithExp.get(2).getRight()));
     Assertions.assertNull(getResultsWithExp.get(3).getRight());
@@ -71,8 +74,8 @@ public class TestBatch {
 
   @Test
   public void testBatchMultiSetDelGet() throws PException {
-    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
     String tableName = "temp";
+    PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
 
     List<MultiSet> multiSets = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
@@ -102,9 +105,11 @@ public class TestBatch {
     }
 
     List<MultiGetResult> multiGetResults = new ArrayList<>();
-    client.batch(tableName, new BatchMultiSet(multiSets));
-    client.batch(tableName, new BatchMultiDelete(multiDeletes));
-    client.batch(tableName, new BatchMultiGet(multiGets), multiGetResults);
+    new BatchMultiSet(table, 1000).commit(multiSets);
+    new BatchMultiDelete(table, 1000).commit(multiDeletes);
+
+    BatchMultiGet batchMultiGet = new BatchMultiGet(table, 1000);
+    batchMultiGet.commit(multiGets, multiGetResults);
 
     Assertions.assertEquals(0, multiGetResults.get(0).values.size());
     Assertions.assertEquals(0, multiGetResults.get(1).values.size());
@@ -117,7 +122,7 @@ public class TestBatch {
     }
 
     List<Pair<PException, MultiGetResult>> multiGetResultsWithExp = new ArrayList<>();
-    client.batchWaitAllComplete(tableName, new BatchMultiGet(multiGets), multiGetResultsWithExp);
+    batchMultiGet.commitWaitAllComplete(multiGets, multiGetResultsWithExp);
     for (int i = 0; i < 3; i++) {
       Assertions.assertNull(multiGetResultsWithExp.get(2).getLeft());
       Assertions.assertEquals(
@@ -145,25 +150,26 @@ public class TestBatch {
       }
     }
 
-    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
     String tableName = "temp";
+    PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
 
-    client.del(tableName, "hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes());
+    table.del("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 1000);
 
     List<Increment> increments = new ArrayList<>();
     increments.add(new Increment("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 1));
     increments.add(new Increment("hashKeyIncr1".getBytes(), "sortKeyIncr1".getBytes(), 2));
 
     List<Long> incrResults = new ArrayList<>();
-    client.batch(
-        tableName,
-        new Batch<Increment, Long>(increments) {
+
+    Batch<Increment, Long> batchIncr =
+        new Batch<Increment, Long>(table, 1000) {
           @Override
-          public Future<Long> asyncCommit(Increment increment) {
+          protected Future<Long> asyncCommit(Increment increment) {
             return table.asyncIncr(increment.hashKey, increment.sortKey, increment.value, timeout);
           }
-        },
-        incrResults);
+        };
+
+    batchIncr.commit(increments, incrResults);
 
     Assertions.assertEquals(1, incrResults.get(0).longValue());
     Assertions.assertEquals(3, incrResults.get(1).longValue());

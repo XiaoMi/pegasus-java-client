@@ -5,22 +5,17 @@ package com.xiaomi.infra.pegasus.client.request;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
-import java.util.List;
 
 public class BatchMultiSet extends Batch<MultiSet, Void> {
 
   private static final long serialVersionUID = -7112478467009023481L;
 
-  public BatchMultiSet(List<MultiSet> multiSets) {
-    super(multiSets);
-  }
-
-  public BatchMultiSet(PegasusTableInterface table, List<MultiSet> multiSets, int timeout) {
-    super(table, multiSets, timeout);
+  public BatchMultiSet(PegasusTableInterface table, int timeout) {
+    super(table, timeout);
   }
 
   @Override
-  public Future<Void> asyncCommit(MultiSet multiSet) {
+  protected Future<Void> asyncCommit(MultiSet multiSet) {
     return table.asyncMultiSet(multiSet.hashKey, multiSet.values, multiSet.ttlSeconds, timeout);
   }
 }

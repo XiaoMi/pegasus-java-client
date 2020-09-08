@@ -11,39 +11,62 @@ import java.io.Serializable;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
+/**
+ *
+ * @param <Request>
+ * @param <Response>
+ */
 public abstract class Batch<Request, Response> implements Serializable {
 
   private static final long serialVersionUID = -6267381453465488529L;
 
-  private final List<Request> requests;
-  public PegasusTableInterface table;
-  public int timeout;
+  protected PegasusTableInterface table;
+  protected int timeout;
 
-  public Batch(List<Request> requests) {
-    assert !requests.isEmpty() : "requests mustn't be empty";
-    this.requests = requests;
-  }
-
-  public Batch(PegasusTableInterface table, List<Request> requests, int timeout) {
+  public Batch(PegasusTableInterface table, int timeout) {
     this.table = table;
-    this.requests = requests;
     this.timeout = timeout;
   }
 
-  public void commit() throws PException {
-    asyncCommitRequests().waitAllCompleteOrOneFail(timeout);
+  /**
+   * send and commit batch request no-atomically, but terminate immediately if any error occurs.
+   * Generally, it is for committing operation which need not response result, such as {@link
+   * BatchSet}
+   *
+   * @param requests generic for request
+   * @throws PException any error occurs will throw exception
+   */
+  public void commit(List<Request> requests) throws PException {
+    asyncCommitRequests(requests).waitAllCompleteOrOneFail(timeout);
   }
 
-  public void commit(List<Response> responses) throws PException {
-    asyncCommitRequests().waitAllCompleteOrOneFail(responses, timeout);
+  /**
+   * send and commit batch request no-atomically, but terminate immediately if any error occurs.
+   * Generally, it is for committing operation which need response result, such as {@link BatchSet}
+   *
+   * @param requests generic for request
+   * @param responses generic for response
+   * @throws PException any error occurs will throw exception
+   */
+  public void commit(List<Request> requests, List<Response> responses) throws PException {
+    asyncCommitRequests(requests).waitAllCompleteOrOneFail(responses, timeout);
   }
 
-  public void commitWaitAllComplete(List<Pair<PException, Response>> responses) throws PException {
-    asyncCommitRequests().waitAllComplete(responses, timeout);
+  /**
+   * send and commit batch request no-atomically, try wait for all requests done until timeout even
+   * if some other error occurs
+   *
+   * @param requests generic for request
+   * @param responses generic for response
+   * @throws PException throw exception if timeout
+   */
+  public void commitWaitAllComplete(
+      List<Request> requests, List<Pair<PException, Response>> responses) throws PException {
+    asyncCommitRequests(requests).waitAllComplete(responses, timeout);
   }
 
-  private FutureGroup<Response> asyncCommitRequests() {
-    assert (table != null);
+  private FutureGroup<Response> asyncCommitRequests(List<Request> requests) {
+    assert !requests.isEmpty() : "requests mustn't be empty";
     FutureGroup<Response> futureGroup = new FutureGroup<>(requests.size());
     for (Request request : requests) {
       futureGroup.add(asyncCommit(request));
@@ -51,15 +74,5 @@ public abstract class Batch<Request, Response> implements Serializable {
     return futureGroup;
   }
 
-  public Batch<Request, Response> setTable(PegasusTableInterface table) {
-    this.table = table;
-    return this;
-  }
-
-  public Batch<Request, Response> setTimeout(int timeout) {
-    this.timeout = timeout;
-    return this;
-  }
-
-  public abstract Future<Response> asyncCommit(Request request);
+  protected abstract Future<Response> asyncCommit(Request request);
 }

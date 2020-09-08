@@ -5,23 +5,17 @@ package com.xiaomi.infra.pegasus.client.request;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
-import java.util.List;
 
 public class BatchMultiDelete extends Batch<MultiDelete, Void> {
 
   private static final long serialVersionUID = 4692293597610231870L;
 
-  public BatchMultiDelete(List<MultiDelete> multiDeletes) {
-    super(multiDeletes);
-  }
-
-  public BatchMultiDelete(
-      PegasusTableInterface table, List<MultiDelete> multiDeletes, int timeout) {
-    super(table, multiDeletes, timeout);
+  public BatchMultiDelete(PegasusTableInterface table, int timeout) {
+    super(table, timeout);
   }
 
   @Override
-  public Future<Void> asyncCommit(MultiDelete multiDelete) {
+  protected Future<Void> asyncCommit(MultiDelete multiDelete) {
     return table.asyncMultiDel(multiDelete.hashKey, multiDelete.sortKeys, timeout);
   }
 }
