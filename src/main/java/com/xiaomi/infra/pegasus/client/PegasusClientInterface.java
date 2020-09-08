@@ -703,8 +703,8 @@ public interface PegasusClientInterface {
    * @param batch batch request, detail see {@link Batch}, default implement contains {@link
    *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
    *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
-   * @param responses if the single request success, the response is List<pair<null, result>>,
-   *     otherwise is List<pair<PException, null>>
+   * @param responses if the single request success, the response is <pair<null, result>, otherwise
+   *     is <pair<PException, null>
    * @param <Req> generic for request
    * @param <Res> generic for response
    * @throws PException throw exception if timeout
