@@ -65,6 +65,8 @@ public class TestBatch {
     Assertions.assertNull(getResultsWithExp.get(2).getKey());
     Assertions.assertEquals("valueSet3", new String(getResultsWithExp.get(2).getRight()));
     Assertions.assertNull(getResultsWithExp.get(3).getRight());
+
+    PegasusClientFactory.closeSingletonClient();
   }
 
   @Test
@@ -125,6 +127,8 @@ public class TestBatch {
           "valueMultiSet" + i,
           new String(multiGetResultsWithExp.get(2).getRight().values.get(i).getRight()));
     }
+
+    PegasusClientFactory.closeSingletonClient();
   }
 
   @Test
@@ -163,5 +167,7 @@ public class TestBatch {
 
     Assertions.assertEquals(1, incrResults.get(0).longValue());
     Assertions.assertEquals(3, incrResults.get(1).longValue());
+
+    PegasusClientFactory.closeSingletonClient();
   }
 }
