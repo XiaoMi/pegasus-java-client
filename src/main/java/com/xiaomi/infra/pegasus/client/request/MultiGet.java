@@ -32,6 +32,6 @@ public class MultiGet implements Serializable {
   private void checkArguments(byte[] hashKey, List<byte[]> sortKeys) {
     assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF)
         : "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
-    assert (sortKeys != null && !sortKeys.isEmpty()) : "sortKeys != null && !sortKeys.isEmpty()";
+    assert sortKeys != null : "sortKeys != null";
   }
 }

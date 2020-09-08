@@ -42,6 +42,6 @@ public class MultiSet implements Serializable {
   private void checkArguments(byte[] hashKey, List<Pair<byte[], byte[]>> values) {
     assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF)
         : "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
-    assert (values != null && !values.isEmpty()) : "values != null && !values.isEmpty()";
+    assert values != null : "values != null";
   }
 }
