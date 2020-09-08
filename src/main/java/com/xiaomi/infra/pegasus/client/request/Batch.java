@@ -1,13 +1,14 @@
+// Copyright (c) 2020, Xiaomi, Inc.  All rights reserved.
+// This source code is licensed under the Apache License Version 2.0, which
+// can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client.request;
 
 import com.xiaomi.infra.pegasus.client.FutureGroup;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
 import io.netty.util.concurrent.Future;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Assert;
 
 public abstract class Batch<Request, Response> {
 

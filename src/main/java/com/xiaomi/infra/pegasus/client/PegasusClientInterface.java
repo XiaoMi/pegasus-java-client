@@ -492,15 +492,6 @@ public interface PegasusClientInterface {
   public long incr(String tableName, byte[] hashKey, byte[] sortKey, long increment)
       throws PException;
 
-  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch) throws PException;
-
-  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch, List<Res> responses)
-      throws PException;
-
-  public <Req, Res> void batchWaitAllComplete(
-      String tableName, Batch<Req, Res> batch, List<Pair<PException, Res>> responses)
-      throws PException;
-
   /**
    * Atomically check and set value by key. If the check condition is satisfied, then apply to set
    * value.
@@ -612,4 +603,33 @@ public interface PegasusClientInterface {
    */
   public List<PegasusScannerInterface> getUnorderedScanners(
       String tableName, int maxScannerCount, ScanOptions options) throws PException;
+
+  /**
+   * send batch request no-atomically, but terminate immediately if any error occurs. this interface
+   * is for no need response single operation such as set
+   *
+   * @param tableName table name
+   * @param batch batch request, detail see {@link Batch}, default implement contains {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchSet}, {@link
+   *     com.xiaomi.infra.pegasus.client.request.BatchGet} and so on
+   * @param <Req> generic for request
+   * @param <Res> generic for response
+   * @throws PException any error occurs will throw exception
+   */
+  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch) throws PException;
+
+  /**
+   * @param tableName
+   * @param batch
+   * @param responses
+   * @param <Req>
+   * @param <Res>
+   * @throws PException
+   */
+  public <Req, Res> void batch(String tableName, Batch<Req, Res> batch, List<Res> responses)
+      throws PException;
+
+  public <Req, Res> void batchWaitAllComplete(
+      String tableName, Batch<Req, Res> batch, List<Pair<PException, Res>> responses)
+      throws PException;
 }
