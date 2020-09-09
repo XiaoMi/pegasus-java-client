@@ -6,16 +6,16 @@ package com.xiaomi.infra.pegasus.client.request;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 
-public class BatchSet extends Batch<Set, Void> {
+public class GetBatch extends Batch<Get, byte[]> {
 
-  private static final long serialVersionUID = 7339081203717442862L;
+  private static final long serialVersionUID = -8713375648386293450L;
 
-  public BatchSet(PegasusTableInterface table, int timeout) {
+  public GetBatch(PegasusTableInterface table, int timeout) {
     super(table, timeout);
   }
 
   @Override
-  protected Future<Void> asyncCommit(Set set) {
-    return table.asyncSet(set.hashKey, set.sortKey, set.value, set.ttlSeconds, timeout);
+  protected Future<byte[]> asyncCommit(Get get) {
+    return table.asyncGet(get.hashKey, get.sortKey, timeout);
   }
 }

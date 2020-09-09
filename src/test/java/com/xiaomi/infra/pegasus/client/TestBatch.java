@@ -5,18 +5,18 @@ package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
 import com.xiaomi.infra.pegasus.client.request.Batch;
-import com.xiaomi.infra.pegasus.client.request.BatchDelete;
-import com.xiaomi.infra.pegasus.client.request.BatchGet;
-import com.xiaomi.infra.pegasus.client.request.BatchMultiDelete;
-import com.xiaomi.infra.pegasus.client.request.BatchMultiGet;
-import com.xiaomi.infra.pegasus.client.request.BatchMultiSet;
-import com.xiaomi.infra.pegasus.client.request.BatchSet;
 import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.DeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.GetBatch;
 import com.xiaomi.infra.pegasus.client.request.MultiDelete;
+import com.xiaomi.infra.pegasus.client.request.MultiDeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.MultiGet;
+import com.xiaomi.infra.pegasus.client.request.MultiGetBatch;
 import com.xiaomi.infra.pegasus.client.request.MultiSet;
+import com.xiaomi.infra.pegasus.client.request.MultiSetBatch;
 import com.xiaomi.infra.pegasus.client.request.Set;
+import com.xiaomi.infra.pegasus.client.request.SetBatch;
 import io.netty.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,11 +50,11 @@ public class TestBatch {
     deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
     List<byte[]> getResults = new ArrayList<>();
-    new BatchSet(table, 1000).commit(sets);
-    new BatchDelete(table, 1000).commit(deletes);
+    new SetBatch(table, 1000).commit(sets);
+    new DeleteBatch(table, 1000).commit(deletes);
 
-    BatchGet batchGet = new BatchGet(table, 1000);
-    batchGet.commit(gets, getResults);
+    GetBatch getBatch = new GetBatch(table, 1000);
+    getBatch.commit(gets, getResults);
 
     Assertions.assertNull(getResults.get(0));
     Assertions.assertNull(getResults.get(1));
@@ -64,7 +64,7 @@ public class TestBatch {
     Thread.sleep(11000);
 
     List<Pair<PException, byte[]>> getResultsWithExp = new ArrayList<>();
-    batchGet.commitWaitAllComplete(gets, getResultsWithExp);
+    getBatch.commitWaitAllComplete(gets, getResultsWithExp);
     Assertions.assertNull(getResultsWithExp.get(2).getKey());
     Assertions.assertEquals("valueSet3", new String(getResultsWithExp.get(2).getRight()));
     Assertions.assertNull(getResultsWithExp.get(3).getRight());
@@ -105,11 +105,11 @@ public class TestBatch {
     }
 
     List<MultiGetResult> multiGetResults = new ArrayList<>();
-    new BatchMultiSet(table, 1000).commit(multiSets);
-    new BatchMultiDelete(table, 1000).commit(multiDeletes);
+    new MultiSetBatch(table, 1000).commit(multiSets);
+    new MultiDeleteBatch(table, 1000).commit(multiDeletes);
 
-    BatchMultiGet batchMultiGet = new BatchMultiGet(table, 1000);
-    batchMultiGet.commit(multiGets, multiGetResults);
+    MultiGetBatch multiGetBatch = new MultiGetBatch(table, 1000);
+    multiGetBatch.commit(multiGets, multiGetResults);
 
     Assertions.assertEquals(0, multiGetResults.get(0).values.size());
     Assertions.assertEquals(0, multiGetResults.get(1).values.size());
@@ -122,7 +122,7 @@ public class TestBatch {
     }
 
     List<Pair<PException, MultiGetResult>> multiGetResultsWithExp = new ArrayList<>();
-    batchMultiGet.commitWaitAllComplete(multiGets, multiGetResultsWithExp);
+    multiGetBatch.commitWaitAllComplete(multiGets, multiGetResultsWithExp);
     for (int i = 0; i < 3; i++) {
       Assertions.assertNull(multiGetResultsWithExp.get(2).getLeft());
       Assertions.assertEquals(

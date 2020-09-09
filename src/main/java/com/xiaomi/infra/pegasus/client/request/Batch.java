@@ -12,9 +12,13 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
+ * This class is used for sending batch request, default implements contain {@link SetBatch}, {@link
+ * SetBatch} and so on, user can implement custom class to send more type(such as {@link
+ * PegasusTableInterface#incr(byte[], byte[], long, int)}) batch request, the more usage can see
+ * {@link com.xiaomi.infra.pegasus.example.BatchSample}
  *
- * @param <Request>
- * @param <Response>
+ * @param <Request> generic for request
+ * @param <Response> generic for response
  */
 public abstract class Batch<Request, Response> implements Serializable {
 
@@ -31,7 +35,7 @@ public abstract class Batch<Request, Response> implements Serializable {
   /**
    * send and commit batch request no-atomically, but terminate immediately if any error occurs.
    * Generally, it is for committing operation which need not response result, such as {@link
-   * BatchSet}
+   * SetBatch}
    *
    * @param requests generic for request
    * @throws PException any error occurs will throw exception
@@ -42,7 +46,7 @@ public abstract class Batch<Request, Response> implements Serializable {
 
   /**
    * send and commit batch request no-atomically, but terminate immediately if any error occurs.
-   * Generally, it is for committing operation which need response result, such as {@link BatchSet}
+   * Generally, it is for committing operation which need response result, such as {@link GetBatch}
    *
    * @param requests generic for request
    * @param responses generic for response

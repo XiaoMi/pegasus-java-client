@@ -8,12 +8,12 @@ import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import com.xiaomi.infra.pegasus.client.request.Batch;
-import com.xiaomi.infra.pegasus.client.request.BatchDelete;
-import com.xiaomi.infra.pegasus.client.request.BatchGet;
-import com.xiaomi.infra.pegasus.client.request.BatchSet;
 import com.xiaomi.infra.pegasus.client.request.Delete;
+import com.xiaomi.infra.pegasus.client.request.DeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.Get;
+import com.xiaomi.infra.pegasus.client.request.GetBatch;
 import com.xiaomi.infra.pegasus.client.request.Set;
+import com.xiaomi.infra.pegasus.client.request.SetBatch;
 import io.netty.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,14 +41,14 @@ public class BatchSample {
     deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
     List<byte[]> getResults = new ArrayList<>();
-    new BatchSet(table, 1000).commit(sets);
-    new BatchDelete(table, 1000).commit(deletes);
+    new SetBatch(table, 1000).commit(sets);
+    new DeleteBatch(table, 1000).commit(deletes);
 
-    BatchGet batchGet = new BatchGet(table, 1000);
-    batchGet.commit(gets, getResults);
+    GetBatch getBatch = new GetBatch(table, 1000);
+    getBatch.commit(gets, getResults);
 
     List<Pair<PException, byte[]>> getResultsWithExp = new ArrayList<>();
-    batchGet.commitWaitAllComplete(gets, getResultsWithExp);
+    getBatch.commitWaitAllComplete(gets, getResultsWithExp);
 
     PegasusClientFactory.closeSingletonClient();
   }
