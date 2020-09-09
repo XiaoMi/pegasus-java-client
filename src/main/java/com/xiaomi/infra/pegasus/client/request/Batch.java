@@ -26,9 +26,9 @@ import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * This class is used for sending batch request, default implements contain {@link SetBatch}, {@link
- * SetBatch} and so on, user can implement custom class to send more type(such as {@link
- * PegasusTableInterface#incr(byte[], byte[], long, int)}) batch request, the more usage can see
- * {@link com.xiaomi.infra.pegasus.example.BatchSample}
+ * SetBatch} and so on, user can implement custom class to send more type batch request(such as
+ * {@link PegasusTableInterface#incr(byte[], byte[], long, int)}), the more usage can see {@link
+ * com.xiaomi.infra.pegasus.example.BatchSample}
  *
  * @param <Request> generic for request
  * @param <Response> generic for response
@@ -71,10 +71,11 @@ public abstract class Batch<Request, Response> implements Serializable {
 
   /**
    * send and commit batch request no-atomically, try wait for all requests done until timeout even
-   * if some other error occurs
+   * if some other error occurs.
    *
    * @param requests generic for request
-   * @param responses generic for response
+   * @param responses generic for response, if one request success, the response is pair(null,
+   *     result), otherwise is pair(PException, null)
    * @throws PException throw exception if timeout
    */
   public void commitWaitAllComplete(
