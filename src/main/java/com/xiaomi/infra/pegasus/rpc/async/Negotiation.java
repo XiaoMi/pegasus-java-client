@@ -40,14 +40,14 @@ public class Negotiation {
         if (op.rpc_error.errno != error_code.error_types.ERR_OK) {
           throw new ReplicationException(op.rpc_error.errno);
         }
-        handleResp();
+        handleResponse();
       } catch (Exception e) {
-        logger.error(e.toString());
+        logger.error("Negotiation failed", e);
         session.markSessionDisconnect();
       }
     }
 
-    private void handleResp() throws Exception {
+    private void handleResponse() throws Exception {
       final negotiation_response resp = op.get_response();
       if (resp == null) {
         logger.error("RecvHandler received a null response, abandon it");
