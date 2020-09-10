@@ -10,8 +10,9 @@ import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import org.slf4j.Logger;
 
 public class Negotiation {
-  public Negotiation(ReplicaSession session) {
+  public Negotiation(ReplicaSession session, int timeout) {
     this.session = session;
+    this.timeout = timeout;
   }
 
   public void start() {
@@ -24,7 +25,7 @@ public class Negotiation {
     negotiation_operator operator = new negotiation_operator(request);
     RecvHandler recvHandler = new RecvHandler(operator);
 
-    session.asyncSend(operator, recvHandler, 100, false);
+    session.asyncSend(operator, recvHandler, timeout, false);
   }
 
   private class RecvHandler implements Runnable {
@@ -67,6 +68,7 @@ public class Negotiation {
   }
 
   private ReplicaSession session;
+  private int timeout;
   private negotiation_status status;
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
