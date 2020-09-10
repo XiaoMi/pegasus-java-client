@@ -50,7 +50,6 @@ public class TableHandler extends Table {
   AtomicReference<TableConfiguration> tableConfig_;
   AtomicBoolean inQuerying_;
   long lastQueryTime_;
-  int backupRequestDelayMs;
   private InterceptorManger interceptorManger;
 
   public TableHandler(ClusterManager mgr, String name, InternalTableOptions internalTableOptions)
@@ -98,10 +97,6 @@ public class TableHandler extends Table {
     // members of this
     manager_ = mgr;
     executor_ = manager_.getExecutor();
-    this.backupRequestDelayMs = internalTableOptions.tableOptions().backupRequestDelayMs();
-    if (backupRequestDelayMs > 0) {
-      logger.info("the delay time of backup request is \"{}\"", backupRequestDelayMs);
-    }
 
     tableConfig_ = new AtomicReference<TableConfiguration>(null);
     initTableConfiguration(resp);
@@ -142,19 +137,6 @@ public class TableHandler extends Table {
       s.primaryAddress = pc.primary;
       if (!pc.primary.isInvalid()) {
         s.primarySession = tryConnect(pc.primary, futureGroup);
-
-        // backup request is enabled, get all secondary sessions
-        s.secondarySessions.clear();
-        if (isBackupRequestEnabled()) {
-          // secondary sessions
-          pc.secondaries.forEach(
-              secondary -> {
-                ReplicaSession session = tryConnect(secondary, futureGroup);
-                if (session != null) {
-                  s.secondarySessions.add(session);
-                }
-              });
-        }
       }
     }
 
@@ -429,10 +411,6 @@ public class TableHandler extends Table {
     }
   }
 
-  public int backupRequestDelayMs() {
-    return backupRequestDelayMs;
-  }
-
   public long updateVersion() {
     return tableConfig_.get().updateVersion;
   }
@@ -478,9 +456,5 @@ public class TableHandler extends Table {
         message = " Unable to connect to the meta servers!";
     }
     throw new ReplicationException(err_type, header + message);
-  }
-
-  private boolean isBackupRequestEnabled() {
-    return backupRequestDelayMs > 0;
   }
 }
