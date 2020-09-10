@@ -59,7 +59,7 @@ public class Negotiation {
         case SASL_SELECT_MECHANISMS_RESP:
         case SASL_CHALLENGE:
         case SASL_SUCC:
-            break;
+          break;
         default:
           throw new Exception("Received an unexpected response, status " + resp.status);
       }
