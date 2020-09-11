@@ -878,7 +878,7 @@ public interface PegasusTableInterface {
       throws PException;
 
   /**
-   * Batch set lots of values. Will terminate immediately if any error occurs. @Deprecated
+   * Batch set lots of values. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
    *     more. The latest batch operation please see {@link
