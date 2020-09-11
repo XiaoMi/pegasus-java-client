@@ -189,16 +189,6 @@ public class PegasusClient implements PegasusClientInterface {
   }
 
   @Override
-  public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
-      throws PException {
-    return getTable(
-        tableName,
-        new InternalTableOptions(
-            new PegasusHasher(),
-            new TableOptions().withBackupRequestDelayMs(backupRequestDelayMs)));
-  }
-
-  @Override
   public PegasusTableInterface openTable(String tableName, TableOptions tableOptions)
       throws PException {
     return getTable(tableName, new InternalTableOptions(new PegasusHasher(), tableOptions));

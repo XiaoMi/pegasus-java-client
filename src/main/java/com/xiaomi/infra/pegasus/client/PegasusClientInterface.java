@@ -44,17 +44,6 @@ public interface PegasusClientInterface {
   /**
    * Open a table, and prepare the sessions and route-table to the replica-servers.
    *
-   * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest interface please see {@link PegasusClientInterface#openTable(String,
-   *     TableOptions)}
-   */
-  @Deprecated
-  public PegasusTableInterface openTable(String tableName, int backupRequestDelayMs)
-      throws PException;
-
-  /**
-   * Open a table, and prepare the sessions and route-table to the replica-servers.
-   *
    * <p>Please notice that pegasus support two kinds of API: 1. the client-interface way, which is
    * provided in this class. 2. the table-interface way, which is provided by {@link
    * PegasusTableInterface}. With the client-interface, you don't need to create

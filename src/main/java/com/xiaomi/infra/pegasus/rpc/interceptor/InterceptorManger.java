@@ -12,10 +12,6 @@ public class InterceptorManger {
   private List<TableInterceptor> interceptors = new ArrayList<>();
 
   public InterceptorManger(TableOptions options) {
-    if (options.enableBackupRequest()) {
-      interceptors.add(new BackupRequestInterceptor(options.backupRequestDelayMs()));
-    }
-
     if (options.enableCompression()) {
       interceptors.add(new CompressionInterceptor());
     }

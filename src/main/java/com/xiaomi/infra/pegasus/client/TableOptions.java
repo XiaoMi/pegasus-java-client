@@ -5,30 +5,15 @@ package com.xiaomi.infra.pegasus.client;
 
 /** TableOptions is the internal options for opening a Pegasus table. */
 public class TableOptions {
-  private int backupRequestDelayMs;
   private boolean enableCompression;
 
   public TableOptions() {
-    this.backupRequestDelayMs = 0;
     this.enableCompression = false;
-  }
-
-  public TableOptions withBackupRequestDelayMs(int backupRequestDelayMs) {
-    this.backupRequestDelayMs = backupRequestDelayMs;
-    return this;
   }
 
   public TableOptions withCompression(boolean enableCompression) {
     this.enableCompression = enableCompression;
     return this;
-  }
-
-  public int backupRequestDelayMs() {
-    return this.backupRequestDelayMs;
-  }
-
-  public boolean enableBackupRequest() {
-    return backupRequestDelayMs > 0;
   }
 
   public boolean enableCompression() {

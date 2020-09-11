@@ -6,7 +6,6 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.operator.client_operator;
 import com.xiaomi.infra.pegasus.rpc.Table;
-import java.util.concurrent.ScheduledFuture;
 import org.slf4j.Logger;
 
 /** Created by weijiesun on 16-11-25. */
@@ -22,7 +21,6 @@ public final class ClientRequestRound {
   long expireNanoTime;
   boolean isCompleted;
   int tryId;
-  ScheduledFuture<?> backupRequestTask;
 
   /**
    * Constructor.
@@ -44,7 +42,6 @@ public final class ClientRequestRound {
     this.expireNanoTime = createNanoTime + timeoutInMilliseconds;
     this.isCompleted = false;
     this.tryId = 1;
-    this.backupRequestTask = null;
   }
 
   public ClientRequestRound(
@@ -59,14 +56,6 @@ public final class ClientRequestRound {
 
   public long timeoutMs() {
     return timeoutMs;
-  }
-
-  public ScheduledFuture<?> backupRequestTask() {
-    return backupRequestTask;
-  }
-
-  public void backupRequestTask(ScheduledFuture<?> task) {
-    backupRequestTask = task;
   }
 
   public com.xiaomi.infra.pegasus.operator.client_operator getOperator() {
