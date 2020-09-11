@@ -323,7 +323,8 @@ public class ClientOptions {
     }
 
     /**
-     * Whether to enable authentication. Defaults to {@literal false}, see {@link #DEFAULT_ENABLE_AUTH}.
+     * Whether to enable authentication. Defaults to {@literal false}, see {@link
+     * #DEFAULT_ENABLE_AUTH}.
      *
      * @param enableAuth
      * @return {@code this}
