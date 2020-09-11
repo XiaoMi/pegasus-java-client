@@ -20,7 +20,7 @@ public class Negotiation {
     send(status, new blob(new byte[0]));
   }
 
-  private void send(negotiation_status status, blob msg) {
+  public void send(negotiation_status status, blob msg) {
     negotiation_request request = new negotiation_request(status, msg);
     negotiation_operator operator = new negotiation_operator(request);
     RecvHandler recvHandler = new RecvHandler(operator);
@@ -65,6 +65,10 @@ public class Negotiation {
           throw new Exception("Received an unexpected response, status " + resp.status);
       }
     }
+  }
+
+  public negotiation_status get_status() {
+    return status;
   }
 
   private ReplicaSession session;
