@@ -20,7 +20,7 @@ import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
 import io.netty.util.concurrent.Future;
 
-public class MultiGetBatch extends Batch<MultiGet, MultiGetResult> {
+public class MultiGetBatch extends BatchWithResponse<MultiGet, MultiGetResult> {
 
   private static final long serialVersionUID = -8398629822956682881L;
 

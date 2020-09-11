@@ -20,7 +20,7 @@ import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
-import com.xiaomi.infra.pegasus.client.request.Batch;
+import com.xiaomi.infra.pegasus.client.request.BatchWithResponse;
 import com.xiaomi.infra.pegasus.client.request.Delete;
 import com.xiaomi.infra.pegasus.client.request.DeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.Get;
@@ -44,19 +44,18 @@ public class BatchSample {
     sets.add(
         new Set("hashKeySet_2".getBytes(), "sortKeySet2".getBytes(), "valueSet2".getBytes())
             .withTTLSeconds(1000));
+    new SetBatch(table, 1000).commit(sets);
+
+    List<Delete> deletes = new ArrayList<>();
+    deletes.add(new Delete("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
+    deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
+    new DeleteBatch(table, 1000).commit(deletes);
 
     List<Get> gets = new ArrayList<>();
     gets.add(new Get("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
     gets.add(new Get("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
-    List<Delete> deletes = new ArrayList<>();
-    deletes.add(new Delete("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
-    deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
-
     List<byte[]> getResults = new ArrayList<>();
-    new SetBatch(table, 1000).commit(sets);
-    new DeleteBatch(table, 1000).commit(deletes);
-
     GetBatch getBatch = new GetBatch(table, 1000);
     getBatch.commit(gets, getResults);
 
@@ -90,15 +89,15 @@ public class BatchSample {
 
     List<Long> incrResults = new ArrayList<>();
 
-    Batch<Increment, Long> batchIncr =
-        new Batch<Increment, Long>(table, 1000) {
+    BatchWithResponse<Increment, Long> incrementBatch =
+        new BatchWithResponse<Increment, Long>(table, 1000) {
           @Override
           protected Future<Long> asyncCommit(Increment increment) {
             return table.asyncIncr(increment.hashKey, increment.sortKey, increment.value, timeout);
           }
         };
 
-    batchIncr.commit(increments, incrResults);
+    incrementBatch.commit(increments, incrResults);
 
     PegasusClientFactory.closeSingletonClient();
   }

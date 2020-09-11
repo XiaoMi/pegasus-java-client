@@ -1,54 +1,30 @@
-// Licensed to the Apache Software Foundation (ASF) under one
-// or more contributor license agreements.  See the NOTICE file
-// distributed with this work for additional information
-// regarding copyright ownership.  The ASF licenses this file
-// to you under the Apache License, Version 2.0 (the
-// "License"); you may not use this file except in compliance
-// with the License.  You may obtain a copy of the License at
-//
-//   http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 package com.xiaomi.infra.pegasus.client.request;
 
-import com.xiaomi.infra.pegasus.client.FutureGroup;
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
-import io.netty.util.concurrent.Future;
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * This class is used for sending batch request, default implements contain {@link SetBatch}, {@link
- * SetBatch} and so on, user can implement custom class to send more type batch request(such as
- * {@link PegasusTableInterface#incr(byte[], byte[], long, int)}), the more usage can see {@link
+ * This class is used for sending batched request without response, default implementations
+ * including {@link SetBatch}, {@link MultiSetBatch} and so on, user can implement custom class to
+ * send more types of request without response in batch, the more usage can see {@link
  * com.xiaomi.infra.pegasus.example.BatchSample}
  *
- * @param <Request> generic for request
- * @param <Response> generic for response
+ * @param <Request> generic type for request
+ * @param <Response> generic type for response
  */
-public abstract class Batch<Request, Response> implements Serializable {
+public abstract class Batch<Request, Response> extends AbstractBatch<Request, Response> {
 
-  private static final long serialVersionUID = -6267381453465488529L;
-
-  protected PegasusTableInterface table;
-  protected int timeout;
+  private static final long serialVersionUID = 2048811397820338392L;
 
   public Batch(PegasusTableInterface table, int timeout) {
-    this.table = table;
-    this.timeout = timeout;
+    super(table, timeout);
   }
 
   /**
-   * send and commit batch request no-atomically, but terminate immediately if any error occurs.
-   * Generally, it is for committing operation which need not response result, such as {@link
-   * SetBatch}
+   * send and commit batched request no-atomically, but terminate immediately if any error occurs.
    *
    * @param requests generic for request
    * @throws PException any error occurs will throw exception
@@ -58,39 +34,24 @@ public abstract class Batch<Request, Response> implements Serializable {
   }
 
   /**
-   * send and commit batch request no-atomically, but terminate immediately if any error occurs.
-   * Generally, it is for committing operation which need response result, such as {@link GetBatch}
+   * send and commit batched request no-atomically, try wait for all requests done until timeout
+   * even if some other error occurs.
    *
    * @param requests generic for request
-   * @param responses generic for response
-   * @throws PException any error occurs will throw exception
-   */
-  public void commit(List<Request> requests, List<Response> responses) throws PException {
-    asyncCommitRequests(requests).waitAllCompleteOrOneFail(responses, timeout);
-  }
-
-  /**
-   * send and commit batch request no-atomically, try wait for all requests done until timeout even
-   * if some other error occurs.
-   *
-   * @param requests generic for request
-   * @param responses generic for response, if one request success, the response is pair(null,
-   *     result), otherwise is pair(PException, null)
+   * @param exceptions if one request is failed, the exception will save into exceptions
    * @throws PException throw exception if timeout
    */
-  public void commitWaitAllComplete(
-      List<Request> requests, List<Pair<PException, Response>> responses) throws PException {
+  public void commitWaitAllComplete(List<Request> requests, List<PException> exceptions)
+      throws PException {
+    List<Pair<PException, Response>> responses = new ArrayList<>();
     asyncCommitRequests(requests).waitAllComplete(responses, timeout);
+    convertExceptions(responses, exceptions);
   }
 
-  private FutureGroup<Response> asyncCommitRequests(List<Request> requests) {
-    assert !requests.isEmpty() : "requests mustn't be empty";
-    FutureGroup<Response> futureGroup = new FutureGroup<>(requests.size());
-    for (Request request : requests) {
-      futureGroup.add(asyncCommit(request));
+  private void convertExceptions(
+      List<Pair<PException, Response>> responses, List<PException> exceptions) {
+    for (Pair<PException, Response> response : responses) {
+      exceptions.add(response.getKey());
     }
-    return futureGroup;
   }
-
-  protected abstract Future<Response> asyncCommit(Request request);
 }

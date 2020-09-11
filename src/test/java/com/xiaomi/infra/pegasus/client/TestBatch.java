@@ -17,7 +17,7 @@
 package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
-import com.xiaomi.infra.pegasus.client.request.Batch;
+import com.xiaomi.infra.pegasus.client.request.BatchWithResponse;
 import com.xiaomi.infra.pegasus.client.request.Delete;
 import com.xiaomi.infra.pegasus.client.request.DeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.Get;
@@ -51,6 +51,12 @@ public class TestBatch {
     sets.add(
         new Set("hashKeySet_4".getBytes(), "sortKeySet4".getBytes(), "valueSet4WithTTL".getBytes())
             .withTTLSeconds(10));
+    new SetBatch(table, 1000).commit(sets);
+
+    List<Delete> deletes = new ArrayList<>();
+    deletes.add(new Delete("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
+    deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
+    new DeleteBatch(table, 1000).commit(deletes);
 
     List<Get> gets = new ArrayList<>();
     gets.add(new Get("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
@@ -58,14 +64,7 @@ public class TestBatch {
     gets.add(new Get("hashKeySet_3".getBytes(), "sortKeySet3".getBytes()));
     gets.add(new Get("hashKeySet_4".getBytes(), "sortKeySet4".getBytes()));
 
-    List<Delete> deletes = new ArrayList<>();
-    deletes.add(new Delete("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
-    deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
-
     List<byte[]> getResults = new ArrayList<>();
-    new SetBatch(table, 1000).commit(sets);
-    new DeleteBatch(table, 1000).commit(deletes);
-
     GetBatch getBatch = new GetBatch(table, 1000);
     getBatch.commit(gets, getResults);
 
@@ -98,6 +97,7 @@ public class TestBatch {
       }
       multiSets.add(multiSet);
     }
+    new MultiSetBatch(table, 1000).commit(multiSets);
 
     List<MultiDelete> multiDeletes = new ArrayList<>();
     for (int i = 0; i < 2; i++) {
@@ -107,6 +107,7 @@ public class TestBatch {
       }
       multiDeletes.add(multiDelete);
     }
+    new MultiDeleteBatch(table, 1000).commit(multiDeletes);
 
     List<MultiGet> multiGets = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
@@ -118,9 +119,6 @@ public class TestBatch {
     }
 
     List<MultiGetResult> multiGetResults = new ArrayList<>();
-    new MultiSetBatch(table, 1000).commit(multiSets);
-    new MultiDeleteBatch(table, 1000).commit(multiDeletes);
-
     MultiGetBatch multiGetBatch = new MultiGetBatch(table, 1000);
     multiGetBatch.commit(multiGets, multiGetResults);
 
@@ -174,15 +172,15 @@ public class TestBatch {
 
     List<Long> incrResults = new ArrayList<>();
 
-    Batch<Increment, Long> batchIncr =
-        new Batch<Increment, Long>(table, 1000) {
+    BatchWithResponse<Increment, Long> incrementBatch =
+        new BatchWithResponse<Increment, Long>(table, 1000) {
           @Override
           protected Future<Long> asyncCommit(Increment increment) {
             return table.asyncIncr(increment.hashKey, increment.sortKey, increment.value, timeout);
           }
         };
 
-    batchIncr.commit(increments, incrResults);
+    incrementBatch.commit(increments, incrResults);
 
     Assertions.assertEquals(1, incrResults.get(0).longValue());
     Assertions.assertEquals(3, incrResults.get(1).longValue());
