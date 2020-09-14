@@ -228,13 +228,8 @@ public class ReplicaSession {
     newCache.nettyChannel = activeChannel;
     fields = newCache;
 
-    if (enableAuth) {
-      negotiation = new Negotiation(this);
-      negotiation.start();
-    } else {
-      logger.info("{}: mark session state connected");
-      markSessionConnected(activeChannel);
-    }
+    negotiation = new Negotiation(this);
+    negotiation.start();
   }
 
   private void markSessionConnected(Channel activeChannel) {
@@ -398,7 +393,12 @@ public class ReplicaSession {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       logger.info("Channel {} for session {} is active", ctx.channel().toString(), name());
-      startNegotiation(ctx.channel());
+      if (enableAuth) {
+        startNegotiation(ctx.channel());
+      } else {
+        logger.info("{}: mark session state connected");
+        markSessionConnected(ctx.channel());
+      }
     }
 
     @Override

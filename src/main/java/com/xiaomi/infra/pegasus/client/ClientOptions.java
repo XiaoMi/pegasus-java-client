@@ -56,7 +56,7 @@ public class ClientOptions {
   public static final Duration DEFAULT_FALCON_PUSH_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_ENABLE_WRITE_LIMIT = true;
   public static final Duration DEFAULT_META_QUERY_TIMEOUT = Duration.ofMillis(5000);
-  public static final boolean DEFAULT_ENABLE_AUTH = false;
+  public static final boolean DEFAULT_ENABLE_AUTH = true;
 
   private final String metaServers;
   private final Duration operationTimeout;
