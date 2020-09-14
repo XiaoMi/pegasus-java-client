@@ -21,8 +21,6 @@ import com.xiaomi.infra.pegasus.client.PegasusClientFactory;
 import com.xiaomi.infra.pegasus.client.PegasusClientInterface;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import com.xiaomi.infra.pegasus.client.request.BatchWithResponse;
-import com.xiaomi.infra.pegasus.client.request.Delete;
-import com.xiaomi.infra.pegasus.client.request.DeleteBatch;
 import com.xiaomi.infra.pegasus.client.request.Get;
 import com.xiaomi.infra.pegasus.client.request.GetBatch;
 import com.xiaomi.infra.pegasus.client.request.Set;
@@ -34,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class BatchSample {
 
+  // A simple example shows how to use implemented Batch interface.
   public void batch() throws PException {
     String tableName = "temp";
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
@@ -44,27 +43,21 @@ public class BatchSample {
     sets.add(
         new Set("hashKeySet_2".getBytes(), "sortKeySet2".getBytes(), "valueSet2".getBytes())
             .withTTLSeconds(1000));
-    new SetBatch(table, 1000).commit(sets);
 
-    List<Delete> deletes = new ArrayList<>();
-    deletes.add(new Delete("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
-    deletes.add(new Delete("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
-    new DeleteBatch(table, 1000).commit(deletes);
+    new SetBatch(table, 1000).commit(sets);
 
     List<Get> gets = new ArrayList<>();
     gets.add(new Get("hashKeySet_1".getBytes(), "sortKeySet1".getBytes()));
     gets.add(new Get("hashKeySet_2".getBytes(), "sortKeySet2".getBytes()));
 
-    List<byte[]> getResults = new ArrayList<>();
-    GetBatch getBatch = new GetBatch(table, 1000);
-    getBatch.commit(gets, getResults);
-
     List<Pair<PException, byte[]>> getResultsWithExp = new ArrayList<>();
+    GetBatch getBatch = new GetBatch(table, 1000);
     getBatch.commitWaitAllComplete(gets, getResultsWithExp);
 
     PegasusClientFactory.closeSingletonClient();
   }
 
+  // A simple example shows how to use Batch interface to send custom request
   public void batchCustom() throws PException {
     class Increment {
       public final byte[] hashKey;
