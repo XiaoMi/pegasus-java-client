@@ -19,7 +19,7 @@ package com.xiaomi.infra.pegasus.client.request;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 
-public class MultiDeleteBatch extends Batch<MultiDelete, Void> {
+public class MultiDeleteBatch extends Batch<MultiDelete> {
 
   private static final long serialVersionUID = 4692293597610231870L;
 

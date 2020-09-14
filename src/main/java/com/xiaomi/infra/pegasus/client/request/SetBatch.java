@@ -19,7 +19,7 @@ package com.xiaomi.infra.pegasus.client.request;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 
-public class SetBatch extends Batch<Set, Void> {
+public class SetBatch extends Batch<Set> {
 
   private static final long serialVersionUID = 7339081203717442862L;
 
