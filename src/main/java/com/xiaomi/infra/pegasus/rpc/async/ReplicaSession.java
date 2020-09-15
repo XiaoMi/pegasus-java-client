@@ -381,12 +381,7 @@ public class ReplicaSession {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       logger.info("Channel {} for session {} is active", ctx.channel().toString(), name());
-      if (enableAuth) {
-        startNegotiation(ctx.channel());
-      } else {
-        logger.info("{}: mark session state connected");
-        markSessionConnected(ctx.channel());
-      }
+      startNegotiation(ctx.channel());
     }
 
     @Override
