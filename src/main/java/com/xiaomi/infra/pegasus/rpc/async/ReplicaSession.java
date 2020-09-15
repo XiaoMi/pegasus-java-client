@@ -3,11 +3,9 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.rpc.async;
 
-import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
-import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
@@ -121,17 +119,6 @@ public class ReplicaSession {
     return entry.sequenceId;
   }
 
-  public void sendNegoMsg(negotiation_request msg, long timeoutInMilliseconds) {
-    final RequestEntry entry = new ReplicaSession.RequestEntry();
-    entry.sequenceId = seqId.getAndIncrement();
-    entry.op = new negotiation_operator(msg);
-    entry.callback = new Negotiation.RecvHandler((negotiation_operator) entry.op, this);
-    entry.timeoutTask = addTimer(entry.sequenceId, timeoutInMilliseconds);
-    pendingResponse.put(entry.sequenceId, entry);
-
-    write(entry, fields);
-  }
-
   public void closeSession() {
     VolatileFields f = fields;
     if (f.state == ConnState.CONNECTED && f.nettyChannel != null) {
@@ -223,13 +210,14 @@ public class ReplicaSession {
   }
 
   private void startNegotiation(Channel activeChannel) {
-    VolatileFields newCache = new VolatileFields();
-    newCache.state = ConnState.CONNECTING;
-    newCache.nettyChannel = activeChannel;
-    fields = newCache;
-
-    negotiation = new Negotiation(this);
-    negotiation.start();
+    logger.info("{}: mark session state negotiation");
+    if (enableAuth) {
+      negotiation = new Negotiation(this);
+      negotiation.start();
+    } else {
+      logger.info("{}: mark session state connected");
+      markSessionConnected(activeChannel);
+    }
   }
 
   private void markSessionConnected(Channel activeChannel) {

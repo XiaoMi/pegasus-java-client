@@ -1,6 +1,5 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
-import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
@@ -11,10 +10,8 @@ import org.slf4j.Logger;
 
 public class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
-
-  private ReplicaSession session;
   private negotiation_status status;
-  private static final int defaultTimeoutMs = 3000;
+  ReplicaSession session;
 
   public Negotiation(ReplicaSession session) {
     this.session = session;
@@ -26,19 +23,14 @@ public class Negotiation {
   }
 
   public void send(negotiation_status status, blob msg) {
-    negotiation_request request = new negotiation_request();
-    request.status = status;
-    request.msg = msg;
-    session.sendNegoMsg(request, defaultTimeoutMs);
+    // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
   }
 
   public static class RecvHandler implements Runnable {
     negotiation_operator op;
-    ReplicaSession session;
 
-    RecvHandler(negotiation_operator op, ReplicaSession session) {
+    RecvHandler(negotiation_operator op) {
       this.op = op;
-      this.session = session;
     }
 
     @Override
@@ -50,15 +42,13 @@ public class Negotiation {
         handleResponse();
       } catch (Exception e) {
         logger.error("Negotiation failed", e);
-        session.markSessionDisconnect();
       }
     }
 
     private void handleResponse() throws Exception {
       final negotiation_response resp = op.get_response();
       if (resp == null) {
-        logger.error("RecvHandler received a null response, abandon it");
-        return;
+        throw new Exception("RecvHandler received a null response, abandon it");
       }
 
       switch (resp.status) {
