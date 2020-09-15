@@ -293,7 +293,6 @@ public class ReplicaSession {
         seqID,
         errno.toString(),
         isTimeoutTask);
-    assert errno == error_types.ERR_TIMEOUT || errno == error_types.ERR_SESSION_RESET;
     RequestEntry entry = pendingResponse.remove(seqID);
     if (entry != null) {
       if (!isTimeoutTask && entry.timeoutTask != null) {

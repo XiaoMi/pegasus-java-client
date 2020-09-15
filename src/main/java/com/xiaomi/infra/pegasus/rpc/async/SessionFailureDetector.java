@@ -12,7 +12,7 @@ public class SessionFailureDetector {
   private AtomicLong firstRecentTimedOutMs;
 
   // Session is marked failure if all the RPCs across
-  // `sessionResetTimeWindowMs` are timed out.
+  // `FAILURE_DETECT_WINDOW_MS` are timed out.
   public static final long FAILURE_DETECT_WINDOW_MS = 10 * 1000; // 10s
 
   public SessionFailureDetector() {
