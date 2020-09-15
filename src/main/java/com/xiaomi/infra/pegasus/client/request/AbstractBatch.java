@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * The abstract class is used for {@link Batch} and {@link BatchWithResponse} which is used for
- * sending batched request
+ * sending batched requests
  *
  * @param <Request> generic type for request
  * @param <Response> generic type for response
