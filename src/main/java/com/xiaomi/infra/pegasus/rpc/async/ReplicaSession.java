@@ -37,9 +37,11 @@ public class ReplicaSession {
     DISCONNECTED
   }
 
-  public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout) {
+  public ReplicaSession(
+      rpc_address address, EventLoopGroup rpcGroup, int socketTimeout, boolean enableAuth) {
     this.address = address;
     this.rpcGroup = rpcGroup;
+    this.enableAuth = enableAuth;
 
     final ReplicaSession this_ = this;
     boot = new Bootstrap();
@@ -71,7 +73,7 @@ public class ReplicaSession {
       EventLoopGroup rpcGroup,
       int socketTimeout,
       MessageResponseFilter filter) {
-    this(address, rpcGroup, socketTimeout);
+    this(address, rpcGroup, socketTimeout, false);
     this.filter = filter;
   }
 
@@ -203,6 +205,17 @@ public class ReplicaSession {
       logger.error("invalid address: {}", address.toString());
       assert false;
       return null; // unreachable
+    }
+  }
+
+  private void startNegotiation(Channel activeChannel) {
+    logger.info("{}: mark session state negotiation");
+    if (enableAuth) {
+      negotiation = new Negotiation(this);
+      negotiation.start();
+    } else {
+      logger.info("{}: mark session state connected");
+      markSessionConnected(activeChannel);
     }
   }
 
@@ -358,7 +371,7 @@ public class ReplicaSession {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
       logger.info("Channel {} for session {} is active", ctx.channel().toString(), name());
-      markSessionConnected(ctx.channel());
+      startNegotiation(ctx.channel());
     }
 
     @Override
@@ -411,6 +424,8 @@ public class ReplicaSession {
   private final rpc_address address;
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
+  private boolean enableAuth;
+  private Negotiation negotiation;
 
   private SessionFailureDetector failureDetector;
 

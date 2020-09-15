@@ -6,11 +6,11 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import static java.lang.Integer.max;
 
 import com.xiaomi.infra.pegasus.base.rpc_address;
+import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
-import com.xiaomi.infra.pegasus.rpc.ClusterOptions;
+import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -34,6 +34,7 @@ public class ClusterManager extends Cluster {
   private EventLoopGroup tableGroup; // group used for handle table logic
   private String[] metaList;
   private MetaSession metaSession;
+  private boolean enableAuth;
 
   private static final String osName;
 
@@ -43,22 +44,26 @@ public class ClusterManager extends Cluster {
     logger.info("operating system name: {}", osName);
   }
 
-  public ClusterManager(ClusterOptions opts) throws IllegalArgumentException {
-    setTimeout(opts.operationTimeout());
-    this.enableCounter = opts.enablePerfCounter();
+  public ClusterManager(ClientOptions opts) throws IllegalArgumentException {
+    setTimeout((int) opts.getOperationTimeout().toMillis());
+    this.enableCounter = opts.isEnablePerfCounter();
     if (enableCounter) {
-      MetricsManager.detectHostAndInit(opts.perfCounterTags(), opts.pushCounterIntervalSecs());
+      MetricsManager.detectHostAndInit(
+          opts.getFalconPerfCounterTags(), (int) opts.getFalconPushInterval().getSeconds());
     }
 
     replicaSessions = new ConcurrentHashMap<rpc_address, ReplicaSession>();
-    replicaGroup = getEventLoopGroupInstance(opts.asyncWorkers());
+    replicaGroup = getEventLoopGroupInstance(opts.getAsyncWorkers());
     metaGroup = getEventLoopGroupInstance(1);
     tableGroup = getEventLoopGroupInstance(1);
 
-    metaList = opts.metaList();
+    metaList = opts.getMetaServers().split(",");
     // the constructor of meta session is depend on the replicaSessions,
     // so the replicaSessions should be initialized earlier
-    metaSession = new MetaSession(this, opts.metaList(), opts.metaQueryTimeout(), 10, metaGroup);
+    metaSession =
+        new MetaSession(this, metaList, (int) opts.getMetaQueryTimeout().toMillis(), 10, metaGroup);
+
+    this.enableAuth = opts.isEnableAuth();
   }
 
   public EventExecutor getExecutor() {
@@ -82,7 +87,8 @@ public class ClusterManager extends Cluster {
           new ReplicaSession(
               address,
               replicaGroup,
-              max(operationTimeout, ClusterOptions.MIN_SOCK_CONNECT_TIMEOUT));
+              max(operationTimeout, ClientOptions.MIN_SOCK_CONNECT_TIMEOUT),
+              enableAuth);
       replicaSessions.put(address, ss);
       return ss;
     }
@@ -126,8 +132,9 @@ public class ClusterManager extends Cluster {
   }
 
   @Override
-  public TableHandler openTable(String name, TableOptions options) throws ReplicationException {
-    return new TableHandler(this, name, options);
+  public TableHandler openTable(String name, InternalTableOptions internalTableOptions)
+      throws ReplicationException {
+    return new TableHandler(this, name, internalTableOptions);
   }
 
   @Override

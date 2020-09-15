@@ -6,10 +6,10 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
+import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.operator.client_operator;
-import com.xiaomi.infra.pegasus.rpc.ClusterOptions;
+import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import com.xiaomi.infra.pegasus.rpc.TableOptions;
 import com.xiaomi.infra.pegasus.rpc.async.TableHandler.ReplicaConfiguration;
 import com.xiaomi.infra.pegasus.tools.Toollet;
 import java.util.ArrayList;
@@ -28,14 +28,14 @@ import org.slf4j.Logger;
 public class TableHandlerTest {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(TableHandlerTest.class);
 
-  private String[] addr_list = {"127.0.0.1:34601", "127.0.0.1:34602", "127.0.0.1:34603"};
+  private String addr_list = "127.0.0.1:34601, 127.0.0.1:34602, 127.0.0.1:34603";
   private String[] replica_servers = {"127.0.0.1:34801", "127.0.0.1:34802", "127.0.01:34803"};
 
   private ClusterManager testManager;
 
   @Before
   public void before() throws Exception {
-    testManager = new ClusterManager(ClusterOptions.forTest(addr_list));
+    testManager = new ClusterManager(ClientOptions.builder().metaServers(addr_list).build());
   }
 
   @After
@@ -61,7 +61,7 @@ public class TableHandlerTest {
     System.out.println("TableHandlerTest#testOperateOp");
     TableHandler table = null;
     try {
-      table = testManager.openTable("temp", TableOptions.forTest());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -148,7 +148,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", TableOptions.forTest());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }
@@ -192,7 +192,7 @@ public class TableHandlerTest {
     TableHandler table = null;
 
     try {
-      table = testManager.openTable("temp", TableOptions.forTest());
+      table = testManager.openTable("temp", InternalTableOptions.forTest());
     } catch (ReplicationException e) {
       Assert.fail();
     }
