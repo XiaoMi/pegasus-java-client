@@ -65,7 +65,7 @@ public class FutureGroup<Result> {
    * @param timeoutMillis timeout
    */
   public void waitAllComplete(List<Pair<PException, Result>> results, int timeoutMillis) {
-    assert results != null;
+    assert results != null : "result != null";
     int timeLimit = timeoutMillis;
     long duration;
 
