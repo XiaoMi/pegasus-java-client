@@ -51,16 +51,15 @@ public abstract class BatchWithResponse<Request, Response>
   }
 
   /**
-   * send and commit batched requests no-atomically, try wait for all requests done until timeout
-   * even if some other error occurs.
+   * send and commit batched requests no-atomically, try wait for all requests done if some other
+   * error occurs.
    *
    * @param requests generic for request
    * @param responses generic for response, if one request success, the response is pair(null,
    *     result) otherwise is pair(PException, null)
-   * @throws PException throw exception if timeout
    */
   public void commitWaitAllComplete(
-      List<Request> requests, List<Pair<PException, Response>> responses) throws PException {
+      List<Request> requests, List<Pair<PException, Response>> responses) {
     asyncCommitRequests(requests).waitAllComplete(responses, timeout);
   }
 }

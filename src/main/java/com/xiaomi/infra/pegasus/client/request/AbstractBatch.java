@@ -36,12 +36,12 @@ public abstract class AbstractBatch<Request, Response> implements Serializable {
   protected PegasusTableInterface table;
   protected int timeout;
 
-  public AbstractBatch(PegasusTableInterface table, int timeout) {
+  AbstractBatch(PegasusTableInterface table, int timeout) {
     this.table = table;
     this.timeout = timeout;
   }
 
-  protected FutureGroup<Response> asyncCommitRequests(List<Request> requests) {
+  FutureGroup<Response> asyncCommitRequests(List<Request> requests) {
     assert !requests.isEmpty() : "requests mustn't be empty";
     FutureGroup<Response> futureGroup = new FutureGroup<>(requests.size());
     for (Request request : requests) {
