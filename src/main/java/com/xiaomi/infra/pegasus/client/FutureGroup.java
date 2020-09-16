@@ -70,16 +70,6 @@ public class FutureGroup<Result> {
     long duration;
 
     for (int i = 0; i < asyncTasks.size(); i++) {
-      if (timeLimit < 0) {
-        results.add(
-            Pair.of(
-                new PException(
-                    String.format(
-                        "async task #[" + i + "] failed: timeout expired (%dms)", timeoutMillis)),
-                null));
-        continue;
-      }
-
       Future<Result> fu = asyncTasks.get(i);
       long startTs = System.currentTimeMillis();
       try {
@@ -90,6 +80,18 @@ public class FutureGroup<Result> {
       } finally {
         duration = System.currentTimeMillis() - startTs;
         timeLimit -= duration;
+      }
+
+      if (timeLimit < 0) {
+        for (int j = i; j < asyncTasks.size(); j++) {
+          results.add(
+              Pair.of(
+                  new PException(
+                      String.format(
+                          "async task #[" + i + "] failed: timeout expired (%dms)", timeoutMillis)),
+                  null));
+        }
+        break;
       }
 
       if (fu.isSuccess()) {
