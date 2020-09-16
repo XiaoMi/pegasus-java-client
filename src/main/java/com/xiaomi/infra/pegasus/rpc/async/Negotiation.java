@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 public class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   private negotiation_status status;
-  ReplicaSession session;
+  private ReplicaSession session;
 
   public Negotiation(ReplicaSession session) {
     this.session = session;
