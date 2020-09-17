@@ -285,7 +285,8 @@ public class ReplicaSession {
   }
 
   // Notify the RPC sender if failure occurred.
-  void tryNotifyFailureWithSeqID(int seqID, error_types errno, boolean isTimeoutTask) {
+  void tryNotifyFailureWithSeqID(int seqID, error_types errno, boolean isTimeoutTask)
+      throws Exception {
     logger.debug(
         "{}: {} is notified with error {}, isTimeoutTask {}",
         name(),
