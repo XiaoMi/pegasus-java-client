@@ -285,8 +285,7 @@ public class ReplicaSession {
   }
 
   // Notify the RPC sender if failure occurred.
-  void tryNotifyFailureWithSeqID(int seqID, error_types errno, boolean isTimeoutTask)
-      throws Exception {
+  void tryNotifyFailureWithSeqID(int seqID, error_types errno, boolean isTimeoutTask) {
     logger.debug(
         "{}: {} is notified with error {}, isTimeoutTask {}",
         name(),
@@ -299,13 +298,17 @@ public class ReplicaSession {
         entry.timeoutTask.cancel(true);
       }
       // The error must be ERR_TIMEOUT or ERR_SESSION_RESET
-      if (errno == error_types.ERR_TIMEOUT && failureDetector.markTimeout()) {
-        logger.warn(
-            "{}: actively close the session because it's not responding for {} seconds",
-            name(),
-            SessionFailureDetector.FAILURE_DETECT_WINDOW_MS / 1000);
-        closeSession(); // maybe fail when the session is already disconnected.
-        errno = error_types.ERR_SESSION_RESET;
+      if (errno == error_types.ERR_TIMEOUT) {
+        if (failureDetector.markTimeout()) {
+          logger.warn(
+              "{}: actively close the session because it's not responding for {} seconds",
+              name(),
+              SessionFailureDetector.FAILURE_DETECT_WINDOW_MS / 1000);
+          closeSession(); // maybe fail when the session is already disconnected.
+          errno = error_types.ERR_SESSION_RESET;
+        }
+      } else {
+        failureDetector.markOK();
       }
       entry.op.rpc_error.errno = errno;
       entry.callback.run();
