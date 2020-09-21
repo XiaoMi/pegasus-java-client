@@ -1,20 +1,41 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import javax.security.auth.Subject;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslClient;
 import org.slf4j.Logger;
 
 public class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   private negotiation_status status;
   private ReplicaSession session;
+  private static final List<String> expectedMechanisms =
+      new ArrayList<String>(Collections.singletonList("GSSAPI"));
+  private String serviceName; // used for SASL authentication
+  private String serviceFqdn; // name used for SASL authentication
+  private SaslClient saslClient;
+  private final HashMap<String, Object> props = new HashMap<String, Object>();
+  private final Subject subject;
 
-  public Negotiation(ReplicaSession session) {
+  public Negotiation(
+      ReplicaSession session, Subject subject, String serviceName, String serviceFqdn) {
     this.session = session;
+    this.subject = subject;
+    this.serviceName = serviceName;
+    this.serviceFqdn = serviceFqdn;
+    this.props.put(Sasl.QOP, "auth");
   }
 
   public void start() {
@@ -26,11 +47,20 @@ public class Negotiation {
     // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
   }
 
+  private class Action implements PrivilegedExceptionAction {
+    @Override
+    public Object run() throws Exception {
+      return null;
+    }
+  }
+
   private class RecvHandler implements Runnable {
     negotiation_operator op;
+    negotiation_status status;
 
     RecvHandler(negotiation_operator op) {
       this.op = op;
+      this.status = negotiation_status.SASL_LIST_MECHANISMS;
     }
 
     @Override
@@ -51,6 +81,7 @@ public class Negotiation {
         throw new Exception("RecvHandler received a null response, abandon it");
       }
 
+      final negotiation_request request = new negotiation_request();
       switch (resp.status) {
         case SASL_LIST_MECHANISMS_RESP:
         case SASL_SELECT_MECHANISMS_RESP:

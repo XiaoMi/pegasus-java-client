@@ -46,6 +46,9 @@ public class ClientOptions {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_META_QUERY_TIMEOUT_KEY = "meta_query_timeout";
   public static final String PEGASUS_ENABLE_AUTH_KEY = "enable_auth";
+  public static final String PEGASUS_SERVICE_NAME_KEY = "service_name";
+  public static final String PEGASUS_SERVICE_FQDN_KEY = "service_fqdn";
+  public static final String PEGASUS_JAAS_CONF_KEY = "jaas_conf";
 
   public static final String DEFAULT_META_SERVERS =
       "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
@@ -57,6 +60,9 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_WRITE_LIMIT = true;
   public static final Duration DEFAULT_META_QUERY_TIMEOUT = Duration.ofMillis(5000);
   public static final boolean DEFAULT_ENABLE_AUTH = false;
+  public static final String DEFAULT_SERVICE_NAME = "";
+  public static final String DEFAULT_SERVICE_FQDN = "";
+  public static final String DEFAULT_JAAS_CONF = "configuration/pegasus_jaas.conf";
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -67,6 +73,9 @@ public class ClientOptions {
   private final boolean enableWriteLimit;
   private final Duration metaQueryTimeout;
   private final boolean enableAuth;
+  private final String serviceName;
+  private final String serviceFQDN;
+  private final String jaasConf;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -78,6 +87,9 @@ public class ClientOptions {
     this.enableWriteLimit = builder.enableWriteLimit;
     this.metaQueryTimeout = builder.metaQueryTimeout;
     this.enableAuth = builder.enableAuth;
+    this.serviceName = builder.serviceName;
+    this.serviceFQDN = builder.serviceFQDN;
+    this.jaasConf = builder.jaasConf;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -89,7 +101,10 @@ public class ClientOptions {
     this.falconPushInterval = original.getFalconPushInterval();
     this.enableWriteLimit = original.isWriteLimitEnabled();
     this.metaQueryTimeout = original.getMetaQueryTimeout();
-    this.enableAuth = original.enableAuth;
+    this.enableAuth = original.isEnableAuth();
+    this.serviceName = original.getServiceName();
+    this.serviceFQDN = original.getServiceFQDN();
+    this.jaasConf = original.getJaasConf();
   }
 
   /**
@@ -150,6 +165,9 @@ public class ClientOptions {
         Duration.ofMillis(
             config.getLong(PEGASUS_META_QUERY_TIMEOUT_KEY, DEFAULT_META_QUERY_TIMEOUT.toMillis()));
     boolean enableAuth = config.getBoolean(PEGASUS_ENABLE_AUTH_KEY, DEFAULT_ENABLE_AUTH);
+    String serviceName = config.getString(PEGASUS_SERVICE_NAME_KEY, DEFAULT_SERVICE_NAME);
+    String serviceFQDN = config.getString(PEGASUS_SERVICE_FQDN_KEY, DEFAULT_SERVICE_FQDN);
+    String jaasConf = config.getString(PEGASUS_JAAS_CONF_KEY, DEFAULT_JAAS_CONF);
 
     return ClientOptions.builder()
         .metaServers(metaList)
@@ -160,6 +178,9 @@ public class ClientOptions {
         .falconPushInterval(pushIntervalSecs)
         .metaQueryTimeout(metaQueryTimeout)
         .enableAuth(enableAuth)
+        .serviceName(serviceName)
+        .serviceFQDN(serviceFQDN)
+        .jaasConf(jaasConf)
         .build();
   }
 
@@ -178,7 +199,10 @@ public class ClientOptions {
           && this.falconPushInterval.toMillis() == clientOptions.falconPushInterval.toMillis()
           && this.enableWriteLimit == clientOptions.enableWriteLimit
           && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis()
-          && this.enableAuth == clientOptions.enableAuth;
+          && this.enableAuth == clientOptions.enableAuth
+          && this.serviceName == clientOptions.serviceName
+          && this.serviceFQDN == clientOptions.serviceFQDN
+          && this.jaasConf == clientOptions.jaasConf;
     }
     return false;
   }
@@ -206,6 +230,12 @@ public class ClientOptions {
         + metaQueryTimeout.toMillis()
         + ", enableAuth="
         + enableAuth
+        + ", serviceName="
+        + serviceName
+        + ", serviceFQDN="
+        + serviceFQDN
+        + ", jaasConf="
+        + jaasConf
         + '}';
   }
 
@@ -220,6 +250,9 @@ public class ClientOptions {
     private boolean enableWriteLimit = DEFAULT_ENABLE_WRITE_LIMIT;
     private Duration metaQueryTimeout = DEFAULT_META_QUERY_TIMEOUT;
     private boolean enableAuth = DEFAULT_ENABLE_AUTH;
+    private String serviceName = DEFAULT_SERVICE_NAME;
+    private String serviceFQDN = DEFAULT_SERVICE_FQDN;
+    private String jaasConf = DEFAULT_JAAS_CONF;
 
     protected Builder() {}
 
@@ -335,6 +368,39 @@ public class ClientOptions {
     }
 
     /**
+     * service name. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_NAME}.
+     *
+     * @param serviceName
+     * @return {@code this}
+     */
+    public Builder serviceName(String serviceName) {
+      this.serviceName = serviceName;
+      return this;
+    }
+
+    /**
+     * service FQDN. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_FQDN}.
+     *
+     * @param serviceFQDN
+     * @return {@code this}
+     */
+    public Builder serviceFQDN(String serviceFQDN) {
+      this.serviceFQDN = serviceFQDN;
+      return this;
+    }
+
+    /**
+     * jaas configuration file. Defaults to {@literal ""}, see {@link #DEFAULT_JAAS_CONF}.
+     *
+     * @param jaasConf
+     * @return {@code this}
+     */
+    public Builder jaasConf(String jaasConf) {
+      this.jaasConf = jaasConf;
+      return this;
+    }
+
+    /**
      * Create a new instance of {@link ClientOptions}.
      *
      * @return new instance of {@link ClientOptions}.
@@ -362,7 +428,10 @@ public class ClientOptions {
         .falconPushInterval(getFalconPushInterval())
         .enableWriteLimit(isWriteLimitEnabled())
         .metaQueryTimeout(getMetaQueryTimeout())
-        .enableAuth(isEnableAuth());
+        .enableAuth(isEnableAuth())
+        .serviceName(getServiceName())
+        .serviceFQDN(getServiceFQDN())
+        .jaasConf(getJaasConf());
     return builder;
   }
 
@@ -450,5 +519,32 @@ public class ClientOptions {
    */
   public boolean isEnableAuth() {
     return enableAuth;
+  }
+
+  /**
+   * service name. Defaults to {@literal ""}.
+   *
+   * @return service name.
+   */
+  public String getServiceName() {
+    return serviceName;
+  }
+
+  /**
+   * service fqdn. Defaults to {@literal ""}.
+   *
+   * @return service fqdn.
+   */
+  public String getServiceFQDN() {
+    return serviceFQDN;
+  }
+
+  /**
+   * jaas configuration file. Defaults to {@literal "configuration/pegasus_jaas.conf"}.
+   *
+   * @return jaas configuration file.
+   */
+  public String getJaasConf() {
+    return jaasConf;
   }
 }
