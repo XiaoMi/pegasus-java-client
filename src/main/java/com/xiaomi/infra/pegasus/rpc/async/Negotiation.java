@@ -1,20 +1,17 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
-import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
-import javax.security.sasl.SaslClient;
 import org.slf4j.Logger;
 
 public class Negotiation {
@@ -25,7 +22,6 @@ public class Negotiation {
       new ArrayList<String>(Collections.singletonList("GSSAPI"));
   private String serviceName; // used for SASL authentication
   private String serviceFqdn; // name used for SASL authentication
-  private SaslClient saslClient;
   private final HashMap<String, Object> props = new HashMap<String, Object>();
   private final Subject subject;
 
