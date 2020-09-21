@@ -47,20 +47,11 @@ public class Negotiation {
     // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
   }
 
-  private class Action implements PrivilegedExceptionAction {
-    @Override
-    public Object run() throws Exception {
-      return null;
-    }
-  }
-
   private class RecvHandler implements Runnable {
     negotiation_operator op;
-    negotiation_status status;
 
     RecvHandler(negotiation_operator op) {
       this.op = op;
-      this.status = negotiation_status.SASL_LIST_MECHANISMS;
     }
 
     @Override
@@ -81,7 +72,6 @@ public class Negotiation {
         throw new Exception("RecvHandler received a null response, abandon it");
       }
 
-      final negotiation_request request = new negotiation_request();
       switch (resp.status) {
         case SASL_LIST_MECHANISMS_RESP:
         case SASL_SELECT_MECHANISMS_RESP:
