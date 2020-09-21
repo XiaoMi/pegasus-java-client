@@ -379,7 +379,7 @@ public class ClientOptions {
     }
 
     /**
-     * service FQDN. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_FQDN}.
+     * service full qualified domain name. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_FQDN}.
      *
      * @param serviceFQDN
      * @return {@code this}
@@ -531,9 +531,9 @@ public class ClientOptions {
   }
 
   /**
-   * service fqdn. Defaults to {@literal ""}.
+   * service full qualified domain name. Defaults to {@literal ""}.
    *
-   * @return service fqdn.
+   * @return service full qualified domain name.
    */
   public String getServiceFQDN() {
     return serviceFQDN;
@@ -541,6 +541,7 @@ public class ClientOptions {
 
   /**
    * jaas configuration file. Defaults to {@literal "configuration/pegasus_jaas.conf"}.
+   * Defaults to {@literal ""}, see {@link #DEFAULT_JAAS_CONF}
    *
    * @return jaas configuration file.
    */
