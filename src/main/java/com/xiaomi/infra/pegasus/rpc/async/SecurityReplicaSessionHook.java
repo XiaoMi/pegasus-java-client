@@ -22,12 +22,6 @@ public class SecurityReplicaSessionHook implements ReplicaSessionHook {
 
     try {
       loginContext = new LoginContext("client", new TextCallbackHandler());
-    } catch (Exception e) {
-      logger.error("cannot create LoginContext", e);
-      System.exit(-1);
-    }
-
-    try {
       loginContext.login();
     } catch (LoginException le) {
       logger.error("authentication failed", le);
