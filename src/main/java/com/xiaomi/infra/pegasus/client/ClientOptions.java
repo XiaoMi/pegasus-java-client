@@ -379,7 +379,8 @@ public class ClientOptions {
     }
 
     /**
-     * service full qualified domain name. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_FQDN}.
+     * service full qualified domain name. Defaults to {@literal ""}, see {@link
+     * #DEFAULT_SERVICE_FQDN}.
      *
      * @param serviceFQDN
      * @return {@code this}
@@ -540,8 +541,8 @@ public class ClientOptions {
   }
 
   /**
-   * jaas configuration file. Defaults to {@literal "configuration/pegasus_jaas.conf"}.
-   * Defaults to {@literal ""}, see {@link #DEFAULT_JAAS_CONF}
+   * jaas configuration file. Defaults to {@literal "configuration/pegasus_jaas.conf"}. Defaults to
+   * {@literal ""}, see {@link #DEFAULT_JAAS_CONF}
    *
    * @return jaas configuration file.
    */
