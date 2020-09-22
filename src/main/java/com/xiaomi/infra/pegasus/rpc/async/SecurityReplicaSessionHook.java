@@ -23,12 +23,16 @@ public class SecurityReplicaSessionHook implements ReplicaSessionHook {
     try {
       loginContext = new LoginContext("client", new TextCallbackHandler());
       loginContext.login();
+
+      subject = loginContext.getSubject();
+      if (subject == null) {
+          throw new LoginException("subject is null");
+      }
     } catch (LoginException le) {
-      logger.error("authentication failed", le);
+      logger.error("login failed failed", le);
       System.exit(-1);
     }
 
-    subject = loginContext.getSubject();
     logger.info("login succeed, as user {}", subject.getPrincipals().toString());
   }
 
