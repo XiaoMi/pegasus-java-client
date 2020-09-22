@@ -56,9 +56,7 @@ public class ClusterManager extends Cluster {
     replicaGroup = getEventLoopGroupInstance(opts.getAsyncWorkers());
     metaGroup = getEventLoopGroupInstance(1);
     tableGroup = getEventLoopGroupInstance(1);
-    if (opts.isEnableAuth()) {
-      ReplicaSessionInterceptorManager.instance().addSecurityInterceptor(opts);
-    }
+    ReplicaSessionInterceptorManager.instance().init(opts);
 
     metaList = opts.getMetaServers().split(",");
     // the constructor of meta session is depend on the replicaSessions,

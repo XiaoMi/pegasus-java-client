@@ -13,11 +13,13 @@ public class ReplicaSessionInterceptorManager {
     return instance;
   }
 
-  public void addSecurityInterceptor(ClientOptions options) {
-    ReplicaSessionInterceptor securityInterceptor =
-        new SecurityReplicaSessionInterceptor(
-            options.getJaasConf(), options.getServiceName(), options.getServiceFQDN());
-    interceptors.add(securityInterceptor);
+  public void init(ClientOptions options) {
+    if (options.isEnableAuth()) {
+      ReplicaSessionInterceptor securityInterceptor =
+          new SecurityReplicaSessionInterceptor(
+              options.getJaasConf(), options.getServiceName(), options.getServiceFQDN());
+      interceptors.add(securityInterceptor);
+    }
   }
 
   public void onConnected(ReplicaSession session) {
