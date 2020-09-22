@@ -19,8 +19,8 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
   private Subject subject;
   private LoginContext loginContext;
 
-  public SecurityReplicaSessionInterceptor(
-      String jaasConf, String serviceName, String serviceFqdn) {
+  public SecurityReplicaSessionInterceptor(String jaasConf, String serviceName, String serviceFqdn)
+      throws IllegalArgumentException {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
     this.jaasConf = jaasConf;
@@ -35,8 +35,7 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
         throw new LoginException("subject is null");
       }
     } catch (LoginException le) {
-      logger.error("login failed", le);
-      System.exit(-1);
+      throw new IllegalArgumentException("login failed", le);
     }
 
     logger.info("login succeed, as user {}", subject.getPrincipals().toString());
