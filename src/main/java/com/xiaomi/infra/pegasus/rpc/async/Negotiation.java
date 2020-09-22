@@ -18,8 +18,6 @@ public class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   private negotiation_status status;
   private ReplicaSession session;
-  private static final List<String> expectedMechanisms =
-      new ArrayList<String>(Collections.singletonList("GSSAPI"));
   private String serviceName; // used for SASL authentication
   private String serviceFqdn; // name used for SASL authentication
   private final HashMap<String, Object> props = new HashMap<String, Object>();
