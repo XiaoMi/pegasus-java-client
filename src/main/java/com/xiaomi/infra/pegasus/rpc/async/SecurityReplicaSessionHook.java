@@ -7,7 +7,9 @@ import javax.security.auth.login.LoginException;
 import org.slf4j.Logger;
 
 public class SecurityReplicaSessionHook implements ReplicaSessionHook {
-  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ClusterManager.class);
+  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(SecurityReplicaSessionHook.class);
+  private static final String JAAS_CONFIG_SYSTEM_PROPERTY = "java.security.auth.login.config";
+
   private String jaasConf;
   private String serviceName;
   private String serviceFqdn;
@@ -18,7 +20,7 @@ public class SecurityReplicaSessionHook implements ReplicaSessionHook {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
     this.jaasConf = jaasConf;
-    System.setProperty("java.security.auth.login.config", this.jaasConf);
+    System.setProperty(JAAS_CONFIG_SYSTEM_PROPERTY, this.jaasConf);
 
     try {
       loginContext = new LoginContext("client", new TextCallbackHandler());
