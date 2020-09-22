@@ -1,14 +1,16 @@
-package com.xiaomi.infra.pegasus.rpc.async;
+package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.sun.security.auth.callback.TextCallbackHandler;
+import com.xiaomi.infra.pegasus.rpc.async.Negotiation;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import org.slf4j.Logger;
 
-public class SecurityReplicaSessionHook implements ReplicaSessionHook {
+public class SecurityReplicaSessionInterceptor implements ReplicaSessionInterceptor {
   private static final Logger logger =
-      org.slf4j.LoggerFactory.getLogger(SecurityReplicaSessionHook.class);
+      org.slf4j.LoggerFactory.getLogger(SecurityReplicaSessionInterceptor.class);
   private static final String JAAS_CONFIG_SYSTEM_PROPERTY = "java.security.auth.login.config";
 
   private String jaasConf;
@@ -17,7 +19,8 @@ public class SecurityReplicaSessionHook implements ReplicaSessionHook {
   private Subject subject;
   private LoginContext loginContext;
 
-  public SecurityReplicaSessionHook(String jaasConf, String serviceName, String serviceFqdn) {
+  public SecurityReplicaSessionInterceptor(
+      String jaasConf, String serviceName, String serviceFqdn) {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
     this.jaasConf = jaasConf;

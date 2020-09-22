@@ -6,6 +6,7 @@ package com.xiaomi.infra.pegasus.rpc.async;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptorManager;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
@@ -212,7 +213,7 @@ public class ReplicaSession {
     newCache.state = ConnState.CONNECTED;
     newCache.nettyChannel = activeChannel;
 
-    ReplicaSessionHookManager.instance().onConnected(this);
+    ReplicaSessionInterceptorManager.instance().onConnected(this);
 
     synchronized (pendingSend) {
       if (fields.state != ConnState.CONNECTING) {

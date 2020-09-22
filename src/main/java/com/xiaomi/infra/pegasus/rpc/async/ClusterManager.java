@@ -11,6 +11,9 @@ import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptor;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptorManager;
+import com.xiaomi.infra.pegasus.rpc.interceptor.SecurityReplicaSessionInterceptor;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -56,10 +59,10 @@ public class ClusterManager extends Cluster {
     metaGroup = getEventLoopGroupInstance(1);
     tableGroup = getEventLoopGroupInstance(1);
     if (opts.isEnableAuth()) {
-      ReplicaSessionHook hook =
-          new SecurityReplicaSessionHook(
+      ReplicaSessionInterceptor hook =
+          new SecurityReplicaSessionInterceptor(
               opts.getJaasConf(), opts.getServiceName(), opts.getServiceFQDN());
-      ReplicaSessionHookManager.instance().addHook(hook);
+      ReplicaSessionInterceptorManager.instance().addHook(hook);
     }
 
     metaList = opts.getMetaServers().split(",");
