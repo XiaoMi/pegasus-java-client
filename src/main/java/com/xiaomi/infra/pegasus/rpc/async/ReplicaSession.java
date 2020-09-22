@@ -39,9 +39,14 @@ public class ReplicaSession {
     DISCONNECTED
   }
 
-  public ReplicaSession(rpc_address address, EventLoopGroup rpcGroup, int socketTimeout) {
+  public ReplicaSession(
+      rpc_address address,
+      EventLoopGroup rpcGroup,
+      int socketTimeout,
+      ReplicaSessionInterceptorManager interceptorManager) {
     this.address = address;
     this.rpcGroup = rpcGroup;
+    this.interceptorManager = interceptorManager;
 
     final ReplicaSession this_ = this;
     boot = new Bootstrap();
@@ -73,7 +78,7 @@ public class ReplicaSession {
       EventLoopGroup rpcGroup,
       int socketTimeout,
       MessageResponseFilter filter) {
-    this(address, rpcGroup, socketTimeout);
+    this(address, rpcGroup, socketTimeout, (ReplicaSessionInterceptorManager) null);
     this.filter = filter;
   }
 
@@ -213,7 +218,7 @@ public class ReplicaSession {
     newCache.state = ConnState.CONNECTED;
     newCache.nettyChannel = activeChannel;
 
-    ReplicaSessionInterceptorManager.instance().onConnected(this);
+    interceptorManager.onConnected(this);
 
     synchronized (pendingSend) {
       if (fields.state != ConnState.CONNECTING) {
@@ -424,6 +429,7 @@ public class ReplicaSession {
   private final rpc_address address;
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
+  private ReplicaSessionInterceptorManager interceptorManager;
 
   // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
   // are timed out, in that case we suspect that the server is unavailable.

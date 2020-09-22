@@ -35,6 +35,7 @@ public class ClusterManager extends Cluster {
   private EventLoopGroup tableGroup; // group used for handle table logic
   private String[] metaList;
   private MetaSession metaSession;
+  private ReplicaSessionInterceptorManager sessionInterceptorManager;
 
   private static final String osName;
 
@@ -56,7 +57,7 @@ public class ClusterManager extends Cluster {
     replicaGroup = getEventLoopGroupInstance(opts.getAsyncWorkers());
     metaGroup = getEventLoopGroupInstance(1);
     tableGroup = getEventLoopGroupInstance(1);
-    ReplicaSessionInterceptorManager.instance().init(opts);
+    sessionInterceptorManager = new ReplicaSessionInterceptorManager(opts);
 
     metaList = opts.getMetaServers().split(",");
     // the constructor of meta session is depend on the replicaSessions,
@@ -84,7 +85,10 @@ public class ClusterManager extends Cluster {
       if (ss != null) return ss;
       ss =
           new ReplicaSession(
-              address, replicaGroup, max(operationTimeout, ClientOptions.MIN_SOCK_CONNECT_TIMEOUT));
+              address,
+              replicaGroup,
+              max(operationTimeout, ClientOptions.MIN_SOCK_CONNECT_TIMEOUT),
+              sessionInterceptorManager);
       replicaSessions.put(address, ss);
       return ss;
     }

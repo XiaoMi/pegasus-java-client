@@ -7,13 +7,8 @@ import java.util.List;
 
 public class ReplicaSessionInterceptorManager {
   private List<ReplicaSessionInterceptor> interceptors = new ArrayList<>();
-  private static ReplicaSessionInterceptorManager instance = new ReplicaSessionInterceptorManager();
 
-  public static ReplicaSessionInterceptorManager instance() {
-    return instance;
-  }
-
-  public void init(ClientOptions options) {
+  public ReplicaSessionInterceptorManager(ClientOptions options) {
     if (options.isEnableAuth()) {
       ReplicaSessionInterceptor securityInterceptor =
           new SecurityReplicaSessionInterceptor(
