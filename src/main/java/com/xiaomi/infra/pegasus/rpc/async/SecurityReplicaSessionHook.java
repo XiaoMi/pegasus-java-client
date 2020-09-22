@@ -31,7 +31,7 @@ public class SecurityReplicaSessionHook implements ReplicaSessionHook {
           throw new LoginException("subject is null");
       }
     } catch (LoginException le) {
-      logger.error("login failed failed", le);
+      logger.error("login failed", le);
       System.exit(-1);
     }
 
