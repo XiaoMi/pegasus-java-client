@@ -11,20 +11,16 @@ import org.slf4j.Logger;
 public class SecurityReplicaSessionInterceptor implements ReplicaSessionInterceptor {
   private static final Logger logger =
       org.slf4j.LoggerFactory.getLogger(SecurityReplicaSessionInterceptor.class);
-  private static final String JAAS_CONFIG_SYSTEM_PROPERTY = "java.security.auth.login.config";
 
-  private String jaasConf;
   private String serviceName;
   private String serviceFqdn;
   private Subject subject;
   private LoginContext loginContext;
 
-  public SecurityReplicaSessionInterceptor(String jaasConf, String serviceName, String serviceFqdn)
+  public SecurityReplicaSessionInterceptor(String serviceName, String serviceFqdn)
       throws IllegalArgumentException {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
-    this.jaasConf = jaasConf;
-    System.setProperty(JAAS_CONFIG_SYSTEM_PROPERTY, this.jaasConf);
 
     try {
       loginContext = new LoginContext("client", new TextCallbackHandler());

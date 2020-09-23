@@ -11,8 +11,7 @@ public class ReplicaSessionInterceptorManager {
   public ReplicaSessionInterceptorManager(ClientOptions options) {
     if (options.isEnableAuth()) {
       ReplicaSessionInterceptor securityInterceptor =
-          new SecurityReplicaSessionInterceptor(
-              options.getJaasConf(), options.getServiceName(), options.getServiceFQDN());
+          new SecurityReplicaSessionInterceptor(options.getServiceName(), options.getServiceFQDN());
       interceptors.add(securityInterceptor);
     }
   }

@@ -48,7 +48,6 @@ public class ClientOptions {
   public static final String PEGASUS_ENABLE_AUTH_KEY = "enable_auth";
   public static final String PEGASUS_SERVICE_NAME_KEY = "service_name";
   public static final String PEGASUS_SERVICE_FQDN_KEY = "service_fqdn";
-  public static final String PEGASUS_JAAS_CONF_KEY = "jaas_conf";
 
   public static final String DEFAULT_META_SERVERS =
       "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
@@ -62,7 +61,6 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_AUTH = false;
   public static final String DEFAULT_SERVICE_NAME = "";
   public static final String DEFAULT_SERVICE_FQDN = "";
-  public static final String DEFAULT_JAAS_CONF = "configuration/pegasus_jaas.conf";
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -75,7 +73,6 @@ public class ClientOptions {
   private final boolean enableAuth;
   private final String serviceName;
   private final String serviceFQDN;
-  private final String jaasConf;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -89,7 +86,6 @@ public class ClientOptions {
     this.enableAuth = builder.enableAuth;
     this.serviceName = builder.serviceName;
     this.serviceFQDN = builder.serviceFQDN;
-    this.jaasConf = builder.jaasConf;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -104,7 +100,6 @@ public class ClientOptions {
     this.enableAuth = original.isEnableAuth();
     this.serviceName = original.getServiceName();
     this.serviceFQDN = original.getServiceFQDN();
-    this.jaasConf = original.getJaasConf();
   }
 
   /**
@@ -167,7 +162,6 @@ public class ClientOptions {
     boolean enableAuth = config.getBoolean(PEGASUS_ENABLE_AUTH_KEY, DEFAULT_ENABLE_AUTH);
     String serviceName = config.getString(PEGASUS_SERVICE_NAME_KEY, DEFAULT_SERVICE_NAME);
     String serviceFQDN = config.getString(PEGASUS_SERVICE_FQDN_KEY, DEFAULT_SERVICE_FQDN);
-    String jaasConf = config.getString(PEGASUS_JAAS_CONF_KEY, DEFAULT_JAAS_CONF);
 
     return ClientOptions.builder()
         .metaServers(metaList)
@@ -180,7 +174,6 @@ public class ClientOptions {
         .enableAuth(enableAuth)
         .serviceName(serviceName)
         .serviceFQDN(serviceFQDN)
-        .jaasConf(jaasConf)
         .build();
   }
 
@@ -201,8 +194,7 @@ public class ClientOptions {
           && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis()
           && this.enableAuth == clientOptions.enableAuth
           && this.serviceName == clientOptions.serviceName
-          && this.serviceFQDN == clientOptions.serviceFQDN
-          && this.jaasConf == clientOptions.jaasConf;
+          && this.serviceFQDN == clientOptions.serviceFQDN;
     }
     return false;
   }
@@ -234,8 +226,6 @@ public class ClientOptions {
         + serviceName
         + ", serviceFQDN="
         + serviceFQDN
-        + ", jaasConf="
-        + jaasConf
         + '}';
   }
 
@@ -252,7 +242,6 @@ public class ClientOptions {
     private boolean enableAuth = DEFAULT_ENABLE_AUTH;
     private String serviceName = DEFAULT_SERVICE_NAME;
     private String serviceFQDN = DEFAULT_SERVICE_FQDN;
-    private String jaasConf = DEFAULT_JAAS_CONF;
 
     protected Builder() {}
 
@@ -391,17 +380,6 @@ public class ClientOptions {
     }
 
     /**
-     * jaas configuration file. Defaults to {@literal ""}, see {@link #DEFAULT_JAAS_CONF}.
-     *
-     * @param jaasConf
-     * @return {@code this}
-     */
-    public Builder jaasConf(String jaasConf) {
-      this.jaasConf = jaasConf;
-      return this;
-    }
-
-    /**
      * Create a new instance of {@link ClientOptions}.
      *
      * @return new instance of {@link ClientOptions}.
@@ -431,8 +409,7 @@ public class ClientOptions {
         .metaQueryTimeout(getMetaQueryTimeout())
         .enableAuth(isEnableAuth())
         .serviceName(getServiceName())
-        .serviceFQDN(getServiceFQDN())
-        .jaasConf(getJaasConf());
+        .serviceFQDN(getServiceFQDN());
     return builder;
   }
 
@@ -538,15 +515,5 @@ public class ClientOptions {
    */
   public String getServiceFQDN() {
     return serviceFQDN;
-  }
-
-  /**
-   * jaas configuration file. Defaults to {@literal "configuration/pegasus_jaas.conf"}. Defaults to
-   * {@literal ""}, see {@link #DEFAULT_JAAS_CONF}
-   *
-   * @return jaas configuration file.
-   */
-  public String getJaasConf() {
-    return jaasConf;
   }
 }
