@@ -62,6 +62,7 @@ public class Negotiation {
         handleResponse();
       } catch (Exception e) {
         logger.error("Negotiation failed", e);
+        session.closeSession();
       }
     }
 
