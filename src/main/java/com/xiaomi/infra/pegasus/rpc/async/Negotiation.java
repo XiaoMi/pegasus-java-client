@@ -86,7 +86,7 @@ public class Negotiation {
     }
   }
 
-  private void onRecvMechanisms(negotiation_response response) throws Exception {
+  public void onRecvMechanisms(negotiation_response response) throws Exception {
     checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
     String[] matchMechanism = new String[1];
