@@ -62,6 +62,7 @@ public class Negotiation {
         handleResponse();
       } catch (Exception e) {
         logger.error("Negotiation failed", e);
+        negotiationFailed();
       }
     }
 
@@ -123,6 +124,11 @@ public class Negotiation {
     if (status != expected_status) {
       throw new Exception("status is " + status + " while expect " + expected_status);
     }
+  }
+
+  private void negotiationFailed() {
+    status = negotiation_status.SASL_AUTH_FAIL;
+    session.closeSession();
   }
 
   public negotiation_status getStatus() {
