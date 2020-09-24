@@ -88,7 +88,6 @@ public class Negotiation {
   public void onRecvMechanisms(negotiation_response response) throws Exception {
     checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
-    // get match mechanism and init sasl wrapper
     String[] matchMechanism = new String[1];
     matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
     blob msg = new blob(saslWrapper.init(matchMechanism));
