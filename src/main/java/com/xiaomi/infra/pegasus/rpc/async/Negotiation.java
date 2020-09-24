@@ -1,32 +1,38 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import org.slf4j.Logger;
 
 public class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
+  // Because negotiation message is always the first rpc sent to pegasus server,
+  // which will cost much more time. so we set negotiation timeout to 10s here
+  private static final int negotiationTimeoutMS = 10000;
+  private static final List<String> expectedMechanisms =
+      new ArrayList<>(Collections.singletonList("GSSAPI"));
+
   private negotiation_status status;
   private ReplicaSession session;
-  private String serviceName; // used for SASL authentication
-  private String serviceFqdn; // name used for SASL authentication
-  private final HashMap<String, Object> props = new HashMap<String, Object>();
-  private final Subject subject;
+  private SaslWrapper saslWrapper;
 
   public Negotiation(
-      ReplicaSession session, Subject subject, String serviceName, String serviceFqdn) {
+      ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
+    HashMap<String, Object> props = new HashMap<>();
+    props.put(Sasl.QOP, "auth");
+    saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN, props);
     this.session = session;
-    this.subject = subject;
-    this.serviceName = serviceName;
-    this.serviceFqdn = serviceFqdn;
-    this.props.put(Sasl.QOP, "auth");
   }
 
   public void start() {
@@ -35,11 +41,13 @@ public class Negotiation {
   }
 
   public void send(negotiation_status status, blob msg) {
-    // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
+    negotiation_request request = new negotiation_request(status, msg);
+    negotiation_operator operator = new negotiation_operator(request);
+    session.asyncSend(operator, new RecvHandler(operator), negotiationTimeoutMS, false);
   }
 
   private class RecvHandler implements Runnable {
-    negotiation_operator op;
+    private negotiation_operator op;
 
     RecvHandler(negotiation_operator op) {
       this.op = op;
@@ -65,12 +73,46 @@ public class Negotiation {
 
       switch (resp.status) {
         case SASL_LIST_MECHANISMS_RESP:
+          on_recv_mechanisms(resp);
+          break;
         case SASL_SELECT_MECHANISMS_RESP:
         case SASL_CHALLENGE:
         case SASL_SUCC:
           break;
         default:
           throw new Exception("Received an unexpected response, status " + resp.status);
+      }
+    }
+
+    void on_recv_mechanisms(negotiation_response response) throws Exception {
+      checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
+
+      // get match mechanism and init sasl wrapper
+      String[] matchMechanism = new String[1];
+      matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
+      blob msg = new blob(saslWrapper.init(matchMechanism));
+
+      status = negotiation_status.SASL_SELECT_MECHANISMS;
+      send(status, msg);
+    }
+
+    String getMatchMechanism(String respString) {
+      String matchMechanism = new String();
+      String[] serverSupportMechanisms = respString.split(",");
+      for (String serverSupportMechanism : serverSupportMechanisms) {
+        if (expectedMechanisms.contains(serverSupportMechanism)) {
+          matchMechanism = serverSupportMechanism;
+          break;
+        }
+      }
+
+      return matchMechanism;
+    }
+
+    void checkStatus(negotiation_status status, negotiation_status expected_status)
+        throws Exception {
+      if (status != expected_status) {
+        throw new Exception("status is " + status + " while expect " + expected_status);
       }
     }
   }
