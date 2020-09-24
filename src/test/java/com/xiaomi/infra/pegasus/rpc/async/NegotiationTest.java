@@ -116,4 +116,46 @@ public class NegotiationTest {
     } catch (Exception ex) {
     }
   }
+
+  @Test
+  public void testChallenge() {
+    Negotiation mockNegotiation = Mockito.spy(negotiation);
+    SaslWrapper mockSaslWrapper = Mockito.mock(SaslWrapper.class);
+    ReplicaSession mockSession = Mockito.mock(ReplicaSession.class);
+    mockNegotiation.saslWrapper = mockSaslWrapper;
+    mockNegotiation.session = mockSession;
+
+    // mock operation
+    Mockito.doNothing().when(mockNegotiation).send(any(), any());
+    Mockito.doNothing().when(mockNegotiation.session).setNegotiationSucceed();
+    try {
+      Mockito.when(mockNegotiation.saslWrapper.evaluateChallenge(any())).thenReturn(new blob());
+    } catch (Exception ex) {
+      Assert.fail();
+    }
+
+    // normal case
+    try {
+      negotiation_response response =
+              new negotiation_response(
+                      negotiation_status.SASL_CHALLENGE, new blob(new byte[0]));
+      mockNegotiation.onChallenge(response);
+      Assert.assertEquals(mockNegotiation.getStatus(), negotiation_status.SASL_CHALLENGE_RESP);
+
+      response = new negotiation_response(negotiation_status.SASL_SUCC, new blob(new byte[0]));
+      mockNegotiation.onChallenge(response);
+      Assert.assertEquals(mockNegotiation.getStatus(), negotiation_status.SASL_SUCC);
+    } catch (Exception ex) {
+      Assert.fail();
+    }
+
+    // deal with wrong response.status
+    try {
+      negotiation_response response =
+              new negotiation_response(negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
+      mockNegotiation.onChallenge(response);
+      Assert.fail();
+    } catch (Exception ex) {
+    }
+  }
 }

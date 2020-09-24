@@ -24,7 +24,7 @@ public class Negotiation {
       new ArrayList<>(Collections.singletonList("GSSAPI"));
 
   private negotiation_status status;
-  private ReplicaSession session;
+  public ReplicaSession session;
   public SaslWrapper saslWrapper;
 
   public Negotiation(
