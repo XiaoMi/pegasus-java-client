@@ -6,15 +6,13 @@ import java.util.HashMap;
 import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
-import org.slf4j.Logger;
 
 public class SaslWrapper {
-  private static final Logger logger = org.slf4j.LoggerFactory.getLogger(SaslWrapper.class);
   private SaslClient saslClient;
-  Subject subject;
-  String serviceName;
-  String serviceFQDN;
-  HashMap<String, Object> props;
+  private Subject subject;
+  private String serviceName;
+  private String serviceFQDN;
+  private HashMap<String, Object> props;
 
   public SaslWrapper(
       Subject subject, String serviceName, String serviceFQDN, HashMap<String, Object> props) {
