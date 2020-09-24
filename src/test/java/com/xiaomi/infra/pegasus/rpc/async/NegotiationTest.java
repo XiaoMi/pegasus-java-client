@@ -137,8 +137,7 @@ public class NegotiationTest {
     // normal case
     try {
       negotiation_response response =
-              new negotiation_response(
-                      negotiation_status.SASL_CHALLENGE, new blob(new byte[0]));
+          new negotiation_response(negotiation_status.SASL_CHALLENGE, new blob(new byte[0]));
       mockNegotiation.onChallenge(response);
       Assert.assertEquals(mockNegotiation.getStatus(), negotiation_status.SASL_CHALLENGE_RESP);
 
@@ -152,7 +151,7 @@ public class NegotiationTest {
     // deal with wrong response.status
     try {
       negotiation_response response =
-              new negotiation_response(negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
+          new negotiation_response(negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
       mockNegotiation.onChallenge(response);
       Assert.fail();
     } catch (Exception ex) {
