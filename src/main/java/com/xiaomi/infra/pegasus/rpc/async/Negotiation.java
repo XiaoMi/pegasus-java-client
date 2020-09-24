@@ -79,6 +79,7 @@ public class Negotiation {
           onMechanismSelected(resp);
         case SASL_INITIATE:
         case SASL_CHALLENGE_RESP:
+          onChallenge(resp);
           break;
         default:
           throw new Exception("unexpected negotiation status: " + resp.status);
@@ -103,6 +104,27 @@ public class Negotiation {
     status = negotiation_status.SASL_INITIATE;
     blob msg = saslWrapper.getInitialResponse();
     send(status, msg);
+  }
+
+  void onChallenge(negotiation_response response) throws Exception {
+    if (response.status == negotiation_status.SASL_CHALLENGE) {
+      blob msg = saslWrapper.evaluateChallenge(response.msg.data);
+      status = negotiation_status.SASL_CHALLENGE_RESP;
+      send(status, msg);
+      return;
+    }
+
+    if (response.status == negotiation_status.SASL_SUCC) {
+      negotiationSucceed();
+      return;
+    }
+
+    throw new Exception("receive wrong negotiation msg type" + response.status.toString());
+  }
+
+  private void negotiationSucceed() {
+    status = negotiation_status.SASL_SUCC;
+    session.setNegotiationSucceed();
   }
 
   public String getMatchMechanism(String respString) {

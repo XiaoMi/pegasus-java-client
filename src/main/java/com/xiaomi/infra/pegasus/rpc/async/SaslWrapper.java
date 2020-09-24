@@ -46,4 +46,10 @@ public class SaslWrapper {
               }
             });
   }
+
+  public blob evaluateChallenge(final byte[] data) throws PrivilegedActionException {
+    return Subject.doAs(
+        subject,
+        (PrivilegedExceptionAction<blob>) () -> new blob(saslClient.evaluateChallenge(data)));
+  }
 }

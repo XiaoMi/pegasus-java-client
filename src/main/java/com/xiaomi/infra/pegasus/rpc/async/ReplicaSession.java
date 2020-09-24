@@ -370,6 +370,24 @@ public class ReplicaSession {
         TimeUnit.MILLISECONDS);
   }
 
+  public void setNegotiationSucceed() {
+    Queue<RequestEntry> swappedPendingSend = new LinkedList<RequestEntry>();
+    synchronized (negotiationPendingSend) {
+      negotiationSucceed = true;
+      swappedPendingSend.addAll(negotiationPendingSend);
+      negotiationPendingSend.clear();
+    }
+
+    while (!swappedPendingSend.isEmpty()) {
+      RequestEntry e = swappedPendingSend.poll();
+      if (pendingResponse.get(e.sequenceId) != null) {
+        write(e, fields);
+      } else {
+        logger.info("{}: {} is removed from pending, perhaps timeout", name(), e.sequenceId);
+      }
+    }
+  }
+
   // return value:
   //   true  - pend succeed
   //   false - pend failed
