@@ -27,4 +27,22 @@ public class NegotiationTest {
     matchMechanism = negotiation.getMatchMechanism("TEST,ABC");
     Assert.assertEquals(matchMechanism, "");
   }
+
+  @Test
+  public void testCheckStatus() {
+    negotiation_status status = negotiation_status.SASL_LIST_MECHANISMS;
+    negotiation_status expectedStatus = negotiation_status.SASL_LIST_MECHANISMS;
+    try {
+      negotiation.checkStatus(status, expectedStatus);
+    } catch (Exception e) {
+      Assert.fail();
+    }
+
+    status = negotiation_status.SASL_LIST_MECHANISMS_RESP;
+    try {
+      negotiation.checkStatus(status, expectedStatus);
+      Assert.fail();
+    } catch (Exception e) {
+    }
+  }
 }

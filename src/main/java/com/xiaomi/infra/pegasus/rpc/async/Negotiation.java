@@ -25,7 +25,7 @@ public class Negotiation {
 
   private negotiation_status status;
   private ReplicaSession session;
-  private SaslWrapper saslWrapper;
+  public SaslWrapper saslWrapper;
 
   public Negotiation(
       ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
@@ -110,7 +110,8 @@ public class Negotiation {
     return matchMechanism;
   }
 
-  void checkStatus(negotiation_status status, negotiation_status expected_status) throws Exception {
+  public void checkStatus(negotiation_status status, negotiation_status expected_status)
+      throws Exception {
     if (status != expected_status) {
       throw new Exception("status is " + status + " while expect " + expected_status);
     }
