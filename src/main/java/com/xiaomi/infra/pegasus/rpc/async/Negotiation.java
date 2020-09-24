@@ -71,6 +71,12 @@ public class Negotiation {
         throw new Exception("RecvHandler received a null response, abandon it");
       }
 
+      if (resp.status == negotiation_status.SASL_AUTH_DISABLE) {
+        logger.debug("treat negotiation succeed as server doesn't enable it");
+        negotiationSucceed();
+        return;
+      }
+
       switch (status) {
         case SASL_LIST_MECHANISMS:
           onRecvMechanisms(resp);
