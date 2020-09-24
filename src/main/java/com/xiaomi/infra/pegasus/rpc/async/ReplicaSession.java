@@ -326,6 +326,10 @@ public class ReplicaSession {
   }
 
   private void write(final RequestEntry entry, VolatileFields cache) {
+    if (!interceptorManager.onSendMessage(this, entry)) {
+      return;
+    }
+
     cache
         .nettyChannel
         .writeAndFlush(entry)
@@ -364,6 +368,26 @@ public class ReplicaSession {
         },
         timeoutInMillseconds,
         TimeUnit.MILLISECONDS);
+  }
+
+  // return value:
+  //   true  - pend succeed
+  //   false - pend failed
+  public boolean tryPendRequest(RequestEntry entry) {
+    // double check. the first one doesn't lock the lock.
+    // Because negotiationSucceed only transfered from false to true.
+    // So if it is true now, it will not change in the later.
+    // But if it is false now, maybe it will change soon. So we should use lock to protect it.
+    if (!this.negotiationSucceed) {
+      synchronized (negotiationPendingSend) {
+        if (!this.negotiationSucceed) {
+          negotiationPendingSend.offer(entry);
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   final class DefaultHandler extends SimpleChannelInboundHandler<RequestEntry> {
@@ -430,6 +454,8 @@ public class ReplicaSession {
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
   private ReplicaSessionInterceptorManager interceptorManager;
+  private boolean negotiationSucceed;
+  final Queue<RequestEntry> negotiationPendingSend = new LinkedList<>();
 
   // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
   // are timed out, in that case we suspect that the server is unavailable.
