@@ -76,6 +76,7 @@ public class Negotiation {
           onRecvMechanisms(resp);
           break;
         case SASL_SELECT_MECHANISMS:
+          onMechanismSelected(resp);
         case SASL_INITIATE:
         case SASL_CHALLENGE_RESP:
           break;
@@ -93,6 +94,14 @@ public class Negotiation {
     blob msg = new blob(saslWrapper.init(matchMechanism));
 
     status = negotiation_status.SASL_SELECT_MECHANISMS;
+    send(status, msg);
+  }
+
+  void onMechanismSelected(negotiation_response response) throws Exception {
+    checkStatus(response.status, negotiation_status.SASL_SELECT_MECHANISMS_RESP);
+
+    status = negotiation_status.SASL_INITIATE;
+    blob msg = saslWrapper.getInitialResponse();
     send(status, msg);
   }
 

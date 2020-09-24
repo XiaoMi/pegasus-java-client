@@ -1,5 +1,6 @@
 package com.xiaomi.infra.pegasus.rpc.async;
 
+import com.xiaomi.infra.pegasus.base.blob;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
@@ -30,6 +31,19 @@ public class SaslWrapper {
               saslClient =
                   Sasl.createSaslClient(mechanims, null, serviceName, serviceFQDN, props, null);
               return saslClient.getMechanismName().getBytes();
+            });
+  }
+
+  public blob getInitialResponse() throws PrivilegedActionException {
+    return Subject.doAs(
+        subject,
+        (PrivilegedExceptionAction<blob>)
+            () -> {
+              if (saslClient.hasInitialResponse()) {
+                return new blob(saslClient.evaluateChallenge(new byte[0]));
+              } else {
+                return new blob(new byte[0]);
+              }
             });
   }
 }
