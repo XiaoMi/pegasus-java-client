@@ -71,16 +71,16 @@ public class Negotiation {
         throw new Exception("RecvHandler received a null response, abandon it");
       }
 
-      switch (resp.status) {
-        case SASL_LIST_MECHANISMS_RESP:
+      switch (status) {
+        case SASL_LIST_MECHANISMS:
           onRecvMechanisms(resp);
           break;
-        case SASL_SELECT_MECHANISMS_RESP:
-        case SASL_CHALLENGE:
-        case SASL_SUCC:
+        case SASL_SELECT_MECHANISMS:
+        case SASL_INITIATE:
+        case SASL_CHALLENGE_RESP:
           break;
         default:
-          throw new Exception("Received an unexpected response, status " + resp.status);
+          throw new Exception("unexpected negotiation status: " + resp.status);
       }
     }
   }
