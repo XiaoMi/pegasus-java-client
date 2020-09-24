@@ -73,7 +73,7 @@ public class Negotiation {
 
       switch (resp.status) {
         case SASL_LIST_MECHANISMS_RESP:
-          on_recv_mechanisms(resp);
+          onRecvMechanisms(resp);
           break;
         case SASL_SELECT_MECHANISMS_RESP:
         case SASL_CHALLENGE:
@@ -83,41 +83,40 @@ public class Negotiation {
           throw new Exception("Received an unexpected response, status " + resp.status);
       }
     }
+  }
 
-    void on_recv_mechanisms(negotiation_response response) throws Exception {
-      checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
+  public void onRecvMechanisms(negotiation_response response) throws Exception {
+    checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
-      // get match mechanism and init sasl wrapper
-      String[] matchMechanism = new String[1];
-      matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
-      blob msg = new blob(saslWrapper.init(matchMechanism));
+    // get match mechanism and init sasl wrapper
+    String[] matchMechanism = new String[1];
+    matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
+    blob msg = new blob(saslWrapper.init(matchMechanism));
 
-      status = negotiation_status.SASL_SELECT_MECHANISMS;
-      send(status, msg);
+    status = negotiation_status.SASL_SELECT_MECHANISMS;
+    send(status, msg);
+  }
+
+  public String getMatchMechanism(String respString) {
+    String matchMechanism = new String();
+    String[] serverSupportMechanisms = respString.split(",");
+    for (String serverSupportMechanism : serverSupportMechanisms) {
+      if (expectedMechanisms.contains(serverSupportMechanism)) {
+        matchMechanism = serverSupportMechanism;
+        break;
+      }
     }
 
-    String getMatchMechanism(String respString) {
-      String matchMechanism = new String();
-      String[] serverSupportMechanisms = respString.split(",");
-      for (String serverSupportMechanism : serverSupportMechanisms) {
-        if (expectedMechanisms.contains(serverSupportMechanism)) {
-          matchMechanism = serverSupportMechanism;
-          break;
-        }
-      }
+    return matchMechanism;
+  }
 
-      return matchMechanism;
-    }
-
-    void checkStatus(negotiation_status status, negotiation_status expected_status)
-        throws Exception {
-      if (status != expected_status) {
-        throw new Exception("status is " + status + " while expect " + expected_status);
-      }
+  void checkStatus(negotiation_status status, negotiation_status expected_status) throws Exception {
+    if (status != expected_status) {
+      throw new Exception("status is " + status + " while expect " + expected_status);
     }
   }
 
-  public negotiation_status get_status() {
+  public negotiation_status getStatus() {
     return status;
   }
 }
