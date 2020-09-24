@@ -62,6 +62,7 @@ public class NegotiationTest {
       Assert.fail();
     }
 
+    // normal case
     try {
       negotiation_response response =
           new negotiation_response(
@@ -72,6 +73,7 @@ public class NegotiationTest {
       Assert.fail();
     }
 
+    // deal with wrong response.status
     try {
       negotiation_response response =
           new negotiation_response(negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
