@@ -11,6 +11,7 @@ import com.xiaomi.infra.pegasus.metrics.MetricsManager;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.InternalTableOptions;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptorManager;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -34,7 +35,7 @@ public class ClusterManager extends Cluster {
   private EventLoopGroup tableGroup; // group used for handle table logic
   private String[] metaList;
   private MetaSession metaSession;
-  private boolean enableAuth;
+  private ReplicaSessionInterceptorManager sessionInterceptorManager;
 
   private static final String osName;
 
@@ -56,14 +57,13 @@ public class ClusterManager extends Cluster {
     replicaGroup = getEventLoopGroupInstance(opts.getAsyncWorkers());
     metaGroup = getEventLoopGroupInstance(1);
     tableGroup = getEventLoopGroupInstance(1);
+    sessionInterceptorManager = new ReplicaSessionInterceptorManager(opts);
 
     metaList = opts.getMetaServers().split(",");
     // the constructor of meta session is depend on the replicaSessions,
     // so the replicaSessions should be initialized earlier
     metaSession =
         new MetaSession(this, metaList, (int) opts.getMetaQueryTimeout().toMillis(), 10, metaGroup);
-
-    this.enableAuth = opts.isEnableAuth();
   }
 
   public EventExecutor getExecutor() {
@@ -88,7 +88,7 @@ public class ClusterManager extends Cluster {
               address,
               replicaGroup,
               max(operationTimeout, ClientOptions.MIN_SOCK_CONNECT_TIMEOUT),
-              enableAuth);
+              sessionInterceptorManager);
       replicaSessions.put(address, ss);
       return ss;
     }
