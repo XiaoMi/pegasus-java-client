@@ -48,6 +48,8 @@ public class ClientOptions {
   public static final String PEGASUS_ENABLE_AUTH_KEY = "enable_auth";
   public static final String PEGASUS_SERVICE_NAME_KEY = "service_name";
   public static final String PEGASUS_SERVICE_FQDN_KEY = "service_fqdn";
+  public static final String PEGASUS_KEYTAB_KEY = "keytab";
+  public static final String PEGASUS_PRINCIPAL_KEY = "principal";
 
   public static final String DEFAULT_META_SERVERS =
       "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
@@ -61,6 +63,8 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_AUTH = false;
   public static final String DEFAULT_SERVICE_NAME = "";
   public static final String DEFAULT_SERVICE_FQDN = "";
+  public static final String DEFAULT_KEYTAB = "";
+  public static final String DEFAULT_PRINCIPAL = "";
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -73,6 +77,8 @@ public class ClientOptions {
   private final boolean enableAuth;
   private final String serviceName;
   private final String serviceFQDN;
+  private final String keyTab;
+  private final String principal;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -86,6 +92,8 @@ public class ClientOptions {
     this.enableAuth = builder.enableAuth;
     this.serviceName = builder.serviceName;
     this.serviceFQDN = builder.serviceFQDN;
+    this.keyTab = builder.keyTab;
+    this.principal = builder.principal;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -100,6 +108,8 @@ public class ClientOptions {
     this.enableAuth = original.isEnableAuth();
     this.serviceName = original.getServiceName();
     this.serviceFQDN = original.getServiceFQDN();
+    this.keyTab = original.getKeyTab();
+    this.principal = original.getPrincipal();
   }
 
   /**
@@ -162,6 +172,8 @@ public class ClientOptions {
     boolean enableAuth = config.getBoolean(PEGASUS_ENABLE_AUTH_KEY, DEFAULT_ENABLE_AUTH);
     String serviceName = config.getString(PEGASUS_SERVICE_NAME_KEY, DEFAULT_SERVICE_NAME);
     String serviceFQDN = config.getString(PEGASUS_SERVICE_FQDN_KEY, DEFAULT_SERVICE_FQDN);
+    String keyTab = config.getString(PEGASUS_KEYTAB_KEY, DEFAULT_KEYTAB);
+    String principal = config.getString(PEGASUS_PRINCIPAL_KEY, DEFAULT_PRINCIPAL);
 
     return ClientOptions.builder()
         .metaServers(metaList)
@@ -174,6 +186,8 @@ public class ClientOptions {
         .enableAuth(enableAuth)
         .serviceName(serviceName)
         .serviceFQDN(serviceFQDN)
+        .keyTab(keyTab)
+        .principal(principal)
         .build();
   }
 
@@ -194,7 +208,9 @@ public class ClientOptions {
           && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis()
           && this.enableAuth == clientOptions.enableAuth
           && this.serviceName == clientOptions.serviceName
-          && this.serviceFQDN == clientOptions.serviceFQDN;
+          && this.serviceFQDN == clientOptions.serviceFQDN
+          && this.keyTab == clientOptions.keyTab
+          && this.principal == clientOptions.principal;
     }
     return false;
   }
@@ -226,6 +242,10 @@ public class ClientOptions {
         + serviceName
         + ", serviceFQDN="
         + serviceFQDN
+        + ", keyTab="
+        + keyTab
+        + ", principal="
+        + principal
         + '}';
   }
 
@@ -242,6 +262,8 @@ public class ClientOptions {
     private boolean enableAuth = DEFAULT_ENABLE_AUTH;
     private String serviceName = DEFAULT_SERVICE_NAME;
     private String serviceFQDN = DEFAULT_SERVICE_FQDN;
+    private String keyTab = DEFAULT_KEYTAB;
+    private String principal = DEFAULT_PRINCIPAL;
 
     protected Builder() {}
 
@@ -379,6 +401,16 @@ public class ClientOptions {
       return this;
     }
 
+    public Builder keyTab(String keyTab) {
+      this.keyTab = keyTab;
+      return this;
+    }
+
+    public Builder principal(String principal) {
+      this.principal = principal;
+      return this;
+    }
+
     /**
      * Create a new instance of {@link ClientOptions}.
      *
@@ -409,7 +441,9 @@ public class ClientOptions {
         .metaQueryTimeout(getMetaQueryTimeout())
         .enableAuth(isEnableAuth())
         .serviceName(getServiceName())
-        .serviceFQDN(getServiceFQDN());
+        .serviceFQDN(getServiceFQDN())
+        .keyTab(getKeyTab())
+        .principal(getPrincipal());
     return builder;
   }
 
@@ -515,5 +549,13 @@ public class ClientOptions {
    */
   public String getServiceFQDN() {
     return serviceFQDN;
+  }
+
+  public String getPrincipal() {
+    return principal;
+  }
+
+  public String getKeyTab() {
+    return keyTab;
   }
 }
