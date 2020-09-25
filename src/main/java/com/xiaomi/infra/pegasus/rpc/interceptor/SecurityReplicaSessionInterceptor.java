@@ -57,7 +57,7 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
     negotiation.start();
   }
 
-  private Configuration getLoginContextConfiguration(ClientOptions clientOptions) {
+  private static Configuration getLoginContextConfiguration(ClientOptions clientOptions) {
     return new Configuration() {
       @Override
       public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
