@@ -1,3 +1,17 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.apps.negotiation_request;
@@ -9,10 +23,8 @@ import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import javax.security.auth.Subject;
-import javax.security.sasl.Sasl;
 import org.slf4j.Logger;
 
 public class Negotiation {
@@ -29,9 +41,7 @@ public class Negotiation {
 
   public Negotiation(
       ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
-    HashMap<String, Object> props = new HashMap<>();
-    props.put(Sasl.QOP, "auth");
-    saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN, props);
+    this.saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN);
     this.session = session;
   }
 
@@ -79,6 +89,7 @@ public class Negotiation {
         case SASL_SELECT_MECHANISMS:
         case SASL_INITIATE:
         case SASL_CHALLENGE_RESP:
+          // TBD(zlw):
           break;
         default:
           throw new Exception("unexpected negotiation status: " + resp.status);
