@@ -38,7 +38,15 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
     this.serviceFqdn = serviceFqdn;
 
     try {
+      // The LoginContext class provides the basic methods used to authenticate subjects, and
+      // provides a way to develop an application independent of the underlying authentication
+      // technology. For more details:
+      // https://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/JAASRefGuide.html#LoginContext
+
+      // let the LoginContext instantiate a new Subject
       loginContext = new LoginContext("client", new TextCallbackHandler());
+
+      // authenticate the Subject
       loginContext.login();
 
       subject = loginContext.getSubject();
