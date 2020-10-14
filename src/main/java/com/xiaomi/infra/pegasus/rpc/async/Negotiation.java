@@ -57,7 +57,8 @@ public class Negotiation {
   public void send(negotiation_status status, blob msg) {
     negotiation_request request = new negotiation_request(status, msg);
     negotiation_operator operator = new negotiation_operator(request);
-    session.asyncSend(operator, new RecvHandler(operator), negotiationTimeoutMS, false);
+    session.asyncSend(
+        operator, new RecvHandler(operator), negotiationTimeoutMS, /* isBackupRequest */ false);
   }
 
   private class RecvHandler implements Runnable {
