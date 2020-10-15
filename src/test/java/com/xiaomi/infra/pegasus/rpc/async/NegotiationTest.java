@@ -26,6 +26,7 @@ import com.xiaomi.infra.pegasus.base.blob;
 import javax.security.auth.Subject;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
 public class NegotiationTest {
@@ -74,30 +75,30 @@ public class NegotiationTest {
     mockNegotiation.saslWrapper = mockSaslWrapper;
 
     Mockito.doNothing().when(mockNegotiation).send(any(), any());
-    try {
-      Mockito.when(mockNegotiation.saslWrapper.init(any())).thenReturn(new byte[0]);
-    } catch (Exception ex) {
-      Assert.fail();
-    }
+    Assertions.assertDoesNotThrow(
+        () -> {
+          Mockito.when(mockNegotiation.saslWrapper.init(any())).thenReturn(new byte[0]);
+        });
 
     // normal case
-    try {
-      negotiation_response response =
-          new negotiation_response(
-              negotiation_status.SASL_LIST_MECHANISMS_RESP, new blob(new byte[0]));
-      mockNegotiation.onRecvMechanisms(response);
-      Assert.assertEquals(mockNegotiation.getStatus(), negotiation_status.SASL_SELECT_MECHANISMS);
-    } catch (Exception ex) {
-      Assert.fail();
-    }
+    Assertions.assertDoesNotThrow(
+        () -> {
+          negotiation_response response =
+              new negotiation_response(
+                  negotiation_status.SASL_LIST_MECHANISMS_RESP, new blob(new byte[0]));
+          mockNegotiation.onRecvMechanisms(response);
+          Assert.assertEquals(
+              mockNegotiation.getStatus(), negotiation_status.SASL_SELECT_MECHANISMS);
+        });
 
     // deal with wrong response.status
-    try {
-      negotiation_response response =
-          new negotiation_response(negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
-      mockNegotiation.onRecvMechanisms(response);
-      Assert.fail();
-    } catch (Exception ex) {
-    }
+    Assertions.assertThrows(
+        Exception.class,
+        () -> {
+          negotiation_response response =
+              new negotiation_response(
+                  negotiation_status.SASL_LIST_MECHANISMS, new blob(new byte[0]));
+          mockNegotiation.onRecvMechanisms(response);
+        });
   }
 }
