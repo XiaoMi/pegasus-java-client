@@ -401,11 +401,23 @@ public class ClientOptions {
       return this;
     }
 
+    /**
+     * kerberos keytab. Defaults to {@literal ""}, see {@link #DEFAULT_KEYTAB}.
+     *
+     * @param keyTab
+     * @return {@code this}
+     */
     public Builder keyTab(String keyTab) {
       this.keyTab = keyTab;
       return this;
     }
 
+    /**
+     * kerberos principal. Defaults to {@literal ""}, see {@link #DEFAULT_PRINCIPAL}.
+     *
+     * @param principal
+     * @return {@code this}
+     */
     public Builder principal(String principal) {
       this.principal = principal;
       return this;
@@ -551,10 +563,20 @@ public class ClientOptions {
     return serviceFQDN;
   }
 
+  /**
+   * kerberos principal. Defaults to {@literal ""}.
+   *
+   * @return kerberos principal.
+   */
   public String getPrincipal() {
     return principal;
   }
 
+  /**
+   * kerberos keytab. Defaults to {@literal ""}.
+   *
+   * @return kerberos keytab.
+   */
   public String getKeyTab() {
     return keyTab;
   }

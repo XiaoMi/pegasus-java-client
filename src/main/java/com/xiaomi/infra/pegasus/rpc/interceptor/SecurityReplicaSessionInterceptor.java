@@ -38,12 +38,12 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
   private String serviceName;
   private String serviceFqdn;
 
-  // JAAS internal class, Ref:
+  // Subject is a JAAS internal class, Ref:
   // https://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/JAASRefGuide.html
   //
   // To authorize access to resources, applications first need to authenticate the source of the
-  // request. The JAAS framework defines the term subject to represent the source of a request. A
-  // subject may be any entity, such as a person or a service
+  // request. The JAAS framework defines the term "subject" to represent the source of a request. A
+  // subject may be any entity, such as a person or a service.
   private Subject subject;
   // The LoginContext class provides the basic methods used to authenticate subjects, and provides a
   // way to develop an application independent of the underlying authentication technology
