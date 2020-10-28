@@ -55,6 +55,8 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
 
     try {
       // actual authentication: authenticate the Subject
+      // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
+      // information.
       subject = new Subject();
       loginContext =
           new LoginContext(
