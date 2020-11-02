@@ -54,7 +54,7 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
     this.serviceFqdn = options.getServiceFQDN();
 
     try {
-      // actual authentication: authenticate the Subject
+      // Authenticate the Subject (the source of the request)
       // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
       // information.
       subject = new Subject();
