@@ -1,26 +1,6 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-package com.xiaomi.infra.pegasus.rpc.interceptor;
+package com.xiaomi.infra.pegasus.security;
 
 import com.sun.security.auth.callback.TextCallbackHandler;
-import com.xiaomi.infra.pegasus.client.ClientOptions;
-import com.xiaomi.infra.pegasus.rpc.async.Negotiation;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +10,10 @@ import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SecurityReplicaSessionInterceptor implements ReplicaSessionInterceptor {
-  private static final Logger logger =
-      org.slf4j.LoggerFactory.getLogger(SecurityReplicaSessionInterceptor.class);
-
-  private String serviceName;
-  private String serviceFqdn;
+public class KerberosProtocol implements AuthProtocol {
+  private static final Logger logger = LoggerFactory.getLogger(KerberosProtocol.class);
 
   // Subject is a JAAS internal class, Ref:
   // https://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/JAASRefGuide.html
@@ -49,35 +26,38 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
   // way to develop an application independent of the underlying authentication technology
   private LoginContext loginContext;
 
-  public SecurityReplicaSessionInterceptor(ClientOptions options) throws IllegalArgumentException {
-    this.serviceName = options.getServiceName();
-    this.serviceFqdn = options.getServiceFQDN();
+  private String serviceName;
+  private String serviceFqdn;
 
+  public KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal) {
+    this.serviceName = serviceName;
+    this.serviceFqdn = serviceFqdn;
     try {
       // Authenticate the Subject (the source of the request)
       // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
-      // information.
-      subject = new Subject();
-      loginContext =
+      // information
+      this.subject = new Subject();
+      this.loginContext =
           new LoginContext(
               "pegasus-client",
               subject,
               new TextCallbackHandler(),
-              getLoginContextConfiguration(options));
-      loginContext.login();
+              getLoginContextConfiguration(keyTab, principal));
+      this.loginContext.login();
     } catch (LoginException le) {
-      throw new IllegalArgumentException("login failed", le);
+      throw new IllegalArgumentException("login failed: ", le);
     }
 
     logger.info("login succeed, as user {}", subject.getPrincipals().toString());
   }
 
-  public void onConnected(ReplicaSession session) {
+  @Override
+  public void authenticate(ReplicaSession session) {
     Negotiation negotiation = new Negotiation(session, subject, serviceName, serviceFqdn);
     negotiation.start();
   }
 
-  private static Configuration getLoginContextConfiguration(ClientOptions clientOptions) {
+  private static Configuration getLoginContextConfiguration(String keyTab, String principal) {
     return new Configuration() {
       @Override
       public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
@@ -91,9 +71,9 @@ public class SecurityReplicaSessionInterceptor implements ReplicaSessionIntercep
         // keytab or the principal's key to be stored in the Subject's private credentials.
         options.put("storeKey", "true");
         // the file name of the keytab to get principal's secret key.
-        options.put("keyTab", clientOptions.getKeyTab());
+        options.put("keyTab", keyTab);
         // the name of the principal that should be used
-        options.put("principal", clientOptions.getPrincipal());
+        options.put("principal", principal);
 
         return new AppConfigurationEntry[] {
           new AppConfigurationEntry(

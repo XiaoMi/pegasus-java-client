@@ -16,24 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.async;
+package com.xiaomi.infra.pegasus.security;
 
-import static com.xiaomi.infra.pegasus.apps.negotiation_status.SASL_LIST_MECHANISMS;
-import static org.mockito.ArgumentMatchers.any;
+import com.xiaomi.infra.pegasus.client.ClientOptions;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptor;
 
-import com.xiaomi.infra.pegasus.security.Negotiation;
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.Mockito;
+public class AuthReplicaSessionInterceptor implements ReplicaSessionInterceptor {
+  private AuthProtocol protocol;
 
-public class NegotiationTest {
-  @Test
-  public void testStart() {
-    Negotiation negotiation = new Negotiation(null, null, "", "");
-    Negotiation mockNegotiation = Mockito.spy(negotiation);
+  public AuthReplicaSessionInterceptor(ClientOptions options) throws IllegalArgumentException {
+    this.protocol = options.getCredential().getProtocol();
+  }
 
-    Mockito.doNothing().when(mockNegotiation).send(any(), any());
-    mockNegotiation.start();
-    Assert.assertEquals(mockNegotiation.get_status(), SASL_LIST_MECHANISMS);
+  public void onConnected(ReplicaSession session) {
+    protocol.authenticate(session);
   }
 }

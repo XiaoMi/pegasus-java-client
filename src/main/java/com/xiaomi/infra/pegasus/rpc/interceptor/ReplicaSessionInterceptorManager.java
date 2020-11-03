@@ -20,6 +20,7 @@ package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.client.ClientOptions;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
+import com.xiaomi.infra.pegasus.security.AuthReplicaSessionInterceptor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,10 +28,9 @@ public class ReplicaSessionInterceptorManager {
   private List<ReplicaSessionInterceptor> interceptors = new ArrayList<>();
 
   public ReplicaSessionInterceptorManager(ClientOptions options) {
-    if (options.isEnableAuth()) {
-      ReplicaSessionInterceptor securityInterceptor =
-          new SecurityReplicaSessionInterceptor(options);
-      interceptors.add(securityInterceptor);
+    if (!options.getAuthProtocol().isEmpty()) {
+      ReplicaSessionInterceptor authInterceptor = new AuthReplicaSessionInterceptor(options);
+      interceptors.add(authInterceptor);
     }
   }
 
