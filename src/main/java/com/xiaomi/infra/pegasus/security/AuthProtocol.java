@@ -22,6 +22,6 @@ import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 
 /** authentiation protocol */
 public interface AuthProtocol {
-  /** begin the authentiate process */
+  /** start the authentiate process */
   void authenticate(ReplicaSession session);
 }
