@@ -2,9 +2,7 @@ package com.xiaomi.infra.pegasus.security;
 
 import org.apache.commons.configuration2.Configuration;
 
-/**
- * credential info for authentiation
- **/
+/** credential info for authentiation */
 public interface Credential {
   static Credential createCredential(String authProtocol, Configuration config) {
     Credential credential = null;
@@ -15,9 +13,7 @@ public interface Credential {
     return credential;
   }
 
-  /**
-   * get the authentiation protocol supported
-   **/
+  /** get the authentiation protocol supported */
   public AuthProtocol getProtocol();
 
   public String toString();
