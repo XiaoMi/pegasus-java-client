@@ -57,7 +57,7 @@ public class Negotiation {
     // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
   }
 
-  private class RecvHandler implements Runnable {
+  private static class RecvHandler implements Runnable {
     negotiation_operator op;
 
     RecvHandler(negotiation_operator op) {
