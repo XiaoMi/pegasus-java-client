@@ -214,8 +214,6 @@ public class ClientOptions {
         + metaQueryTimeout.toMillis()
         + ", authProtocol="
         + authProtocol
-        + ", credential="
-        + credential.toString()
         + '}';
   }
 
