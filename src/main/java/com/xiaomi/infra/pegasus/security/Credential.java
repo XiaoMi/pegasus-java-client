@@ -35,6 +35,4 @@ public interface Credential {
 
   /** get the authentiation protocol supported */
   AuthProtocol getProtocol();
-
-  String toString();
 }

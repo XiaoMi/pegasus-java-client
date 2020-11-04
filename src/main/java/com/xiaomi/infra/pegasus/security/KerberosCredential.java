@@ -45,24 +45,6 @@ public class KerberosCredential implements Credential {
 
   @Override
   public AuthProtocol getProtocol() {
-    return new KerberosProtocol(serviceFqdn, serviceFqdn, keyTab, principal);
-  }
-
-  @Override
-  public String toString() {
-    return "KerberosCredential{"
-        + "serviceName='"
-        + serviceName
-        + '\''
-        + ", serviceFqdn='"
-        + serviceFqdn
-        + '\''
-        + ", keyTab='"
-        + keyTab
-        + '\''
-        + ", principal='"
-        + principal
-        + '\''
-        + '}';
+    return new KerberosProtocol(serviceName, serviceFqdn, keyTab, principal);
   }
 }
