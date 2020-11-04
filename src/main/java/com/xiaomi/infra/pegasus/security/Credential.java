@@ -18,15 +18,10 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
-import java.lang.annotation.Documented;
 import org.apache.commons.configuration2.Configuration;
 
 /** credential info for authentiation */
-@Credential.Private
 public interface Credential {
-  @Documented
-  @interface Private {};
-
   String KERBEROS_PROTOCOL_NAME = "kerberos";
 
   static Credential createCredential(String authProtocol, Configuration config) {

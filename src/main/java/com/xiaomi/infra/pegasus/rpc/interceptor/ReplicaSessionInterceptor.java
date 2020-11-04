@@ -19,13 +19,8 @@
 package com.xiaomi.infra.pegasus.rpc.interceptor;
 
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
-import java.lang.annotation.Documented;
 
-@ReplicaSessionInterceptor.Private
 public interface ReplicaSessionInterceptor {
-  @Documented
-  @interface Private {};
-
   // The behavior when a rpc session is connected.
   void onConnected(ReplicaSession session);
 }

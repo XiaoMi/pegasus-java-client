@@ -19,14 +19,9 @@
 package com.xiaomi.infra.pegasus.security;
 
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
-import java.lang.annotation.Documented;
 
 /** authentiation protocol */
-@AuthProtocol.Private
 public interface AuthProtocol {
-  @Documented
-  @interface Private {};
-
   /** start the authentiate process */
   void authenticate(ReplicaSession session);
 }
