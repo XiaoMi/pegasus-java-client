@@ -31,7 +31,6 @@ import org.apache.commons.configuration2.ConfigurationConverter;
  *          .falconPerfCounterTags("")
  *          .falconPushInterval(Duration.ofSeconds(10))
  *          .metaQueryTimeout(Duration.ofMillis(5000))
- *          .enableAuth(false)
  *          .authProtocol("")
  *          .build();
  * }</pre>
@@ -332,7 +331,11 @@ public class ClientOptions {
     }
 
     /**
-     * authentiation protocol. Defaults to {@literal ""}, See {@link #DEFAULT_AUTH_PROTOCOL}
+     * The authentiation protocol to use. Available protocols are: 1. kerberos; 2.""
+     *
+     * <p>"" means the authentiation is disabled
+     *
+     * <p>Defaults to {@literal ""}, See {@link #DEFAULT_AUTH_PROTOCOL}
      *
      * @param authProtocol authentiation protocol.
      * @return {@code this}
@@ -464,7 +467,11 @@ public class ClientOptions {
   }
 
   /**
-   * authentiation protocol. Defaults to {@literal ""}, See {@link #DEFAULT_AUTH_PROTOCOL}
+   * The authentiation protocol to use. Available protocols are: 1. kerberos; 2.""
+   *
+   * <p>"" means the authentiation is disabled
+   *
+   * <p>Defaults to {@literal ""}, See {@link #DEFAULT_AUTH_PROTOCOL}
    *
    * @return authentiation protocol.
    */
