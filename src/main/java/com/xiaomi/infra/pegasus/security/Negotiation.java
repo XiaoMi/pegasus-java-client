@@ -63,7 +63,7 @@ class Negotiation {
     session.asyncSend(operator, new RecvHandler(operator), negotiationTimeoutMS, false);
   }
 
-  private static class RecvHandler implements Runnable {
+  private class RecvHandler implements Runnable {
     negotiation_operator op;
 
     RecvHandler(negotiation_operator op) {
