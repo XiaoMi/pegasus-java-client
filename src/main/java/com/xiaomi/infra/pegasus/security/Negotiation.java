@@ -30,7 +30,7 @@ import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import org.slf4j.Logger;
 
-public class Negotiation {
+class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   private negotiation_status status;
   private ReplicaSession session;
@@ -39,8 +39,7 @@ public class Negotiation {
   private final HashMap<String, Object> props = new HashMap<String, Object>();
   private final Subject subject;
 
-  public Negotiation(
-      ReplicaSession session, Subject subject, String serviceName, String serviceFqdn) {
+  Negotiation(ReplicaSession session, Subject subject, String serviceName, String serviceFqdn) {
     this.session = session;
     this.subject = subject;
     this.serviceName = serviceName;
@@ -48,12 +47,12 @@ public class Negotiation {
     this.props.put(Sasl.QOP, "auth");
   }
 
-  public void start() {
+  void start() {
     status = negotiation_status.SASL_LIST_MECHANISMS;
     send(status, new blob(new byte[0]));
   }
 
-  public void send(negotiation_status status, blob msg) {
+  void send(negotiation_status status, blob msg) {
     // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
   }
 
@@ -94,7 +93,7 @@ public class Negotiation {
     }
   }
 
-  public negotiation_status get_status() {
+  negotiation_status get_status() {
     return status;
   }
 }
