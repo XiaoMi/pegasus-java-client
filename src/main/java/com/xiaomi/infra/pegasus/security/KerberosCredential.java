@@ -26,7 +26,7 @@ import org.apache.commons.configuration2.Configuration;
  * <p>To create a new instance with Configuration:
  *
  * <pre>{@code
- * Credential.create(authProtocol, config)
+ * new KerberosCredential(config);
  * }</pre>
  *
  * To customize the settings:
