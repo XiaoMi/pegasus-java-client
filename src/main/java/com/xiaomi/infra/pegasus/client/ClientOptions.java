@@ -32,6 +32,7 @@ import org.apache.commons.configuration2.ConfigurationConverter;
  *          .falconPushInterval(Duration.ofSeconds(10))
  *          .metaQueryTimeout(Duration.ofMillis(5000))
  *          .authProtocol("")
+ *          .credential(null)
  *          .build();
  * }</pre>
  */
@@ -192,28 +193,32 @@ public class ClientOptions {
 
   @Override
   public String toString() {
-    return "ClientOptions{"
-        + "metaServers='"
-        + metaServers
-        + '\''
-        + ", operationTimeout(ms)="
-        + operationTimeout.toMillis()
-        + ", asyncWorkers="
-        + asyncWorkers
-        + ", enablePerfCounter="
-        + enablePerfCounter
-        + ", falconPerfCounterTags='"
-        + falconPerfCounterTags
-        + '\''
-        + ", falconPushInterval(s)="
-        + falconPushInterval.getSeconds()
-        + ",enableWriteLimit="
-        + enableWriteLimit
-        + ", metaQueryTimeout(ms)="
-        + metaQueryTimeout.toMillis()
-        + ", authProtocol="
-        + authProtocol
-        + '}';
+    String res =
+        "ClientOptions{"
+            + "metaServers='"
+            + metaServers
+            + '\''
+            + ", operationTimeout(ms)="
+            + operationTimeout.toMillis()
+            + ", asyncWorkers="
+            + asyncWorkers
+            + ", enablePerfCounter="
+            + enablePerfCounter
+            + ", falconPerfCounterTags='"
+            + falconPerfCounterTags
+            + '\''
+            + ", falconPushInterval(s)="
+            + falconPushInterval.getSeconds()
+            + ",enableWriteLimit="
+            + enableWriteLimit
+            + ", metaQueryTimeout(ms)="
+            + metaQueryTimeout.toMillis()
+            + ", authProtocol="
+            + authProtocol;
+    if (credential != null) {
+      res += ", credential=" + credential.toString();
+    }
+    return res + '}';
   }
 
   /** Builder for {@link ClientOptions}. */

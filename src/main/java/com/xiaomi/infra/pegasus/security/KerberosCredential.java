@@ -20,6 +20,27 @@ package com.xiaomi.infra.pegasus.security;
 
 import org.apache.commons.configuration2.Configuration;
 
+/**
+ * kerberos credential information
+ *
+ * <p>To create a new instance with Configuration:
+ *
+ * <pre>{@code
+ * Credential.create(authProtocol, config)
+ * }</pre>
+ *
+ * To customize the settings:
+ *
+ * <pre>{@code
+ * KerberosCredential credential =
+ *      KerberosCredential.Builder()
+ *          .serviceName("")
+ *          .serviceFqdn("")
+ *          .keytab("")
+ *          .principal("")
+ *          .build();
+ * }</pre>
+ */
 class KerberosCredential implements Credential {
   public static final String PEGASUS_SERVICE_NAME_KEY = "kerberos_service_name";
   public static final String PEGASUS_SERVICE_FQDN_KEY = "kerberos_service_fqdn";
@@ -43,8 +64,93 @@ class KerberosCredential implements Credential {
     this.principal = config.getString(PEGASUS_PRINCIPAL_KEY, DEFAULT_PRINCIPAL);
   }
 
+  KerberosCredential(Builder builder) {
+    this.serviceName = builder.serviceName;
+    this.serviceFqdn = builder.serviceFqdn;
+    this.keyTab = builder.keyTab;
+    this.principal = builder.principal;
+  }
+
   @Override
   public AuthProtocol getProtocol() {
     return new KerberosProtocol(serviceName, serviceFqdn, keyTab, principal);
+  }
+
+  @Override
+  public String toString() {
+    return "KerberosCredential{"
+        + "serviceName='"
+        + serviceName
+        + '\''
+        + ", serviceFqdn='"
+        + serviceFqdn
+        + '\''
+        + ", keyTab='"
+        + keyTab
+        + '\''
+        + ", principal='"
+        + principal
+        + '\''
+        + '}';
+  }
+
+  public static class Builder {
+    private String serviceName;
+    private String serviceFqdn;
+    private String keyTab;
+    private String principal;
+
+    /**
+     * kerberos service name. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_NAME}
+     *
+     * @param serviceName
+     * @return {@code this}
+     */
+    public Builder serviceName(String serviceName) {
+      this.serviceName = serviceName;
+      return this;
+    }
+
+    /**
+     * kerberos service fqdn. Defaults to {@literal ""}, see {@link #DEFAULT_SERVICE_FQDN}
+     *
+     * @param serviceFqdn
+     * @return {@code this}
+     */
+    public Builder serviceFqdn(String serviceFqdn) {
+      this.serviceFqdn = serviceFqdn;
+      return this;
+    }
+
+    /**
+     * kerberos keytab file path. Defaults to {@literal ""}, see {@link #DEFAULT_KEYTAB}.
+     *
+     * @param keyTab
+     * @return {@code this}
+     */
+    public Builder keyTab(String keyTab) {
+      this.keyTab = keyTab;
+      return this;
+    }
+
+    /**
+     * kerberos principal. Defaults to {@literal ""}, see {@link #DEFAULT_PRINCIPAL}.
+     *
+     * @param principal
+     * @return {@code this}
+     */
+    public Builder principal(String principal) {
+      this.principal = principal;
+      return this;
+    }
+
+    /**
+     * Create a new instance of {@link KerberosCredential}.
+     *
+     * @return new instance of {@link KerberosCredential}.
+     */
+    public KerberosCredential build() {
+      return new KerberosCredential(this);
+    }
   }
 }
