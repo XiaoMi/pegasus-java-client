@@ -30,7 +30,7 @@ import javax.security.auth.login.LoginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KerberosProtocol implements AuthProtocol {
+class KerberosProtocol implements AuthProtocol {
   private static final Logger logger = LoggerFactory.getLogger(KerberosProtocol.class);
 
   // Subject is a JAAS internal class, Ref:

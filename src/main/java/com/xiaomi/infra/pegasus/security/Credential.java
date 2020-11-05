@@ -18,16 +18,21 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
+import java.security.InvalidParameterException;
 import org.apache.commons.configuration2.Configuration;
 
 /** credential info for authentiation */
 public interface Credential {
   String KERBEROS_PROTOCOL_NAME = "kerberos";
 
-  static Credential createCredential(String authProtocol, Configuration config) {
+  static Credential create(String authProtocol, Configuration config) {
     Credential credential = null;
     if (authProtocol.equals(KERBEROS_PROTOCOL_NAME)) {
       credential = new KerberosCredential(config);
+    } else if (authProtocol.isEmpty()) {
+      credential = null;
+    } else {
+      throw new InvalidParameterException("unsupported protocol: " + authProtocol);
     }
 
     return credential;

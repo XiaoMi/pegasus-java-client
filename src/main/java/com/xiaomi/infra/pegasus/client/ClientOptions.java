@@ -154,7 +154,7 @@ public class ClientOptions {
         Duration.ofMillis(
             config.getLong(PEGASUS_META_QUERY_TIMEOUT_KEY, DEFAULT_META_QUERY_TIMEOUT.toMillis()));
     String authProtocol = config.getString(PEGASUS_AUTH_PROTOCOL_KEY, DEFAULT_AUTH_PROTOCOL);
-    Credential credential = Credential.createCredential(authProtocol, config);
+    Credential credential = Credential.create(authProtocol, config);
 
     return ClientOptions.builder()
         .metaServers(metaList)

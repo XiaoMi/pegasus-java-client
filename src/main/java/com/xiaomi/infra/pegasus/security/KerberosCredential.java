@@ -21,10 +21,10 @@ package com.xiaomi.infra.pegasus.security;
 import org.apache.commons.configuration2.Configuration;
 
 public class KerberosCredential implements Credential {
-  public static final String PEGASUS_SERVICE_NAME_KEY = "service_name";
-  public static final String PEGASUS_SERVICE_FQDN_KEY = "service_fqdn";
-  public static final String PEGASUS_KEYTAB_KEY = "keytab";
-  public static final String PEGASUS_PRINCIPAL_KEY = "principal";
+  public static final String PEGASUS_SERVICE_NAME_KEY = "kerberos_service_name";
+  public static final String PEGASUS_SERVICE_FQDN_KEY = "kerberos_service_fqdn";
+  public static final String PEGASUS_KEYTAB_KEY = "kerberos_keytab";
+  public static final String PEGASUS_PRINCIPAL_KEY = "kerberos_principal";
 
   public static final String DEFAULT_SERVICE_NAME = "";
   public static final String DEFAULT_SERVICE_FQDN = "";
