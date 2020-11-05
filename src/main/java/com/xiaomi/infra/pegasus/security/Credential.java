@@ -18,7 +18,6 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
-import java.security.InvalidParameterException;
 import org.apache.commons.configuration2.Configuration;
 
 /** credential info for authentiation */
@@ -32,7 +31,7 @@ public interface Credential {
     } else if (authProtocol.isEmpty()) {
       credential = null;
     } else {
-      throw new InvalidParameterException("unsupported protocol: " + authProtocol);
+      throw new IllegalArgumentException("unsupported protocol: " + authProtocol);
     }
 
     return credential;
