@@ -18,6 +18,7 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
+import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
@@ -39,6 +40,10 @@ class Negotiation {
   private final HashMap<String, Object> props = new HashMap<String, Object>();
   private final Subject subject;
 
+  // Because negotiation message is always the first rpc sent to pegasus server,
+  // which will cost much more time. so we set negotiation timeout to 10s here
+  private static final int negotiationTimeoutMS = 10000;
+
   Negotiation(ReplicaSession session, Subject subject, String serviceName, String serviceFqdn) {
     this.session = session;
     this.subject = subject;
@@ -53,7 +58,9 @@ class Negotiation {
   }
 
   void send(negotiation_status status, blob msg) {
-    // TODO: send negotiation message, using RecvHandler to handle the corresponding response.
+    negotiation_request request = new negotiation_request(status, msg);
+    negotiation_operator operator = new negotiation_operator(request);
+    session.asyncSend(operator, new RecvHandler(operator), negotiationTimeoutMS, false);
   }
 
   private static class RecvHandler implements Runnable {
