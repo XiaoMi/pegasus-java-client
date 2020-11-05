@@ -43,7 +43,6 @@ class KerberosProtocol implements AuthProtocol {
   // The LoginContext class provides the basic methods used to authenticate subjects, and provides a
   // way to develop an application independent of the underlying authentication technology
   private LoginContext loginContext;
-
   private String serviceName;
   private String serviceFqdn;
 
