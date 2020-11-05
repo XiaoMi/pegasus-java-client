@@ -25,7 +25,7 @@ public interface Credential {
   String KERBEROS_PROTOCOL_NAME = "kerberos";
 
   static Credential create(String authProtocol, Configuration config) {
-    Credential credential = null;
+    Credential credential;
     if (authProtocol.equals(KERBEROS_PROTOCOL_NAME)) {
       credential = new KerberosCredential(config);
     } else if (authProtocol.isEmpty()) {
