@@ -36,7 +36,7 @@ class KerberosCredential implements Credential {
   private String keyTab;
   private String principal;
 
-  public KerberosCredential(Configuration config) {
+  KerberosCredential(Configuration config) {
     this.serviceName = config.getString(PEGASUS_SERVICE_NAME_KEY, DEFAULT_SERVICE_NAME);
     this.serviceFqdn = config.getString(PEGASUS_SERVICE_FQDN_KEY, DEFAULT_SERVICE_FQDN);
     this.keyTab = config.getString(PEGASUS_KEYTAB_KEY, DEFAULT_KEYTAB);
