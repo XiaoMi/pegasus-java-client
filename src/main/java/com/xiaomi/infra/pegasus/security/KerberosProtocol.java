@@ -46,7 +46,7 @@ class KerberosProtocol implements AuthProtocol {
   private String serviceName;
   private String serviceFqdn;
 
-  public KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal)
+  KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal)
       throws IllegalArgumentException {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
