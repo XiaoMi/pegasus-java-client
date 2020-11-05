@@ -24,7 +24,8 @@ import org.apache.commons.configuration2.Configuration;
 public interface Credential {
   String KERBEROS_PROTOCOL_NAME = "kerberos";
 
-  static Credential create(String authProtocol, Configuration config) {
+  static Credential create(String authProtocol, Configuration config)
+      throws IllegalArgumentException {
     Credential credential;
     if (authProtocol.equals(KERBEROS_PROTOCOL_NAME)) {
       credential = new KerberosCredential(config);
