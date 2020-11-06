@@ -103,16 +103,19 @@ class Negotiation {
   public void onRecvMechanisms(negotiation_response response) throws Exception {
     checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
-    String[] matchMechanism = new String[1];
-    matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
-    blob msg = new blob(saslWrapper.init(matchMechanism));
+    String[] matchMechanisms = new String[1];
+    matchMechanisms[0] = getMatchMechanism(new String(response.msg.data));
+    if (matchMechanisms[0] == null) {
+      throw new Exception("No matching mechanism was found");
+    }
 
     status = negotiation_status.SASL_SELECT_MECHANISMS;
+    blob msg = new blob(saslWrapper.init(matchMechanisms));
     send(status, msg);
   }
 
   public String getMatchMechanism(String respString) {
-    String matchMechanism = new String();
+    String matchMechanism = null;
     String[] serverSupportMechanisms = respString.split(",");
     for (String serverSupportMechanism : serverSupportMechanisms) {
       if (expectedMechanisms.contains(serverSupportMechanism)) {
