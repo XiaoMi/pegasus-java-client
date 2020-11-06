@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
 import com.xiaomi.infra.pegasus.base.blob;
+import java.nio.charset.Charset;
 import javax.security.auth.Subject;
 import org.junit.Assert;
 import org.junit.Test;
@@ -80,10 +81,22 @@ public class NegotiationTest {
         () -> {
           negotiation_response response =
               new negotiation_response(
-                  negotiation_status.SASL_LIST_MECHANISMS_RESP, new blob(new byte[0]));
+                  negotiation_status.SASL_LIST_MECHANISMS_RESP,
+                  new blob("GSSAPI".getBytes(Charset.defaultCharset())));
           mockNegotiation.onRecvMechanisms(response);
           Assert.assertEquals(
               mockNegotiation.getStatus(), negotiation_status.SASL_SELECT_MECHANISMS);
+        });
+
+    // deal with wrong response.msg
+    Assertions.assertThrows(
+        Exception.class,
+        () -> {
+          negotiation_response response =
+              new negotiation_response(
+                  negotiation_status.SASL_LIST_MECHANISMS,
+                  new blob("NOTSUPPORTED".getBytes(Charset.defaultCharset())));
+          mockNegotiation.onRecvMechanisms(response);
         });
 
     // deal with wrong response.status

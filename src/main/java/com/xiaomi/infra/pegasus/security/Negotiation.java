@@ -106,7 +106,7 @@ class Negotiation {
 
     String[] matchMechanisms = new String[1];
     matchMechanisms[0] = getMatchMechanism(new String(response.msg.data, Charset.defaultCharset()));
-    if (matchMechanisms[0] == null) {
+    if (matchMechanisms[0] == "") {
       throw new Exception("No matching mechanism was found");
     }
 
@@ -116,7 +116,7 @@ class Negotiation {
   }
 
   public String getMatchMechanism(String respString) {
-    String matchMechanism = null;
+    String matchMechanism = "";
     String[] serverSupportMechanisms = respString.split(",");
     for (String serverSupportMechanism : serverSupportMechanisms) {
       if (expectedMechanisms.contains(serverSupportMechanism)) {
