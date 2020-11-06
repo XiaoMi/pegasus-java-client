@@ -26,6 +26,7 @@ import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import javax.security.auth.Subject;
@@ -104,7 +105,7 @@ class Negotiation {
     checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
     String[] matchMechanisms = new String[1];
-    matchMechanisms[0] = getMatchMechanism(new String(response.msg.data));
+    matchMechanisms[0] = getMatchMechanism(new String(response.msg.data, Charset.defaultCharset()));
     if (matchMechanisms[0] == null) {
       throw new Exception("No matching mechanism was found");
     }

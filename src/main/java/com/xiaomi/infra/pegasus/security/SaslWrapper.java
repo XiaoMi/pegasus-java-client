@@ -18,6 +18,7 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
+import java.nio.charset.Charset;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ class SaslWrapper {
               saslClient =
                   Sasl.createSaslClient(
                       mechanims, null, serviceName, serviceFQDN, properties, null);
-              return saslClient.getMechanismName().getBytes();
+              return saslClient.getMechanismName().getBytes(Charset.defaultCharset());
             });
   }
 }
