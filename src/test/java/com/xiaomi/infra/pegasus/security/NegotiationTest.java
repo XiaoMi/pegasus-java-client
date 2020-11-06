@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.async;
+package com.xiaomi.infra.pegasus.security;
 
 import static org.mockito.ArgumentMatchers.any;
 

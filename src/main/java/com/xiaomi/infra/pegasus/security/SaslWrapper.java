@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.async;
+package com.xiaomi.infra.pegasus.security;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -25,21 +25,21 @@ import javax.security.auth.Subject;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
-public class SaslWrapper {
+class SaslWrapper {
   private SaslClient saslClient;
   private Subject subject;
   private String serviceName;
   private String serviceFQDN;
   private HashMap<String, Object> properties = new HashMap<>();
 
-  public SaslWrapper(Subject subject, String serviceName, String serviceFQDN) {
+  SaslWrapper(Subject subject, String serviceName, String serviceFQDN) {
     this.subject = subject;
     this.serviceName = serviceName;
     this.serviceFQDN = serviceFQDN;
     this.properties.put(Sasl.QOP, "auth");
   }
 
-  public byte[] init(String[] mechanims) throws PrivilegedActionException {
+  byte[] init(String[] mechanims) throws PrivilegedActionException {
     return Subject.doAs(
         subject,
         (PrivilegedExceptionAction<byte[]>)

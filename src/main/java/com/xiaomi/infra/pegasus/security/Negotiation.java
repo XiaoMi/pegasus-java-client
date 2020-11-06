@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.async;
+package com.xiaomi.infra.pegasus.security;
 
 import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
@@ -25,36 +25,34 @@ import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import java.util.ArrayList;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import java.util.Collections;
 import java.util.List;
 import javax.security.auth.Subject;
 import org.slf4j.Logger;
 
-public class Negotiation {
+class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   // Because negotiation message is always the first rpc sent to pegasus server,
   // which will cost much more time. so we set negotiation timeout to 10s here
   private static final int negotiationTimeoutMS = 10000;
-  private static final List<String> expectedMechanisms =
-      new ArrayList<>(Collections.singletonList("GSSAPI"));
+  private static final List<String> expectedMechanisms = Collections.singletonList("GSSAPI");
 
   private negotiation_status status;
   private ReplicaSession session;
-  public SaslWrapper saslWrapper;
+  SaslWrapper saslWrapper;
 
-  public Negotiation(
-      ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
+  Negotiation(ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
     this.saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN);
     this.session = session;
   }
 
-  public void start() {
+  void start() {
     status = negotiation_status.SASL_LIST_MECHANISMS;
     send(status, new blob(new byte[0]));
   }
 
-  public void send(negotiation_status status, blob msg) {
+  void send(negotiation_status status, blob msg) {
     negotiation_request request = new negotiation_request(status, msg);
     negotiation_operator operator = new negotiation_operator(request);
     session.asyncSend(
@@ -62,7 +60,7 @@ public class Negotiation {
   }
 
   private class RecvHandler implements Runnable {
-    private negotiation_operator op;
+    negotiation_operator op;
 
     RecvHandler(negotiation_operator op) {
       this.op = op;
@@ -138,7 +136,7 @@ public class Negotiation {
     session.closeSession();
   }
 
-  public negotiation_status getStatus() {
+  negotiation_status getStatus() {
     return status;
   }
 }
