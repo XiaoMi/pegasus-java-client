@@ -473,7 +473,7 @@ public class ReplicaSession {
   private EventLoopGroup rpcGroup;
   private ReplicaSessionInterceptorManager interceptorManager;
   private boolean negotiationSucceed;
-  final Queue<RequestEntry> negotiationPendingSend = new LinkedList<>();
+  Queue<RequestEntry> negotiationPendingSend = new LinkedList<>();
 
   // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
   // are timed out, in that case we suspect that the server is unavailable.
