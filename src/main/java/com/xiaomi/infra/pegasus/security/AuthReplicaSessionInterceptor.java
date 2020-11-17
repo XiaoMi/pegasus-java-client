@@ -19,7 +19,6 @@
 package com.xiaomi.infra.pegasus.security;
 
 import com.xiaomi.infra.pegasus.client.ClientOptions;
-import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptor;
 
@@ -38,10 +37,6 @@ public class AuthReplicaSessionInterceptor implements ReplicaSessionInterceptor 
   @Override
   public boolean onSendMessage(ReplicaSession session, final ReplicaSession.RequestEntry entry) {
     // tryPendRequest returns false means that the negotiation is succeed now
-    return isNegotiationRequest(entry) || !session.tryPendRequest(entry);
-  }
-
-  private boolean isNegotiationRequest(final ReplicaSession.RequestEntry entry) {
-    return entry.op instanceof negotiation_operator;
+    return protocol.isAuthRequest(entry) || !session.tryPendRequest(entry);
   }
 }
