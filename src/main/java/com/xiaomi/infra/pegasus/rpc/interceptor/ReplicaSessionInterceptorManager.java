@@ -41,10 +41,11 @@ public class ReplicaSessionInterceptorManager {
   }
 
   public boolean onSendMessage(ReplicaSession session, final ReplicaSession.RequestEntry entry) {
-    boolean ret = true;
     for (ReplicaSessionInterceptor interceptor : interceptors) {
-      ret &= interceptor.onSendMessage(session, entry);
+      if (!interceptor.onSendMessage(session, entry)) {
+        return false;
+      }
     }
-    return ret;
+    return true;
   }
 }
