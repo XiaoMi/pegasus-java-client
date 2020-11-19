@@ -16,15 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.interceptor;
+package com.xiaomi.infra.pegasus.security;
 
-import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import static com.xiaomi.infra.pegasus.apps.negotiation_status.SASL_LIST_MECHANISMS;
+import static org.mockito.ArgumentMatchers.any;
 
-public interface TableInterceptor {
-  // The behavior before sending the RPC to a table.
-  void before(ClientRequestRound clientRequestRound, TableHandler tableHandler);
-  // The behavior after getting reply or failure of the RPC.
-  void after(ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler);
+import com.xiaomi.infra.pegasus.security.Negotiation;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+public class NegotiationTest {
+  @Test
+  public void testStart() {
+    Negotiation negotiation = new Negotiation(null, null, "", "");
+    Negotiation mockNegotiation = Mockito.spy(negotiation);
+
+    Mockito.doNothing().when(mockNegotiation).send(any(), any());
+    mockNegotiation.start();
+    Assert.assertEquals(mockNegotiation.get_status(), SASL_LIST_MECHANISMS);
+  }
 }

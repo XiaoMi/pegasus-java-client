@@ -16,15 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.interceptor;
+package com.xiaomi.infra.pegasus.security;
 
-import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import com.xiaomi.infra.pegasus.client.ClientOptions;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
+import com.xiaomi.infra.pegasus.rpc.interceptor.ReplicaSessionInterceptor;
 
-public interface TableInterceptor {
-  // The behavior before sending the RPC to a table.
-  void before(ClientRequestRound clientRequestRound, TableHandler tableHandler);
-  // The behavior after getting reply or failure of the RPC.
-  void after(ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler);
+public class AuthReplicaSessionInterceptor implements ReplicaSessionInterceptor {
+  private AuthProtocol protocol;
+
+  public AuthReplicaSessionInterceptor(ClientOptions options) throws IllegalArgumentException {
+    this.protocol = options.getCredential().getProtocol();
+  }
+
+  public void onConnected(ReplicaSession session) {
+    protocol.authenticate(session);
+  }
 }
