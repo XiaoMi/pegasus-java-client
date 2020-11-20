@@ -16,15 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.interceptor;
+package com.xiaomi.infra.pegasus.security;
 
-import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import org.apache.commons.configuration2.Configuration;
 
-public interface TableInterceptor {
-  // The behavior before sending the RPC to a table.
-  void before(ClientRequestRound clientRequestRound, TableHandler tableHandler);
-  // The behavior after getting reply or failure of the RPC.
-  void after(ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler);
+/** credential info for authentiation */
+public interface Credential {
+  String KERBEROS_PROTOCOL_NAME = "kerberos";
+
+  static Credential create(String authProtocol, Configuration config)
+      throws IllegalArgumentException {
+    Credential credential;
+    if (authProtocol.equals(KERBEROS_PROTOCOL_NAME)) {
+      credential = new KerberosCredential(config);
+    } else if (authProtocol.isEmpty()) {
+      credential = null;
+    } else {
+      throw new IllegalArgumentException("unsupported protocol: " + authProtocol);
+    }
+
+    return credential;
+  }
+
+  /** get the authentiation protocol supported */
+  AuthProtocol getProtocol();
+
+  String toString();
 }

@@ -16,15 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.xiaomi.infra.pegasus.rpc.interceptor;
+package com.xiaomi.infra.pegasus.security;
 
-import com.xiaomi.infra.pegasus.base.error_code.error_types;
-import com.xiaomi.infra.pegasus.rpc.async.ClientRequestRound;
-import com.xiaomi.infra.pegasus.rpc.async.TableHandler;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 
-public interface TableInterceptor {
-  // The behavior before sending the RPC to a table.
-  void before(ClientRequestRound clientRequestRound, TableHandler tableHandler);
-  // The behavior after getting reply or failure of the RPC.
-  void after(ClientRequestRound clientRequestRound, error_types errno, TableHandler tableHandler);
+/** authentiation protocol */
+public interface AuthProtocol {
+  /** start the authentiate process */
+  void authenticate(ReplicaSession session);
+
+  boolean isAuthRequest(final ReplicaSession.RequestEntry entry);
 }
