@@ -42,7 +42,7 @@ public class ReplicaSessionInterceptorManager {
 
   public boolean onSendMessage(ReplicaSession session, final ReplicaSession.RequestEntry entry) {
     for (ReplicaSessionInterceptor interceptor : interceptors) {
-      if (interceptor.onSendMessage(session, entry)) {
+      if (!interceptor.onSendMessage(session, entry)) {
         return false;
       }
     }
