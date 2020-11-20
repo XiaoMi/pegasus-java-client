@@ -94,7 +94,6 @@ class Negotiation {
           onMechanismSelected(resp);
           break;
         case SASL_INITIATE:
-          break;
         case SASL_CHALLENGE_RESP:
           // TBD(zlw):
           break;
