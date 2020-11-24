@@ -53,6 +53,8 @@ class SaslWrapper {
             });
   }
 
+  // Invoking methods on the SaslClient instance process challenges and create
+  // responses according to the SASL mechanism implemented by the SaslClient.
   public blob getInitialResponse() throws PrivilegedActionException {
     return Subject.doAs(
         subject,
