@@ -141,11 +141,6 @@ class Negotiation {
     throw new Exception("receive wrong negotiation msg type" + response.status.toString());
   }
 
-  private void negotiationSucceed() {
-    status = negotiation_status.SASL_SUCC;
-    session.setAuthSucceed();
-  }
-
   public String getMatchMechanism(String respString) {
     String matchMechanism = "";
     String[] serverSupportMechanisms = respString.split(",");
@@ -169,6 +164,11 @@ class Negotiation {
   private void negotiationFailed() {
     status = negotiation_status.SASL_AUTH_FAIL;
     session.closeSession();
+  }
+
+  private void negotiationSucceed() {
+    status = negotiation_status.SASL_SUCC;
+    session.setAuthSucceed();
   }
 
   negotiation_status getStatus() {
