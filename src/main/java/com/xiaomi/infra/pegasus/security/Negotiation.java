@@ -40,7 +40,7 @@ class Negotiation {
   private static final List<String> expectedMechanisms = Collections.singletonList("GSSAPI");
 
   private negotiation_status status;
-  private ReplicaSession session;
+  ReplicaSession session;
   SaslWrapper saslWrapper;
 
   Negotiation(ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
