@@ -68,6 +68,8 @@ class SaslWrapper {
             });
   }
 
+  // If a challenge is received from the server during the authentication process,
+  // this method is called to prepare an appropriate next response to submit to the server.
   public blob evaluateChallenge(final byte[] data) throws PrivilegedActionException {
     return Subject.doAs(
         subject,
