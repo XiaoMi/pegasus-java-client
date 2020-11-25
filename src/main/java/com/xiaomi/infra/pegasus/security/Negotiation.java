@@ -1,4 +1,22 @@
-package com.xiaomi.infra.pegasus.rpc.async;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package com.xiaomi.infra.pegasus.security;
 
 import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
@@ -7,43 +25,39 @@ import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
-import java.util.ArrayList;
+import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
+import java.nio.charset.Charset;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import javax.security.auth.Subject;
-import javax.security.sasl.Sasl;
 import org.slf4j.Logger;
 
-public class Negotiation {
+class Negotiation {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(Negotiation.class);
   // Because negotiation message is always the first rpc sent to pegasus server,
   // which will cost much more time. so we set negotiation timeout to 10s here
   private static final int negotiationTimeoutMS = 10000;
-  private static final List<String> expectedMechanisms =
-      new ArrayList<>(Collections.singletonList("GSSAPI"));
+  private static final List<String> expectedMechanisms = Collections.singletonList("GSSAPI");
 
   private negotiation_status status;
-  public ReplicaSession session;
-  public SaslWrapper saslWrapper;
+  private ReplicaSession session;
+  SaslWrapper saslWrapper;
 
-  public Negotiation(
-      ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
-    HashMap<String, Object> props = new HashMap<>();
-    props.put(Sasl.QOP, "auth");
-    saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN, props);
+  Negotiation(ReplicaSession session, Subject subject, String serviceName, String serviceFQDN) {
+    this.saslWrapper = new SaslWrapper(subject, serviceName, serviceFQDN);
     this.session = session;
   }
 
-  public void start() {
+  void start() {
     status = negotiation_status.SASL_LIST_MECHANISMS;
     send(status, new blob(new byte[0]));
   }
 
-  public void send(negotiation_status status, blob msg) {
+  void send(negotiation_status status, blob msg) {
     negotiation_request request = new negotiation_request(status, msg);
     negotiation_operator operator = new negotiation_operator(request);
-    session.asyncSend(operator, new RecvHandler(operator), negotiationTimeoutMS, false);
+    session.asyncSend(
+        operator, new RecvHandler(operator), negotiationTimeoutMS, /* isBackupRequest */ false);
   }
 
   private class RecvHandler implements Runnable {
@@ -72,18 +86,13 @@ public class Negotiation {
         throw new Exception("RecvHandler received a null response, abandon it");
       }
 
-      if (resp.status == negotiation_status.SASL_AUTH_DISABLE) {
-        logger.debug("treat negotiation succeed as server doesn't enable it");
-        negotiationSucceed();
-        return;
-      }
-
       switch (status) {
         case SASL_LIST_MECHANISMS:
           onRecvMechanisms(resp);
           break;
         case SASL_SELECT_MECHANISMS:
           onMechanismSelected(resp);
+          break;
         case SASL_INITIATE:
         case SASL_CHALLENGE_RESP:
           onChallenge(resp);
@@ -97,11 +106,14 @@ public class Negotiation {
   public void onRecvMechanisms(negotiation_response response) throws Exception {
     checkStatus(response.status, negotiation_status.SASL_LIST_MECHANISMS_RESP);
 
-    String[] matchMechanism = new String[1];
-    matchMechanism[0] = getMatchMechanism(new String(response.msg.data));
-    blob msg = new blob(saslWrapper.init(matchMechanism));
+    String[] matchMechanisms = new String[1];
+    matchMechanisms[0] = getMatchMechanism(new String(response.msg.data, Charset.defaultCharset()));
+    if (matchMechanisms[0].equals("")) {
+      throw new Exception("No matching mechanism was found");
+    }
 
     status = negotiation_status.SASL_SELECT_MECHANISMS;
+    blob msg = new blob(saslWrapper.init(matchMechanisms));
     send(status, msg);
   }
 
@@ -131,11 +143,11 @@ public class Negotiation {
 
   private void negotiationSucceed() {
     status = negotiation_status.SASL_SUCC;
-    session.setNegotiationSucceed();
+    session.setAuthSucceed();
   }
 
   public String getMatchMechanism(String respString) {
-    String matchMechanism = new String();
+    String matchMechanism = "";
     String[] serverSupportMechanisms = respString.split(",");
     for (String serverSupportMechanism : serverSupportMechanisms) {
       if (expectedMechanisms.contains(serverSupportMechanism)) {
@@ -159,7 +171,7 @@ public class Negotiation {
     session.closeSession();
   }
 
-  public negotiation_status getStatus() {
+  negotiation_status getStatus() {
     return status;
   }
 }

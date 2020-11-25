@@ -1,6 +1,21 @@
-// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
-// This source code is licensed under the Apache License Version 2.0, which
-// can be found in the LICENSE file in the root directory of this source tree.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
@@ -370,12 +385,12 @@ public class ReplicaSession {
         TimeUnit.MILLISECONDS);
   }
 
-  public void setNegotiationSucceed() {
-    Queue<RequestEntry> swappedPendingSend = new LinkedList<RequestEntry>();
-    synchronized (negotiationPendingSend) {
-      negotiationSucceed = true;
-      swappedPendingSend.addAll(negotiationPendingSend);
-      negotiationPendingSend.clear();
+  public void setAuthSucceed() {
+    Queue<RequestEntry> swappedPendingSend = new LinkedList<>();
+    synchronized (authPendingSend) {
+      authSucceed = true;
+      swappedPendingSend.addAll(authPendingSend);
+      authPendingSend.clear();
     }
 
     while (!swappedPendingSend.isEmpty()) {
@@ -393,13 +408,13 @@ public class ReplicaSession {
   //   false - pend failed
   public boolean tryPendRequest(RequestEntry entry) {
     // double check. the first one doesn't lock the lock.
-    // Because negotiationSucceed only transfered from false to true.
+    // Because authSucceed only transfered from false to true.
     // So if it is true now, it will not change in the later.
     // But if it is false now, maybe it will change soon. So we should use lock to protect it.
-    if (!this.negotiationSucceed) {
-      synchronized (negotiationPendingSend) {
-        if (!this.negotiationSucceed) {
-          negotiationPendingSend.offer(entry);
+    if (!this.authSucceed) {
+      synchronized (authPendingSend) {
+        if (!this.authSucceed) {
+          authPendingSend.offer(entry);
           return true;
         }
       }
@@ -472,8 +487,8 @@ public class ReplicaSession {
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
   private ReplicaSessionInterceptorManager interceptorManager;
-  private boolean negotiationSucceed;
-  Queue<RequestEntry> negotiationPendingSend = new LinkedList<>();
+  private boolean authSucceed;
+  final Queue<RequestEntry> authPendingSend = new LinkedList<>();
 
   // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
   // are timed out, in that case we suspect that the server is unavailable.
