@@ -18,6 +18,8 @@
  */
 package com.xiaomi.infra.pegasus.security;
 
+import static com.xiaomi.infra.pegasus.apps.negotiation_status.SASL_CHALLENGE_RESP;
+
 import com.xiaomi.infra.pegasus.apps.negotiation_request;
 import com.xiaomi.infra.pegasus.apps.negotiation_response;
 import com.xiaomi.infra.pegasus.apps.negotiation_status;
@@ -129,7 +131,7 @@ class Negotiation {
     switch (response.status) {
       case SASL_CHALLENGE:
         blob msg = saslWrapper.evaluateChallenge(response.msg.data);
-        status = negotiation_status.SASL_CHALLENGE_RESP;
+        status = SASL_CHALLENGE_RESP;
         send(status, msg);
         break;
       case SASL_SUCC:
