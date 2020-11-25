@@ -385,7 +385,7 @@ public class ReplicaSession {
         TimeUnit.MILLISECONDS);
   }
 
-  public void setAuthSucceed() {
+  public void onAuthSucceed() {
     Queue<RequestEntry> swappedPendingSend = new LinkedList<>();
     synchronized (authPendingSend) {
       authSucceed = true;

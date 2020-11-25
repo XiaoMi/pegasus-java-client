@@ -146,7 +146,7 @@ public class NegotiationTest {
 
     // mock operation
     Mockito.doNothing().when(mockNegotiation).send(any(), any());
-    Mockito.doNothing().when(mockNegotiation.session).setAuthSucceed();
+    Mockito.doNothing().when(mockNegotiation.session).onAuthSucceed();
     try {
       Mockito.when(mockNegotiation.saslWrapper.evaluateChallenge(any())).thenReturn(new blob());
     } catch (Exception ex) {
