@@ -72,12 +72,14 @@ class Negotiation {
       try {
         if (op.rpc_error.errno != error_code.error_types.ERR_OK) {
           // ERR_HANDLER_NOT_FOUND means server is old version, which doesn't support authentication
+          // In this case we consider this session will expose no privacy at all, so we can just
+          // go on without negotiation.
           if (op.rpc_error.errno == error_code.error_types.ERR_HANDLER_NOT_FOUND) {
             negotiationSucceed();
             return;
-          } else {
-            throw new ReplicationException(op.rpc_error.errno);
           }
+
+          throw new ReplicationException(op.rpc_error.errno);
         }
         handleResponse();
       } catch (Exception e) {
