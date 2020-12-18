@@ -71,7 +71,13 @@ class Negotiation {
     public void run() {
       try {
         if (op.rpc_error.errno != error_code.error_types.ERR_OK) {
-          throw new ReplicationException(op.rpc_error.errno);
+          // ERR_HANDLER_NOT_FOUND means server is old version, which doesn't support authentication
+          if (op.rpc_error.errno == error_code.error_types.ERR_HANDLER_NOT_FOUND) {
+            negotiationSucceed();
+            return;
+          } else {
+            throw new ReplicationException(op.rpc_error.errno);
+          }
         }
         handleResponse();
       } catch (Exception e) {
@@ -84,6 +90,12 @@ class Negotiation {
       final negotiation_response resp = op.get_response();
       if (resp == null) {
         throw new Exception("RecvHandler received a null response, abandon it");
+      }
+
+      // make the negotiation succeed if server doesn't enable auth
+      if (resp.status == negotiation_status.SASL_AUTH_DISABLE) {
+        negotiationSucceed();
+        return;
       }
 
       switch (status) {
