@@ -78,7 +78,6 @@ class Negotiation {
             negotiationSucceed();
             return;
           }
-
           throw new ReplicationException(op.rpc_error.errno);
         }
         handleResponse();
