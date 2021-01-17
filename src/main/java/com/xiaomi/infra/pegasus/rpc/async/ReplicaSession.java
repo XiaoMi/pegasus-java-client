@@ -1,6 +1,21 @@
-// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
-// This source code is licensed under the Apache License Version 2.0, which
-// can be found in the LICENSE file in the root directory of this source tree.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
@@ -25,7 +40,7 @@ import org.slf4j.Logger;
 
 public class ReplicaSession {
   public static class RequestEntry {
-    public int sequenceId;
+    int sequenceId;
     public com.xiaomi.infra.pegasus.operator.client_operator op;
     public Runnable callback;
     public ScheduledFuture<?> timeoutTask;
@@ -69,24 +84,11 @@ public class ReplicaSession {
     this.firstRecentTimedOutMs = new AtomicLong(0);
   }
 
-  // You can specify a message response filter with constructor or with "setMessageResponseFilter"
-  // function.
-  // the mainly usage of filter is test, in which you can control whether to abaondon a response
-  // and how to abandon it, so as to emulate some network failure cases
-  public ReplicaSession(
-      rpc_address address,
-      EventLoopGroup rpcGroup,
-      int socketTimeout,
-      MessageResponseFilter filter) {
-    this(address, rpcGroup, socketTimeout, (ReplicaSessionInterceptorManager) null);
+  void setMessageResponseFilter(MessageResponseFilter filter) {
     this.filter = filter;
   }
 
-  public void setMessageResponseFilter(MessageResponseFilter filter) {
-    this.filter = filter;
-  }
-
-  public int asyncSend(
+  public void asyncSend(
       client_operator op,
       Runnable callbackFunc,
       long timeoutInMilliseconds,
@@ -120,7 +122,6 @@ public class ReplicaSession {
       }
       tryConnect();
     }
-    return entry.sequenceId;
   }
 
   public void closeSession() {
@@ -326,6 +327,10 @@ public class ReplicaSession {
   }
 
   private void write(final RequestEntry entry, VolatileFields cache) {
+    if (!interceptorManager.onSendMessage(this, entry)) {
+      return;
+    }
+
     cache
         .nettyChannel
         .writeAndFlush(entry)
@@ -364,6 +369,44 @@ public class ReplicaSession {
         },
         timeoutInMillseconds,
         TimeUnit.MILLISECONDS);
+  }
+
+  public void onAuthSucceed() {
+    Queue<RequestEntry> swappedPendingSend = new LinkedList<>();
+    synchronized (authPendingSend) {
+      authSucceed = true;
+      swappedPendingSend.addAll(authPendingSend);
+      authPendingSend.clear();
+    }
+
+    while (!swappedPendingSend.isEmpty()) {
+      RequestEntry e = swappedPendingSend.poll();
+      if (pendingResponse.get(e.sequenceId) != null) {
+        write(e, fields);
+      } else {
+        logger.info("{}: {} is removed from pending, perhaps timeout", name(), e.sequenceId);
+      }
+    }
+  }
+
+  // return value:
+  //   true  - pend succeed
+  //   false - pend failed
+  public boolean tryPendRequest(RequestEntry entry) {
+    // double check. the first one doesn't lock the lock.
+    // Because authSucceed only transfered from false to true.
+    // So if it is true now, it will not change in the later.
+    // But if it is false now, maybe it will change soon. So we should use lock to protect it.
+    if (!this.authSucceed) {
+      synchronized (authPendingSend) {
+        if (!this.authSucceed) {
+          authPendingSend.offer(entry);
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   final class DefaultHandler extends SimpleChannelInboundHandler<RequestEntry> {
@@ -430,6 +473,8 @@ public class ReplicaSession {
   private Bootstrap boot;
   private EventLoopGroup rpcGroup;
   private ReplicaSessionInterceptorManager interceptorManager;
+  private boolean authSucceed;
+  final Queue<RequestEntry> authPendingSend = new LinkedList<>();
 
   // Session will be actively closed if all the rpcs across `sessionResetTimeWindowMs`
   // are timed out, in that case we suspect that the server is unavailable.

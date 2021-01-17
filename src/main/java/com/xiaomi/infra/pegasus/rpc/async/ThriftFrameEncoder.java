@@ -1,6 +1,21 @@
-// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
-// This source code is licensed under the Apache License Version 2.0, which
-// can be found in the LICENSE file in the root directory of this source tree.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.xiaomi.infra.pegasus.rpc.async;
 
 import com.xiaomi.infra.pegasus.rpc.ThriftHeader;
@@ -10,7 +25,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.slf4j.Logger;
 
-/** Created by sunweijie@xiaomi.com on 16-11-9. */
 public class ThriftFrameEncoder extends MessageToByteEncoder<ReplicaSession.RequestEntry> {
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ThriftFrameEncoder.class);
 
@@ -44,13 +58,5 @@ public class ThriftFrameEncoder extends MessageToByteEncoder<ReplicaSession.Requ
         initIndex,
         e.op.prepare_thrift_header(
             meta_length, out.readableBytes() - ThriftHeader.HEADER_LENGTH - meta_length));
-  }
-
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.warn(
-        "got exception in outbound handler of {}, just ignore this: ",
-        ctx.channel().toString(),
-        cause);
   }
 }
