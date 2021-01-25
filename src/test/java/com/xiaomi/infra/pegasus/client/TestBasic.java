@@ -2635,7 +2635,7 @@ public class TestBasic {
   public void testMultiGetWhenValueExpired() throws PException, InterruptedException {
     String tableName = "temp";
     String hashKey = "hashKey";
-    // generate records: sortKeys=[expired_0....expired_9999,persistent_0...persistent_9]
+    // generate records: sortKeys=[expired_0....expired_999,persistent_0...persistent_9]
     generateRecordsWithExpired(tableName, hashKey, 1000, 10);
 
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
