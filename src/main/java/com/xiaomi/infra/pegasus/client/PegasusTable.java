@@ -1073,7 +1073,7 @@ public class PegasusTable implements PegasusTableInterface {
     String stopSortKeyStr = stopSortKey == null ? "" : new String(stopSortKey);
 
     long startTime = System.currentTimeMillis();
-    long lastCheckTime = startTime;
+    long currentCheckTime = startTime;
     long deadlineTime = startTime + timeout;
 
     ScanOptions scanOptions = new ScanOptions();
@@ -1089,20 +1089,20 @@ public class PegasusTable implements PegasusTableInterface {
     multiGetResult.allFetched = false;
     multiGetResult.values = new ArrayList<>();
     try {
-      lastCheckTime = System.currentTimeMillis();
-      if (lastCheckTime >= deadlineTime) {
+      currentCheckTime = System.currentTimeMillis();
+      if (currentCheckTime >= deadlineTime) {
         throw new TimeoutException(
             String.format(
                 "getting pegasusScanner takes too long time when multiGet hashKey=%s, startSortKey=%s, stopSortKey=%s, timeUsed=%s",
-                hashKeyStr, startSortKeyStr, stopSortKeyStr, lastCheckTime - startTime));
+                hashKeyStr, startSortKeyStr, stopSortKeyStr, currentCheckTime - startTime));
       }
 
       int remainingTime;
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null
           && multiGetResult.values.size() < maxFetchCount) {
-        lastCheckTime = System.currentTimeMillis();
-        remainingTime = (int) (deadlineTime - lastCheckTime);
+        currentCheckTime = System.currentTimeMillis();
+        remainingTime = (int) (deadlineTime - currentCheckTime);
         if (remainingTime <= 0) {
           throw new TimeoutException(
               String.format(
@@ -1111,7 +1111,7 @@ public class PegasusTable implements PegasusTableInterface {
                   hashKeyStr,
                   startSortKeyStr,
                   stopSortKeyStr,
-                  lastCheckTime - startTime,
+                  currentCheckTime - startTime,
                   multiGetResult.values.size()));
         }
         multiGetResult.values.add(Pair.of(pairs.getLeft().getValue(), pairs.getValue()));
