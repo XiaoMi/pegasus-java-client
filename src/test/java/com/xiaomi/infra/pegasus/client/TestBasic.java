@@ -2635,55 +2635,174 @@ public class TestBasic {
   public void testMultiGetWhenValueExpired() throws PException, InterruptedException {
     String tableName = "temp";
     String hashKey = "hashKey";
+    // generate records whose values are all "temp"
     generateRecordsWithExpired(tableName, hashKey, 1000, 10);
 
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+    // case A: scan all record
     List<Pair<byte[], byte[]>> values = new ArrayList<>();
-    // case 1: scan all record: if persistent record count >= maxFetchCount, it must return
+    // case A1: scan all record: if persistent record count >= maxFetchCount, it must return
     // maxFetchCount records
-    boolean case1 =
+    boolean caseA1 =
         client.multiGet(
             tableName, hashKey.getBytes(), null, null, new MultiGetOptions(), 5, -1, values);
-    Assert.assertFalse(case1);
+    Assert.assertFalse(caseA1);
     Assert.assertEquals(5, values.size());
     Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
     Assert.assertEquals("persistent_4", new String(values.get(4).getKey()));
+    Assert.assertEquals("persistent_4_value", new String(values.get(4).getValue()));
     values.clear();
 
-    // case 2: scan all record: if persistent record count < maxFetchCount, it only return
+    // case A2: scan all record: if persistent record count < maxFetchCount, it only return
     // persistent count records
-    boolean case2 =
+    boolean caseA2 =
         client.multiGet(
             tableName, hashKey.getBytes(), null, null, new MultiGetOptions(), 100, -1, values);
-    Assert.assertTrue(case2);
+    Assert.assertTrue(caseA2);
     Assert.assertEquals(10, values.size());
     Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
     Assert.assertEquals("persistent_9", new String(values.get(9).getKey()));
+    Assert.assertEquals("persistent_9_value", new String(values.get(9).getValue()));
     values.clear();
 
-    // case 3: scan limit record by "startSortKey" and "stopSortKey": it only query from
-    // "startSortKey" and "stopSortKey", though it may be expired
-    boolean case3 =
+    // case B: scan limit record by "startSortKey" and "":
+    // case B1: scan limit record by "expired_0" and "", if persistent record count >=
+    // maxFetchCount, it must return maxFetchCount records
+    boolean caseB1 =
         client.multiGet(
             tableName,
             hashKey.getBytes(),
             "expired_0".getBytes(),
-            "persistent_5".getBytes(),
+            "".getBytes(),
+            new MultiGetOptions(),
+            5,
+            -1,
+            values);
+    Assert.assertFalse(caseB1);
+    Assert.assertEquals(
+        5, values.size()); // among "expired_0" and "persistent_4" only has 5 valid record
+    Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_4", new String(values.get(4).getKey()));
+    Assert.assertEquals("persistent_4_value", new String(values.get(4).getValue()));
+    values.clear();
+    // case B2: scan limit record by "expired_0" and "", if persistent record count < maxFetchCount,
+    // it only return valid records
+    boolean caseB2 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "expired_0".getBytes(),
+            "".getBytes(),
             new MultiGetOptions(),
             50,
             -1,
             values);
-    Assert.assertTrue(case3);
-    Assert.assertEquals(
-        5, values.size()); // among "expired_0" and "persistent_4" only has 5 valid record
+    Assert.assertTrue(caseB2);
+    Assert.assertEquals(10, values.size()); // among "expired_0" and "" only has 10 valid record
     Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
-    Assert.assertEquals("persistent_4", new String(values.get(4).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_9", new String(values.get(9).getKey()));
+    Assert.assertEquals("persistent_9_value", new String(values.get(9).getValue()));
+    values.clear();
+    // case B3: scan limit record by "persistent_5" and "", if following persistent record count <
+    // maxFetchCount, it only return valid records
+    boolean caseB3 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "persistent_5".getBytes(),
+            "".getBytes(),
+            new MultiGetOptions(),
+            50,
+            -1,
+            values);
+    Assert.assertTrue(caseB3);
+    Assert.assertEquals(5, values.size()); // among "persistent_5" and "" only has 5 valid record
+    Assert.assertEquals("persistent_5", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_5_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_9", new String(values.get(4).getKey()));
+    Assert.assertEquals("persistent_9_value", new String(values.get(4).getValue()));
+    values.clear();
+    // case B4: scan limit record by "persistent_5" and "", if following persistent record count >
+    // maxFetchCount, it only return valid records
+    boolean caseB4 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "persistent_5".getBytes(),
+            "".getBytes(),
+            new MultiGetOptions(),
+            3,
+            -1,
+            values);
+    Assert.assertFalse(caseB4);
+    Assert.assertEquals(3, values.size()); // among "persistent_5" and "" only has 5 valid record
+    Assert.assertEquals("persistent_5", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_5_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_7", new String(values.get(2).getKey()));
+    Assert.assertEquals("persistent_7_value", new String(values.get(2).getValue()));
     values.clear();
 
-    // case 4: use multiGetSortKeys, which actually equal with case 1
+    // case C: scan limit record by "" and "stopSortKey":
+    // case C1: scan limit record by "" and "expired_7", if will return 0 record
+    boolean caseC1 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "".getBytes(),
+            "expired_7".getBytes(),
+            new MultiGetOptions(),
+            3,
+            -1,
+            values);
+    Assert.assertTrue(caseC1);
+    Assert.assertEquals(0, values.size()); // among "" and "expired_7" has 0 valid record
+    // case C2: scan limit record by "" and "persistent_7", if valid record count < maxFetchCount,
+    // it only return valid record
+    boolean caseC2 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "".getBytes(),
+            "persistent_7".getBytes(),
+            new MultiGetOptions(),
+            10,
+            -1,
+            values);
+    Assert.assertTrue(caseC2);
+    Assert.assertEquals(7, values.size()); // among "" and "persistent_7" only has 7 valid record
+    Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_6", new String(values.get(6).getKey()));
+    Assert.assertEquals("persistent_6_value", new String(values.get(6).getValue()));
+    values.clear();
+    // case C3: scan limit record by "" and "persistent_7", if valid record count > maxFetchCount,
+    // it only return valid record
+    boolean caseC3 =
+        client.multiGet(
+            tableName,
+            hashKey.getBytes(),
+            "".getBytes(),
+            "persistent_7".getBytes(),
+            new MultiGetOptions(),
+            2,
+            -1,
+            values);
+    Assert.assertFalse(caseC3);
+    Assert.assertEquals(2, values.size());
+    Assert.assertEquals("persistent_0", new String(values.get(0).getKey()));
+    Assert.assertEquals("persistent_0_value", new String(values.get(0).getValue()));
+    Assert.assertEquals("persistent_1", new String(values.get(1).getKey()));
+    Assert.assertEquals("persistent_1_value", new String(values.get(1).getValue()));
+    values.clear();
+
+    // case D: use multiGetSortKeys, which actually equal with case 1 but no value
     List<byte[]> sortKeys = new ArrayList<>();
-    boolean case4 = client.multiGetSortKeys(tableName, hashKey.getBytes(), 10, -1, sortKeys);
-    Assert.assertTrue(case4);
+    boolean caseD = client.multiGetSortKeys(tableName, hashKey.getBytes(), 10, -1, sortKeys);
+    Assert.assertTrue(caseD);
     Assert.assertEquals(10, sortKeys.size());
     Assert.assertEquals("persistent_0", new String(sortKeys.get(0)));
     Assert.assertEquals("persistent_9", new String(sortKeys.get(9)));
@@ -2702,7 +2821,7 @@ public class TestBasic {
           tableName,
           hashKey.getBytes(),
           (expiredSortKeyPrefix + expiredCount).getBytes(),
-          tableName.getBytes(),
+          (expiredSortKeyPrefix + expiredCount + "_value").getBytes(),
           1);
     }
     // sleep to make sure the record is expired
@@ -2712,7 +2831,7 @@ public class TestBasic {
           tableName,
           hashKey.getBytes(),
           (persistentSortKeyPrefix + persistentCount).getBytes(),
-          tableName.getBytes());
+          (persistentSortKeyPrefix + persistentCount + "_value").getBytes());
     }
     PegasusClientFactory.closeSingletonClient();
   }
