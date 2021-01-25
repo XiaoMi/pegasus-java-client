@@ -2797,7 +2797,7 @@ public class TestBasic {
     Assert.assertEquals("persistent_1_value", new String(values.get(1).getValue()));
     values.clear();
 
-    // case D: use multiGetSortKeys, which actually equal with case 1 but no value
+    // case D: use multiGetSortKeys, which actually equal with case A but no value
     List<byte[]> sortKeys = new ArrayList<>();
     boolean caseD = client.multiGetSortKeys(tableName, hashKey.getBytes(), 10, -1, sortKeys);
     Assert.assertTrue(caseD);
