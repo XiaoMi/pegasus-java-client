@@ -2635,12 +2635,12 @@ public class TestBasic {
   public void testMultiGetWhenValueExpired() throws PException, InterruptedException {
     String tableName = "temp";
     String hashKey = "hashKey";
-    // generate records whose values are all "temp"
+    // generate records: sortKeys=[expired_0....expired_9999,persistent_0...persistent_9]
     generateRecordsWithExpired(tableName, hashKey, 1000, 10);
 
     PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
-    // case A: scan all record
     List<Pair<byte[], byte[]>> values = new ArrayList<>();
+    // case A: scan all record
     // case A1: scan all record: if persistent record count >= maxFetchCount, it must return
     // maxFetchCount records
     boolean caseA1 =
