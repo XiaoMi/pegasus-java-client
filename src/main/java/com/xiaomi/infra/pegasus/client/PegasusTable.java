@@ -1085,11 +1085,11 @@ public class PegasusTable implements PegasusTableInterface {
 
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
-    lastCheckTime = System.currentTimeMillis();
     MultiGetResult multiGetResult = new MultiGetResult();
     multiGetResult.allFetched = false;
     multiGetResult.values = new ArrayList<>();
     try {
+      lastCheckTime = System.currentTimeMillis();
       if (lastCheckTime >= deadlineTime) {
         throw new TimeoutException(
             String.format(
