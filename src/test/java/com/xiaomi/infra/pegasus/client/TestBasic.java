@@ -2630,8 +2630,7 @@ public class TestBasic {
     }
   }
 
-  // make sure return "maxFetchCount" if has "maxFetchCount" record though some record expired
-  @Test
+  @Test // test for making sure return "maxFetchCount" if has "maxFetchCount" valid record
   public void testMultiGetWhenValueExpired() throws PException, InterruptedException {
     String tableName = "temp";
     String hashKey = "hashKey";
@@ -2653,7 +2652,6 @@ public class TestBasic {
     Assert.assertEquals("persistent_4", new String(values.get(4).getKey()));
     Assert.assertEquals("persistent_4_value", new String(values.get(4).getValue()));
     values.clear();
-
     // case A2: scan all record: if persistent record count < maxFetchCount, it only return
     // persistent count records
     boolean caseA2 =
