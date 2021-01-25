@@ -1101,7 +1101,6 @@ public class PegasusTable implements PegasusTableInterface {
       Pair<Pair<byte[], byte[]>, byte[]> pairs;
       while ((pairs = pegasusScanner.next()) != null
           && multiGetResult.values.size() < maxFetchCount) {
-        multiGetResult.values.add(Pair.of(pairs.getLeft().getValue(), pairs.getValue()));
         lastCheckTime = System.currentTimeMillis();
         remainingTime = (int) (deadlineTime - lastCheckTime);
         if (remainingTime <= 0) {
@@ -1115,6 +1114,7 @@ public class PegasusTable implements PegasusTableInterface {
                   lastCheckTime - startTime,
                   multiGetResult.values.size()));
         }
+        multiGetResult.values.add(Pair.of(pairs.getLeft().getValue(), pairs.getValue()));
       }
 
       if (pegasusScanner.next() == null) {
