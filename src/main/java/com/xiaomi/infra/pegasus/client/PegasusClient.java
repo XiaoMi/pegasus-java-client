@@ -287,9 +287,7 @@ public class PegasusClient implements PegasusClientInterface {
     PegasusTable tb = getTable(tableName);
     PegasusTableInterface.MultiGetResult res =
         tb.multiGet(hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, 0);
-    for (Pair<byte[], byte[]> kv : res.values) {
-      values.add(kv);
-    }
+    values.addAll(res.values);
     return res.allFetched;
   }
 
@@ -333,9 +331,7 @@ public class PegasusClient implements PegasusClientInterface {
     PegasusTable table = getTable(tableName);
     PegasusTableInterface.MultiGetSortKeysResult result =
         table.multiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, 0);
-    for (byte[] key : result.keys) {
-      sortKeys.add(key);
-    }
+    sortKeys.addAll(result.keys);
     return result.allFetched;
   }
 

@@ -1067,17 +1067,62 @@ public class PegasusTable implements PegasusTableInterface {
       int timeout /*ms*/)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
+
+    String hashKeyStr = hashKey == null ? "" : new String(hashKey);
+    String startSortKeyStr = startSortKey == null ? "" : new String(startSortKey);
+    String stopSortKeyStr = stopSortKey == null ? "" : new String(stopSortKey);
+
+    long startTime = System.currentTimeMillis();
+    long lastCheckTime = startTime;
+    long deadlineTime = startTime + timeout;
+
+    ScanOptions scanOptions = new ScanOptions();
+    scanOptions.noValue = options.noValue;
+    scanOptions.startInclusive = options.startInclusive;
+    scanOptions.stopInclusive = options.stopInclusive;
+    scanOptions.sortKeyFilterType = options.sortKeyFilterType;
+    scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
+
+    PegasusScannerInterface pegasusScanner =
+        getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
+    lastCheckTime = System.currentTimeMillis();
+    MultiGetResult multiGetResult = new MultiGetResult();
+    multiGetResult.allFetched = false;
+    multiGetResult.values = new ArrayList<>();
     try {
-      return asyncMultiGet(
-              hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, timeout)
-          .get(timeout, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      throw PException.threadInterrupted(table.getTableName(), e);
+      if (lastCheckTime >= deadlineTime) {
+        throw new TimeoutException(
+            String.format(
+                "getting pegasusScanner takes too long time when multiGet hashKey=%s, startSortKey=%s, stopSortKey=%s, timeUsed=%s",
+                hashKeyStr, startSortKeyStr, stopSortKeyStr, lastCheckTime - startTime));
+      }
+
+      int remainingTime;
+      Pair<Pair<byte[], byte[]>, byte[]> pairs;
+      while ((pairs = pegasusScanner.next()) != null
+          && multiGetResult.values.size() < maxFetchCount) {
+        multiGetResult.values.add(Pair.of(pairs.getLeft().getValue(), pairs.getValue()));
+        lastCheckTime = System.currentTimeMillis();
+        remainingTime = (int) (deadlineTime - lastCheckTime);
+        if (remainingTime <= 0) {
+          throw new TimeoutException(
+              String.format(
+                  "getting pegasusScanner takes too long time when multiGet hashKey=%s, "
+                      + "startSortKey=%s, stopSortKey=%s, timeUsed=%s, fetchCount=%d",
+                  hashKeyStr,
+                  startSortKeyStr,
+                  stopSortKeyStr,
+                  lastCheckTime - startTime,
+                  multiGetResult.values.size()));
+        }
+      }
+
+      if (pegasusScanner.next() == null) {
+        multiGetResult.allFetched = true;
+      }
+      return multiGetResult;
     } catch (TimeoutException e) {
-      throw PException.timeout(
-          metaList, table.getTableName(), new Request(hashKey, maxFetchCount), timeout, e);
-    } catch (ExecutionException e) {
-      throw new PException(e);
+      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
     }
   }
 
@@ -1173,17 +1218,17 @@ public class PegasusTable implements PegasusTableInterface {
   public MultiGetSortKeysResult multiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    try {
-      return asyncMultiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, timeout)
-          .get(timeout, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      throw PException.threadInterrupted(table.getTableName(), e);
-    } catch (TimeoutException e) {
-      throw PException.timeout(
-          metaList, table.getTableName(), new Request(hashKey, maxFetchCount), timeout, e);
-    } catch (ExecutionException e) {
-      throw new PException(e);
+    MultiGetSortKeysResult sortKeysResult = new MultiGetSortKeysResult();
+    sortKeysResult.keys = new ArrayList<>();
+    MultiGetOptions options = new MultiGetOptions();
+    options.noValue = true;
+    MultiGetResult result =
+        multiGet(hashKey, null, null, options, maxFetchCount, maxFetchSize, timeout);
+    for (Pair<byte[], byte[]> value : result.values) {
+      sortKeysResult.keys.add(value.getKey());
     }
+    sortKeysResult.allFetched = result.allFetched;
+    return sortKeysResult;
   }
 
   @Override
