@@ -1066,63 +1066,17 @@ public class PegasusTable implements PegasusTableInterface {
       int maxFetchSize,
       int timeout /*ms*/)
       throws PException {
-    if (timeout <= 0) timeout = defaultTimeout;
-
-    String hashKeyStr = hashKey == null ? "" : new String(hashKey);
-    String startSortKeyStr = startSortKey == null ? "" : new String(startSortKey);
-    String stopSortKeyStr = stopSortKey == null ? "" : new String(stopSortKey);
-
-    long startTime = System.currentTimeMillis();
-    long currentCheckTime = startTime;
-    long deadlineTime = startTime + timeout;
-
-    ScanOptions scanOptions = new ScanOptions();
-    scanOptions.noValue = options.noValue;
-    scanOptions.startInclusive = options.startInclusive;
-    scanOptions.stopInclusive = options.stopInclusive;
-    scanOptions.sortKeyFilterType = options.sortKeyFilterType;
-    scanOptions.sortKeyFilterPattern = options.sortKeyFilterPattern;
-
-    PegasusScannerInterface pegasusScanner =
-        getScanner(hashKey, startSortKey, stopSortKey, scanOptions);
-    MultiGetResult multiGetResult = new MultiGetResult();
-    multiGetResult.allFetched = false;
-    multiGetResult.values = new ArrayList<>();
     try {
-      currentCheckTime = System.currentTimeMillis();
-      if (currentCheckTime >= deadlineTime) {
-        throw new TimeoutException(
-            String.format(
-                "getting pegasusScanner takes too long time when multiGet hashKey=%s, startSortKey=%s, stopSortKey=%s, timeUsed=%s",
-                hashKeyStr, startSortKeyStr, stopSortKeyStr, currentCheckTime - startTime));
-      }
-
-      int remainingTime;
-      Pair<Pair<byte[], byte[]>, byte[]> pairs;
-      while ((pairs = pegasusScanner.next()) != null
-          && multiGetResult.values.size() < maxFetchCount) {
-        currentCheckTime = System.currentTimeMillis();
-        remainingTime = (int) (deadlineTime - currentCheckTime);
-        if (remainingTime <= 0) {
-          throw new TimeoutException(
-              String.format(
-                  "getting pegasusScanner takes too long time when multiGet hashKey=%s, "
-                      + "startSortKey=%s, stopSortKey=%s, timeUsed=%s, fetchCount=%d",
-                  hashKeyStr,
-                  startSortKeyStr,
-                  stopSortKeyStr,
-                  currentCheckTime - startTime,
-                  multiGetResult.values.size()));
-        }
-        multiGetResult.values.add(Pair.of(pairs.getLeft().getValue(), pairs.getValue()));
-      }
-
-      if (pegasusScanner.next() == null) {
-        multiGetResult.allFetched = true;
-      }
-      return multiGetResult;
+      return asyncMultiGet(
+              hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, timeout)
+          .get(timeout, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      throw PException.threadInterrupted(table.getTableName(), e);
     } catch (TimeoutException e) {
-      throw new PException(new ReplicationException(error_code.error_types.ERR_TIMEOUT));
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(hashKey, maxFetchCount), timeout, e);
+    } catch (ExecutionException e) {
+      throw new PException(e);
     }
   }
 
@@ -1220,12 +1174,11 @@ public class PegasusTable implements PegasusTableInterface {
     if (timeout <= 0) timeout = defaultTimeout;
     MultiGetSortKeysResult sortKeysResult = new MultiGetSortKeysResult();
     sortKeysResult.keys = new ArrayList<>();
-    MultiGetOptions options = new MultiGetOptions();
+    ScanOptions options = new ScanOptions();
     options.noValue = true;
-    MultiGetResult result =
-        multiGet(hashKey, null, null, options, maxFetchCount, maxFetchSize, timeout);
-    for (Pair<byte[], byte[]> value : result.values) {
-      sortKeysResult.keys.add(value.getKey());
+    ScanRangeResult result = scanRange(hashKey, null, null, options, maxFetchCount, timeout);
+    for (Pair<Pair<byte[], byte[]>, byte[]> pair : result.results) {
+      sortKeysResult.keys.add(pair.getLeft().getValue());
     }
     sortKeysResult.allFetched = result.allFetched;
     return sortKeysResult;
@@ -1871,6 +1824,54 @@ public class PegasusTable implements PegasusTableInterface {
       ret.add(scanner);
     }
     return ret;
+  }
+
+  static class ScanRangeResult {
+    public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
+    public boolean allFetched;
+  }
+
+  ScanRangeResult scanRange(
+      byte[] hashKey,
+      byte[] startSortKey,
+      byte[] stopSortKey,
+      ScanOptions options,
+      int maxFetchCount,
+      int timeout /*ms*/)
+      throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
+    long startTime = System.currentTimeMillis();
+    long currentCheckTime = startTime;
+    long deadlineTime = startTime + timeout;
+
+    PegasusScannerInterface pegasusScanner =
+        getScanner(hashKey, startSortKey, stopSortKey, options);
+    ScanRangeResult scanRangeResult = new ScanRangeResult();
+    scanRangeResult.allFetched = false;
+    scanRangeResult.results = new ArrayList<>();
+    currentCheckTime = System.currentTimeMillis();
+    if (currentCheckTime >= deadlineTime) {
+      throw PException.timeout(
+          metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
+    }
+
+    int remainingTime;
+    Pair<Pair<byte[], byte[]>, byte[]> pair;
+    while ((pair = pegasusScanner.next()) != null
+        && (maxFetchCount == -1 || scanRangeResult.results.size() < maxFetchCount)) {
+      currentCheckTime = System.currentTimeMillis();
+      remainingTime = (int) (deadlineTime - currentCheckTime);
+      if (remainingTime <= 0) {
+        throw PException.timeout(
+            metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
+      }
+      scanRangeResult.results.add(pair);
+    }
+
+    if (pegasusScanner.next() == null) {
+      scanRangeResult.allFetched = true;
+    }
+    return scanRangeResult;
   }
 
   public void handleReplicaException(
