@@ -276,7 +276,11 @@ public interface PegasusClientInterface {
    * @throws PException throws exception if any error occurs.
    */
   public boolean multiGetSortKeys(
-      String tableName, byte[] hashKey, int maxFetchCount, int maxFetchSize, List<byte[]> sortKeys)
+      String tableName,
+      byte[] hashKey,
+      int maxFetchCount,
+      int maxFetchSize /*Deprecated*/,
+      List<byte[]> sortKeys)
       throws PException;
 
   public boolean multiGetSortKeys(String tableName, byte[] hashKey, List<byte[]> sortKeys)
