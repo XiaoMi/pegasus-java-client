@@ -1186,16 +1186,7 @@ public class PegasusTable implements PegasusTableInterface {
 
   @Override
   public MultiGetSortKeysResult multiGetSortKeys(byte[] hashKey, int timeout) throws PException {
-    if (timeout <= 0) timeout = defaultTimeout;
-    try {
-      return asyncMultiGetSortKeys(hashKey, timeout).get(timeout, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      throw PException.threadInterrupted(table.getTableName(), e);
-    } catch (TimeoutException e) {
-      throw PException.timeout(metaList, table.getTableName(), new Request(hashKey), timeout, e);
-    } catch (ExecutionException e) {
-      throw new PException(e);
-    }
+    return multiGetSortKeys(hashKey, 100, -1, timeout);
   }
 
   @Override
@@ -1858,7 +1849,7 @@ public class PegasusTable implements PegasusTableInterface {
     int remainingTime;
     Pair<Pair<byte[], byte[]>, byte[]> pair;
     while ((pair = pegasusScanner.next()) != null
-        && (maxFetchCount == -1 || scanRangeResult.results.size() < maxFetchCount)) {
+        && (maxFetchCount <= 0 || scanRangeResult.results.size() < maxFetchCount)) {
       currentCheckTime = System.currentTimeMillis();
       remainingTime = (int) (deadlineTime - currentCheckTime);
       if (remainingTime <= 0) {

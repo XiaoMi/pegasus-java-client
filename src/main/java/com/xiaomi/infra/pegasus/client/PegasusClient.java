@@ -330,7 +330,7 @@ public class PegasusClient implements PegasusClientInterface {
       throw new PException("Invalid parameter: sortKeys should not be null");
     }
     PegasusTable table = getTable(tableName);
-    MultiGetSortKeysResult result = table.multiGetSortKeys(hashKey, maxFetchCount, -1, 0);
+    MultiGetSortKeysResult result = table.multiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, 0);
     sortKeys.addAll(result.keys);
     return result.allFetched;
   }
