@@ -1066,6 +1066,7 @@ public class PegasusTable implements PegasusTableInterface {
       int maxFetchSize,
       int timeout /*ms*/)
       throws PException {
+    if (timeout <= 0) timeout = defaultTimeout;
     try {
       return asyncMultiGet(
               hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, timeout)
