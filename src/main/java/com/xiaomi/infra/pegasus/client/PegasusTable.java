@@ -1818,11 +1818,30 @@ public class PegasusTable implements PegasusTableInterface {
     return ret;
   }
 
+  /**
+   * {@linkplain #scanRange(byte[], byte[], byte[], ScanOptions, int, int)} result, if fetch all
+   * data for {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
+   */
   static class ScanRangeResult {
     public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
     public boolean allFetched;
   }
 
+  /**
+   * get scan result for {startSortKey, stopSortKey} within hashKey
+   *
+   * @param hashKey used to decide which partition to put this k-v,
+   * @param startSortKey start sort key scan from if null or length == 0, means start from begin
+   * @param stopSortKey stop sort key scan to if null or length == 0, means stop to end
+   * @param options scan options like endpoint inclusive/exclusive
+   * @param maxFetchCount max count of k-v pairs to be fetched. if <=0 means fetch all data for
+   *     {startSortKey, stopSortKey}
+   * @param timeout if exceed the timeout will throw timeout exception, if <=0, it is equal with
+   *     "timeout" of config
+   * @return ScanRangeResult, if fetch all data for {startSortKey, stopSortKey},
+   *     ScanRangeResult.allFetched=true
+   * @throws PException
+   */
   ScanRangeResult scanRange(
       byte[] hashKey,
       byte[] startSortKey,
