@@ -1838,8 +1838,8 @@ public class PegasusTable implements PegasusTableInterface {
    *     {startSortKey, stopSortKey}
    * @param timeout if exceed the timeout will throw timeout exception, if <=0, it is equal with
    *     "timeout" of config
-   * @return ScanRangeResult, if fetch all data for {startSortKey, stopSortKey},
-   *     ScanRangeResult.allFetched=true
+   * @return ScanRangeResult result{pair((hashKey, sortKey), value}, if fetch all data for
+   *     {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
    * @throws PException
    */
   ScanRangeResult scanRange(
@@ -1851,28 +1851,22 @@ public class PegasusTable implements PegasusTableInterface {
       int timeout /*ms*/)
       throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    long startTime = System.currentTimeMillis();
-    long currentCheckTime = startTime;
-    long deadlineTime = startTime + timeout;
+    long deadlineTime = System.currentTimeMillis() + timeout;
 
     PegasusScannerInterface pegasusScanner =
         getScanner(hashKey, startSortKey, stopSortKey, options);
     ScanRangeResult scanRangeResult = new ScanRangeResult();
     scanRangeResult.allFetched = false;
     scanRangeResult.results = new ArrayList<>();
-    currentCheckTime = System.currentTimeMillis();
-    if (currentCheckTime >= deadlineTime) {
+    if (System.currentTimeMillis() >= deadlineTime) {
       throw PException.timeout(
           metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
     }
 
-    int remainingTime;
     Pair<Pair<byte[], byte[]>, byte[]> pair;
     while ((pair = pegasusScanner.next()) != null
         && (maxFetchCount <= 0 || scanRangeResult.results.size() < maxFetchCount)) {
-      currentCheckTime = System.currentTimeMillis();
-      remainingTime = (int) (deadlineTime - currentCheckTime);
-      if (remainingTime <= 0) {
+      if (System.currentTimeMillis() >= deadlineTime) {
         throw PException.timeout(
             metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
       }
