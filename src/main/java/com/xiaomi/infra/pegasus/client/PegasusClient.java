@@ -3,6 +3,7 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetSortKeysResult;
 import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.KeyHasher;
 import com.xiaomi.infra.pegasus.tools.Tools;
@@ -277,9 +278,7 @@ public class PegasusClient implements PegasusClientInterface {
     PegasusTable tb = getTable(tableName);
     PegasusTableInterface.MultiGetResult res =
         tb.multiGet(hashKey, startSortKey, stopSortKey, options, maxFetchCount, maxFetchSize, 0);
-    for (Pair<byte[], byte[]> kv : res.values) {
-      values.add(kv);
-    }
+    values.addAll(res.values);
     return res.allFetched;
   }
 
@@ -321,11 +320,8 @@ public class PegasusClient implements PegasusClientInterface {
       throw new PException("Invalid parameter: sortKeys should not be null");
     }
     PegasusTable table = getTable(tableName);
-    PegasusTableInterface.MultiGetSortKeysResult result =
-        table.multiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, 0);
-    for (byte[] key : result.keys) {
-      sortKeys.add(key);
-    }
+    MultiGetSortKeysResult result = table.multiGetSortKeys(hashKey, maxFetchCount, maxFetchSize, 0);
+    sortKeys.addAll(result.keys);
     return result.allFetched;
   }
 
