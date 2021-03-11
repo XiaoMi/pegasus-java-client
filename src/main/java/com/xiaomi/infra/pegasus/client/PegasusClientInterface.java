@@ -3,6 +3,8 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.client.request.batch.Batch;
+import com.xiaomi.infra.pegasus.client.request.batch.BatchWithResponse;
 import java.util.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -111,8 +113,7 @@ public interface PegasusClientInterface {
    * Batch get values of different keys. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchWithResponse#commit(List, List)}
+   *     more. The latest batch operation please see {@link BatchWithResponse#commit(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param values output values; should be created by caller; if succeed, the size of values will
@@ -131,8 +132,7 @@ public interface PegasusClientInterface {
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
    *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchWithResponse#commitWaitAllComplete(List,
-   *     List)}
+   *     BatchWithResponse#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
@@ -182,6 +182,7 @@ public interface PegasusClientInterface {
   /**
    * Get multiple key-values under the same hashKey with sortKey range limited.
    *
+   * @deprecated The API may can't get all records, please use //TODO
    * @param tableName table name
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
@@ -195,6 +196,7 @@ public interface PegasusClientInterface {
    * @return true if all data is fetched; false if only partial data is fetched.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public boolean multiGet(
       String tableName,
       byte[] hashKey,
@@ -206,6 +208,7 @@ public interface PegasusClientInterface {
       List<Pair<byte[], byte[]>> values)
       throws PException;
 
+  @Deprecated
   public boolean multiGet(
       String tableName,
       byte[] hashKey,
@@ -220,8 +223,7 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchWithResponse#commit(List, List)}
+   *     more. The latest batch operation please see {@link BatchWithResponse#commit(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}; if List{sortKey} is null or empty, means fetch all
    *     sortKeys under the hashKey.
@@ -242,8 +244,7 @@ public interface PegasusClientInterface {
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
    *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.BatchWithResponse#commitWaitAllComplete(List,
-   *     List)}
+   *     BatchWithResponse#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}; if List{sortKey} is null or empty, means fetch all
    *     sortKeys under the hashKey.
@@ -307,8 +308,7 @@ public interface PegasusClientInterface {
    * Batch set lots of values. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commit(List)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName TableHandler name
    * @param items list of items.
    * @throws PException throws exception if any error occurs.
@@ -322,8 +322,7 @@ public interface PegasusClientInterface {
    * Batch set lots of values. Will wait for all requests done even if some error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commitWaitAllComplete(List, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param items list of items.
    * @param results output results; should be created by caller; after call done, the size of
@@ -360,8 +359,7 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commit(List)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName TableHandler name
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
@@ -381,8 +379,7 @@ public interface PegasusClientInterface {
    * error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commitWaitAllComplete(List, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param items list of items.
    * @param ttlSeconds time to live in seconds, 0 means no ttl. default value is 0.
@@ -420,8 +417,7 @@ public interface PegasusClientInterface {
    * Batch delete values of different keys. Will terminate immediately if any error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commitWaitAllComplete(List, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @throws PException throws exception if any error occurs.
@@ -436,8 +432,8 @@ public interface PegasusClientInterface {
    * occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. TThe latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commitWaitAllComplete(List, List)}
+   *     more. TThe latest batch operation please see {@link Batch#commitWaitAllComplete(List,
+   *     List)}
    * @param tableName table name
    * @param keys hashKey and sortKey pair list.
    * @param results output results; should be created by caller; after call done, the size of
@@ -487,8 +483,7 @@ public interface PegasusClientInterface {
    * error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commit(List)}
+   *     more. The latest batch operation please see {@link Batch#commit(List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}
    * @throws PException throws exception if any error occurs.
@@ -504,8 +499,7 @@ public interface PegasusClientInterface {
    * if some error occurs.
    *
    * @deprecated Retained only for backward compatibility, will be removed later. Don't use it any
-   *     more. The latest batch operation please see {@link
-   *     com.xiaomi.infra.pegasus.client.request.Batch#commitWaitAllComplete(List, List)}
+   *     more. The latest batch operation please see {@link Batch#commitWaitAllComplete(List, List)}
    * @param tableName table name
    * @param keys List{hashKey,List{sortKey}}
    * @param results output results; should be created by caller; after call done, the size of

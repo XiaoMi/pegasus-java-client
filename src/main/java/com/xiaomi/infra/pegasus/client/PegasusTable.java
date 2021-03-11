@@ -43,6 +43,18 @@ public class PegasusTable implements PegasusTableInterface {
     this.metaList = client.getMetaList();
   }
 
+  public Table getTable() {
+    return table;
+  }
+
+  public int getDefaultTimeout() {
+    return defaultTimeout;
+  }
+
+  public String getMetaList() {
+    return metaList;
+  }
+
   @Override
   public Future<Boolean> asyncExist(byte[] hashKey, byte[] sortKey, int timeout) {
     final DefaultPromise<Boolean> promise = table.newPromise();
@@ -1822,7 +1834,7 @@ public class PegasusTable implements PegasusTableInterface {
    * {@linkplain #scanRange(byte[], byte[], byte[], ScanOptions, int, int)} result, if fetch all
    * data for {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
    */
-  static class ScanRangeResult {
+  public static class ScanRangeResult {
     public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
     public boolean allFetched;
   }
@@ -1934,21 +1946,21 @@ public class PegasusTable implements PegasusTableInterface {
     promise.setFailure(new PException("Exceed write limit threshold:" + message));
   }
 
-  static class Request {
+  public static class Request {
     byte[] hashKey = null;
     byte[] sortKey = null;
     int sortKeyCount = 0;
 
-    Request(byte[] hashKey) {
+    public Request(byte[] hashKey) {
       this.hashKey = hashKey;
     }
 
-    Request(byte[] hashKey, byte[] sortKey) {
+    public Request(byte[] hashKey, byte[] sortKey) {
       this.hashKey = hashKey;
       this.sortKey = sortKey;
     }
 
-    Request(byte[] hashKey, int sortKeyCount) {
+    public Request(byte[] hashKey, int sortKeyCount) {
       this.hashKey = hashKey;
       this.sortKeyCount = sortKeyCount;
     }
