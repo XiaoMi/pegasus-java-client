@@ -18,6 +18,7 @@ public class ScannerWrapper<Response> {
             request.hashKey, request.startSortKey, request.stopSortKey, request.scanOptions);
   }
 
+  // TODO(jiashuo1) scanner.next()'s bug need be fixed, it will be put next pr
   PegasusTable.ScanRangeResult hashScan(int maxFetchCount, int timeout /*ms*/) throws PException {
     if (timeout <= 0) timeout = ((PegasusTable) table).getDefaultTimeout();
     long deadlineTime = System.currentTimeMillis() + timeout;
