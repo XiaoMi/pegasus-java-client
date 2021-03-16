@@ -7,7 +7,7 @@ import com.xiaomi.infra.pegasus.apps.*;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
-import com.xiaomi.infra.pegasus.client.request.range.GetRange;
+import com.xiaomi.infra.pegasus.client.request.range.GetRangeNoValue;
 import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -1186,9 +1186,8 @@ public class PegasusTable implements PegasusTableInterface {
   public MultiGetSortKeysResult multiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    ;
-    GetRange getRange = new GetRange(this, hashKey, timeout);
-    return getRange.commitAndWait(maxFetchCount).convertMultiGetSortKeysResult();
+    GetRangeNoValue getRangeNoValue = new GetRangeNoValue(this, hashKey, timeout);
+    return getRangeNoValue.commitAndWait(maxFetchCount).convertMultiGetSortKeysResult();
   }
 
   @Override
