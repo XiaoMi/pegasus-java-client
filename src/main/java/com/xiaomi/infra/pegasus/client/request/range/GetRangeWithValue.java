@@ -5,15 +5,13 @@ import static com.xiaomi.infra.pegasus.client.request.range.ScannerWrapper.Resul
 import com.xiaomi.infra.pegasus.client.PException;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 
-public class GetRange extends Range<Result> {
+public class GetRangeWithValue extends Range<Result> {
 
-  public GetRange(PegasusTableInterface table, byte[] hashKey, int timeout) {
+  public GetRangeWithValue(PegasusTableInterface table, byte[] hashKey, int timeout) {
     super(table, hashKey, timeout);
   }
 
-  @Override
   public Result commitAndWait(int maxFetchCount) throws PException {
-    this.scanOptions.noValue = true;
     ScannerWrapper<Result> scannerWrapper = new ScannerWrapper<>(this);
     return scannerWrapper.hashScan(maxFetchCount);
   }

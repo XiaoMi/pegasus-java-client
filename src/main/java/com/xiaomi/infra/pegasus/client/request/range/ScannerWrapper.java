@@ -1,7 +1,11 @@
 package com.xiaomi.infra.pegasus.client.request.range;
 
+import static com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetResult;
+import static com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetSortKeysResult;
+
 import com.xiaomi.infra.pegasus.client.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -10,20 +14,19 @@ public class ScannerWrapper<Response> {
   private final PegasusTableInterface table;
   private final PegasusScannerInterface scanner;
 
-  ScannerWrapper(PegasusTableInterface table, Range<Response> request) throws PException {
-    this.table = table;
+  public ScannerWrapper(Range<Response> request) throws PException {
     this.request = request;
+    this.table = request.table;
     this.scanner =
         table.getScanner(
             request.hashKey, request.startSortKey, request.stopSortKey, request.scanOptions);
   }
 
   // TODO(jiashuo1) scanner.next()'s bug need be fixed, it will be put next pr
-  PegasusTable.ScanRangeResult hashScan(int maxFetchCount, int timeout /*ms*/) throws PException {
-    if (timeout <= 0) timeout = ((PegasusTable) table).getDefaultTimeout();
-    long deadlineTime = System.currentTimeMillis() + timeout;
+  public Result hashScan(int maxFetchCount) throws PException {
+    long deadlineTime = System.currentTimeMillis() + request.timeout;
 
-    PegasusTable.ScanRangeResult scanRangeResult = new PegasusTable.ScanRangeResult();
+    Result scanRangeResult = new Result();
     scanRangeResult.allFetched = false;
     scanRangeResult.results = new ArrayList<>();
     if (System.currentTimeMillis() >= deadlineTime) {
@@ -31,7 +34,7 @@ public class ScannerWrapper<Response> {
           ((PegasusTable) table).getMetaList(),
           ((PegasusTable) table).getTable().getTableName(),
           new PegasusTable.Request(request.hashKey),
-          timeout,
+          request.timeout,
           new TimeoutException());
     }
 
@@ -43,7 +46,7 @@ public class ScannerWrapper<Response> {
             ((PegasusTable) table).getMetaList(),
             ((PegasusTable) table).getTable().getTableName(),
             new PegasusTable.Request(request.hashKey),
-            timeout,
+            request.timeout,
             new TimeoutException());
       }
       scanRangeResult.results.add(pair);
@@ -53,5 +56,36 @@ public class ScannerWrapper<Response> {
       scanRangeResult.allFetched = true;
     }
     return scanRangeResult;
+  }
+
+  public static class Result {
+    public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
+    public boolean allFetched;
+
+    public MultiGetResult convertMultiGetResult() {
+      MultiGetResult multiGetResult = new MultiGetResult();
+      if (results == null) {
+        return multiGetResult;
+      }
+      multiGetResult.values = new ArrayList<>();
+      for (Pair<Pair<byte[], byte[]>, byte[]> pair : results) {
+        multiGetResult.values.add(Pair.of(pair.getLeft().getValue(), pair.getValue()));
+      }
+      multiGetResult.allFetched = allFetched;
+      return multiGetResult;
+    }
+
+    public MultiGetSortKeysResult convertMultiGetSortKeysResult() {
+      MultiGetSortKeysResult multiGetSortKeysResult = new MultiGetSortKeysResult();
+      if (results == null) {
+        return multiGetSortKeysResult;
+      }
+      multiGetSortKeysResult.keys = new ArrayList<>();
+      for (Pair<Pair<byte[], byte[]>, byte[]> pair : results) {
+        multiGetSortKeysResult.keys.add(pair.getLeft().getValue());
+      }
+      multiGetSortKeysResult.allFetched = allFetched;
+      return multiGetSortKeysResult;
+    }
   }
 }

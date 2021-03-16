@@ -1,11 +1,12 @@
 package com.xiaomi.infra.pegasus.client.request.range;
 
 import com.xiaomi.infra.pegasus.client.PException;
+import com.xiaomi.infra.pegasus.client.PegasusTable;
+import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import com.xiaomi.infra.pegasus.client.ScanOptions;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 public abstract class Range<Response> {
+  public PegasusTableInterface table;
   protected byte[] hashKey;
   protected int timeout;
 
@@ -13,25 +14,25 @@ public abstract class Range<Response> {
   protected byte[] startSortKey;
   protected byte[] stopSortKey;
 
-  protected Range(byte[] hashKey, int timeout) {
+  public Range(PegasusTableInterface table, byte[] hashKey, int timeout) {
+    this.table = table;
     this.hashKey = hashKey;
-    this.timeout = timeout;
+    this.timeout = timeout <= 0 ? ((PegasusTable) table).getDefaultTimeout() : timeout;
   }
 
-  protected abstract Response commitAndWait(int maxRangeCount)
-      throws PException, InterruptedException, ExecutionException, TimeoutException;
+  public abstract Response commitAndWait(int maxRangeCount) throws PException;
 
-  protected Range<Response> withOptions(ScanOptions scanOptions) {
+  public Range<Response> withOptions(ScanOptions scanOptions) {
     this.scanOptions = scanOptions;
     return this;
   }
 
-  protected Range<Response> withStartSortKey(byte[] startSortKey) {
+  public Range<Response> withStartSortKey(byte[] startSortKey) {
     this.startSortKey = startSortKey;
     return this;
   }
 
-  protected Range<Response> withStopSortKey(byte[] stopSortKey) {
+  public Range<Response> withStopSortKey(byte[] stopSortKey) {
     this.stopSortKey = stopSortKey;
     return this;
   }

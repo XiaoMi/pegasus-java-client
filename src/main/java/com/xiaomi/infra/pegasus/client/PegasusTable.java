@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.apps.*;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
+import com.xiaomi.infra.pegasus.client.request.range.GetRange;
 import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -1185,16 +1186,9 @@ public class PegasusTable implements PegasusTableInterface {
   public MultiGetSortKeysResult multiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    MultiGetSortKeysResult sortKeysResult = new MultiGetSortKeysResult();
-    sortKeysResult.keys = new ArrayList<>();
-    ScanOptions options = new ScanOptions();
-    options.noValue = true;
-    ScanRangeResult result = scanRange(hashKey, null, null, options, maxFetchCount, timeout);
-    for (Pair<Pair<byte[], byte[]>, byte[]> pair : result.results) {
-      sortKeysResult.keys.add(pair.getLeft().getValue());
-    }
-    sortKeysResult.allFetched = result.allFetched;
-    return sortKeysResult;
+    ;
+    GetRange getRange = new GetRange(this, hashKey, timeout);
+    return getRange.commitAndWait(maxFetchCount).convertMultiGetSortKeysResult();
   }
 
   @Override
@@ -1831,17 +1825,9 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   /**
-   * {@linkplain #scanRange(byte[], byte[], byte[], ScanOptions, int, int)} result, if fetch all
-   * data for {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
-   */
-  public static class ScanRangeResult {
-    public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
-    public boolean allFetched;
-  }
-
-  /**
    * get scan result for {startSortKey, stopSortKey} within hashKey
    *
+   * @deprecated it will be replace
    * @param hashKey used to decide which partition to put this k-v,
    * @param startSortKey start sort key scan from if null or length == 0, means start from begin
    * @param stopSortKey stop sort key scan to if null or length == 0, means stop to end
@@ -1854,43 +1840,6 @@ public class PegasusTable implements PegasusTableInterface {
    *     {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
    * @throws PException
    */
-  ScanRangeResult scanRange(
-      byte[] hashKey,
-      byte[] startSortKey,
-      byte[] stopSortKey,
-      ScanOptions options,
-      int maxFetchCount,
-      int timeout /*ms*/)
-      throws PException {
-    if (timeout <= 0) timeout = defaultTimeout;
-    long deadlineTime = System.currentTimeMillis() + timeout;
-
-    PegasusScannerInterface pegasusScanner =
-        getScanner(hashKey, startSortKey, stopSortKey, options);
-    ScanRangeResult scanRangeResult = new ScanRangeResult();
-    scanRangeResult.allFetched = false;
-    scanRangeResult.results = new ArrayList<>();
-    if (System.currentTimeMillis() >= deadlineTime) {
-      throw PException.timeout(
-          metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
-    }
-
-    Pair<Pair<byte[], byte[]>, byte[]> pair;
-    while ((pair = pegasusScanner.next()) != null
-        && (maxFetchCount <= 0 || scanRangeResult.results.size() < maxFetchCount)) {
-      if (System.currentTimeMillis() >= deadlineTime) {
-        throw PException.timeout(
-            metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
-      }
-      scanRangeResult.results.add(pair);
-    }
-
-    if (pegasusScanner.next() == null) {
-      scanRangeResult.allFetched = true;
-    }
-    return scanRangeResult;
-  }
-
   public void handleReplicaException(
       Request request, DefaultPromise promise, client_operator op, Table table, int timeout) {
     if (timeout <= 0) timeout = defaultTimeout;
