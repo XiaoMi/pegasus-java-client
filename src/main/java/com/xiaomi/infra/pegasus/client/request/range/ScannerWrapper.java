@@ -10,7 +10,7 @@ public class ScannerWrapper<Response> {
   private final PegasusTableInterface table;
   private final PegasusScannerInterface scanner;
 
-  public ScannerWrapper(PegasusTableInterface table, Range<Response> request) throws PException {
+  ScannerWrapper(PegasusTableInterface table, Range<Response> request) throws PException {
     this.table = table;
     this.request = request;
     this.scanner =
