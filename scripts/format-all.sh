@@ -24,13 +24,14 @@ PROJECT_DIR=$(dirname "${SCRIPT_DIR}")
 cd "${PROJECT_DIR}" || exit 1
 
 SRC_FILES=(src/main/java/com/xiaomi/infra/pegasus/client/*.java
+           src/main/java/com/xiaomi/infra/pegasus/client/request/batch/*.java
+           src/main/java/com/xiaomi/infra/pegasus/client/request/range/*.java
            src/main/java/com/xiaomi/infra/pegasus/metrics/*.java
            src/main/java/com/xiaomi/infra/pegasus/rpc/*.java
            src/main/java/com/xiaomi/infra/pegasus/rpc/async/*.java
            src/main/java/com/xiaomi/infra/pegasus/operator/*.java
            src/main/java/com/xiaomi/infra/pegasus/tools/*.java
            src/main/java/com/xiaomi/infra/pegasus/rpc/interceptor/*.java
-           src/main/java/com/xiaomi/infra/pegasus/client/request/*.java
            src/main/java/com/xiaomi/infra/pegasus/base/*.java
            src/main/java/com/xiaomi/infra/pegasus/example/*.java
            src/main/java/com/xiaomi/infra/pegasus/security/*.java
