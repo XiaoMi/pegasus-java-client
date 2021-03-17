@@ -6,49 +6,24 @@ import static com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetSort
 import com.xiaomi.infra.pegasus.client.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.tuple.Pair;
 
-public class ScannerWrapper<Response> {
-  private final Range<Response> request;
-  private final PegasusTableInterface table;
+public class ScannerWrapper {
   private final PegasusScannerInterface scanner;
 
-  public ScannerWrapper(Range<Response> request) throws PException {
-    this.request = request;
-    this.table = request.table;
-    this.scanner =
-        table.getScanner(
-            request.hashKey, request.startSortKey, request.stopSortKey, request.scanOptions);
+  public ScannerWrapper(PegasusScannerInterface scanner) throws PException {
+    this.scanner = scanner;
   }
 
   // TODO(jiashuo1) scanner.next()'s bug need be fixed, it will be put next pr
   public Result hashScan(int maxFetchCount) throws PException {
-    long deadlineTime = System.currentTimeMillis() + request.timeout;
-
     Result scanRangeResult = new Result();
     scanRangeResult.allFetched = false;
     scanRangeResult.results = new ArrayList<>();
-    if (System.currentTimeMillis() >= deadlineTime) {
-      throw PException.timeout(
-          ((PegasusTable) table).getMetaList(),
-          ((PegasusTable) table).getTable().getTableName(),
-          new PegasusTable.Request(request.hashKey),
-          request.timeout,
-          new TimeoutException());
-    }
 
     Pair<Pair<byte[], byte[]>, byte[]> pair;
     while ((pair = scanner.next()) != null
         && (maxFetchCount <= 0 || scanRangeResult.results.size() < maxFetchCount)) {
-      if (System.currentTimeMillis() >= deadlineTime) {
-        throw PException.timeout(
-            ((PegasusTable) table).getMetaList(),
-            ((PegasusTable) table).getTable().getTableName(),
-            new PegasusTable.Request(request.hashKey),
-            request.timeout,
-            new TimeoutException());
-      }
       scanRangeResult.results.add(pair);
     }
 
