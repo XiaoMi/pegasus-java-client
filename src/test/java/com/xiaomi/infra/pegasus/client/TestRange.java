@@ -45,11 +45,12 @@ public class TestRange {
     assertScanResult(5, 9, true, caseB3);
     // case B4: scan limit record by "persistent_5" and "", if following persistent record count >
     // maxFetchCount, it only return valid records
-    ScanResult caseB4 = getRange.withStopSortKey("persistent_5".getBytes()).commitAndWait(3);
+    ScanResult caseB4 = getRange.withStartSortKey("persistent_5".getBytes()).commitAndWait(3);
     assertScanResult(5, 7, false, caseB4);
 
     // case C: scan limit record by "" and "stopSortKey":
     // case C1: scan limit record by "" and "expired_7", if will return 0 record
+    getRange.withStartSortKey("".getBytes());
     ScanResult caseC1 = getRange.withStopSortKey("expired_7".getBytes()).commitAndWait(3);
     Assertions.assertTrue(caseC1.allFetched);
     Assertions.assertEquals(
@@ -66,7 +67,7 @@ public class TestRange {
 
   @Test // test for making sure return "maxFetchCount" if has "maxFetchCount" valid record
   public void testDeleteRangeWithValueExpired()
-          throws PException, InterruptedException, TimeoutException, ExecutionException {
+      throws PException, InterruptedException, TimeoutException, ExecutionException {
     String tableName = "temp";
     String hashKey = "hashKey";
     // generate records: sortKeys=[expired_0....expired_999,persistent_0...persistent_9]

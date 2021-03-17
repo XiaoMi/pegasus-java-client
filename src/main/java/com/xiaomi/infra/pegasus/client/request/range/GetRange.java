@@ -27,7 +27,7 @@ public class GetRange extends Range<ScanResult> {
                           && (maxFetchCount <= 0 || res.results.size() < maxFetchCount)) {
                         res.results.add(pair);
                       }
-                      if (scanner.next() == null) {
+                      if (pair == null) {
                         res.allFetched = true;
                       }
                       return res;
