@@ -363,7 +363,7 @@
             <exclude>src/test/resource/pegasus.properties</exclude>
             <exclude>src/test/java/com/xiaomi/infra/pegasus/client/*</exclude>
             <exclude>src/test/java/com/xiaomi/infra/pegasus/operator/*</exclude>
-            <exclude>src/main/java/com/xiaomi/infra/pegasus/client/***</exclude>
+            <exclude>src/main/java/com/xiaomi/infra/pegasus/client/**</exclude>
             <exclude>src/main/java/com/xiaomi/infra/pegasus/tools/*</exclude>
             <exclude>src/main/java/com/xiaomi/infra/pegasus/operator/*</exclude>
             <exclude>src/main/java/com/xiaomi/infra/pegasus/base/*</exclude>
