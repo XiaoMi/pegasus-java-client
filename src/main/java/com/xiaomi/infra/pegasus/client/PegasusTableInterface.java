@@ -221,7 +221,8 @@ public interface PegasusTableInterface {
   /**
    * get multiple key-values under the same hashKey with sortKey range limited, async version
    *
-   * @deprecated the API may can't get all records, please use //TODO
+   * @deprecated the API may can't get all records, please use {@linkplain
+   *     com.xiaomi.infra.pegasus.client.request.range.GetRange}
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
    * @param stopSortKey the stop sort key. null or "" means fetch to the last sort key.

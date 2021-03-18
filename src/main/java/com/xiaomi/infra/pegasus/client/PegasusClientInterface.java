@@ -182,7 +182,8 @@ public interface PegasusClientInterface {
   /**
    * Get multiple key-values under the same hashKey with sortKey range limited.
    *
-   * @deprecated The API may can't get all records, please use //TODO
+   * @deprecated The API may can't get all records, please use {@linkplain
+   *     com.xiaomi.infra.pegasus.client.request.range.GetRange}
    * @param tableName table name
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
