@@ -464,6 +464,8 @@ public interface PegasusClientInterface {
    * Delete key-values within range of startSortKey and stopSortKey under hashKey. Will terminate
    * immediately if any error occurs.
    *
+   * @deprecated the latest usage please see {@linkplain
+   *     com.xiaomi.infra.pegasus.client.request.range.DeleteRange}
    * @param tableName table name
    * @param hashKey used to decide which partition the key may exist should not be null or empty.
    * @param startSortKey the start sort key. null means "".
@@ -471,6 +473,7 @@ public interface PegasusClientInterface {
    * @param options del range options.
    * @throws PException throws exception if any error occurs.
    */
+  @Deprecated
   public void delRange(
       String tableName,
       byte[] hashKey,
