@@ -44,16 +44,8 @@ public class PegasusTable implements PegasusTableInterface {
     this.metaList = client.getMetaList();
   }
 
-  public Table getTable() {
-    return table;
-  }
-
   public int getDefaultTimeout() {
     return defaultTimeout;
-  }
-
-  public String getMetaList() {
-    return metaList;
   }
 
   @Override
@@ -1883,21 +1875,21 @@ public class PegasusTable implements PegasusTableInterface {
     promise.setFailure(new PException("Exceed write limit threshold:" + message));
   }
 
-  public static class Request {
+  static class Request {
     byte[] hashKey = null;
     byte[] sortKey = null;
     int sortKeyCount = 0;
 
-    public Request(byte[] hashKey) {
+    Request(byte[] hashKey) {
       this.hashKey = hashKey;
     }
 
-    public Request(byte[] hashKey, byte[] sortKey) {
+    Request(byte[] hashKey, byte[] sortKey) {
       this.hashKey = hashKey;
       this.sortKey = sortKey;
     }
 
-    public Request(byte[] hashKey, int sortKeyCount) {
+    Request(byte[] hashKey, int sortKeyCount) {
       this.hashKey = hashKey;
       this.sortKeyCount = sortKeyCount;
     }

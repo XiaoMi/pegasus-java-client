@@ -34,14 +34,14 @@ public class PException extends Exception {
     super(versionPrefix + cause.toString(), cause);
   }
 
-  public static PException threadInterrupted(String tableName, InterruptedException e) {
+  static PException threadInterrupted(String tableName, InterruptedException e) {
     return new PException(
         new ReplicationException(
             error_code.error_types.ERR_THREAD_INTERRUPTED,
             String.format("[table=%s] Thread was interrupted: %s", tableName, e.getMessage())));
   }
 
-  public static PException timeout(
+  static PException timeout(
       String metaList, String tableName, Request request, int timeout, TimeoutException e) {
     return new PException(
         new ReplicationException(

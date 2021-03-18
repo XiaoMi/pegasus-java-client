@@ -382,7 +382,7 @@
       Use Rat to improve accuracy and efficiency when checking releases for licenses.
       Usage:
         mvn apache-rat:check
-        # the scanResult will be generated to ./target/rat.txt
+        # the result will be generated to ./target/rat.txt
       -->
       <plugin>
         <groupId>org.apache.rat</groupId>
