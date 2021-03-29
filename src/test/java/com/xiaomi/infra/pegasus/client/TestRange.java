@@ -49,35 +49,36 @@ public class TestRange {
     // case B: scan limit record by "startSortKey" and "":
     // case B1: scan limit record by "expired_0" and "", if persistent record count >=
     // maxFetchCount, it must return maxFetchCount records
-    ScanResult caseB1 = getRange.withStartSortKey("expired_0".getBytes()).commitAndWait(5);
+    ScanResult caseB1 = getRange.withSortKeyRange("expired_0".getBytes(), null).commitAndWait(5);
     assertScanResult(0, 4, false, caseB1);
     // case B2: scan limit record by "expired_0" and "", if persistent record count < maxFetchCount,
     // it only return valid records
-    ScanResult caseB2 = getRange.withStartSortKey("expired_0".getBytes()).commitAndWait(50);
+    ScanResult caseB2 = getRange.withSortKeyRange("expired_0".getBytes(), null).commitAndWait(50);
     assertScanResult(0, 9, true, caseB2);
     // case B3: scan limit record by "persistent_5" and "", if following persistent record count <
     // maxFetchCount, it only return valid records
-    ScanResult caseB3 = getRange.withStartSortKey("persistent_5".getBytes()).commitAndWait(50);
+    ScanResult caseB3 =
+        getRange.withSortKeyRange("persistent_5".getBytes(), null).commitAndWait(50);
     assertScanResult(5, 9, true, caseB3);
     // case B4: scan limit record by "persistent_5" and "", if following persistent record count >
     // maxFetchCount, it only return valid records
-    ScanResult caseB4 = getRange.withStartSortKey("persistent_5".getBytes()).commitAndWait(3);
+    ScanResult caseB4 = getRange.withSortKeyRange("persistent_5".getBytes(), null).commitAndWait(3);
     assertScanResult(5, 7, false, caseB4);
 
     // case C: scan limit record by "" and "stopSortKey":
     // case C1: scan limit record by "" and "expired_7", if will return 0 record
-    getRange.withStartSortKey("".getBytes());
-    ScanResult caseC1 = getRange.withStopSortKey("expired_7".getBytes()).commitAndWait(3);
+    ScanResult caseC1 = getRange.withSortKeyRange(null, "expired_7".getBytes()).commitAndWait(3);
     Assertions.assertTrue(caseC1.allFetched);
     Assertions.assertEquals(
         0, caseC1.results.size()); // among "" and "expired_7" has 0 valid record
     // case C2: scan limit record by "" and "persistent_7", if valid record count < maxFetchCount,
     // it only return valid record
-    ScanResult caseC2 = getRange.withStopSortKey("persistent_7".getBytes()).commitAndWait(10);
+    ScanResult caseC2 =
+        getRange.withSortKeyRange(null, "persistent_7".getBytes()).commitAndWait(10);
     assertScanResult(0, 6, true, caseC2);
     // case C3: scan limit record by "" and "persistent_7", if valid record count > maxFetchCount,
     // it only return valid record
-    ScanResult caseC3 = getRange.withStopSortKey("persistent_7".getBytes()).commitAndWait(2);
+    ScanResult caseC3 = getRange.withSortKeyRange(null, "persistent_7".getBytes()).commitAndWait(2);
     assertScanResult(0, 1, false, caseC3);
   }
 

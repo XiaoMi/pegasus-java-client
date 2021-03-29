@@ -70,20 +70,11 @@ public abstract class Range<Response> {
    * set startSortKey
    *
    * @param startSortKey start sort key scan from if null or length == 0, means start from begin
-   * @return this
-   */
-  public Range<Response> withStartSortKey(byte[] startSortKey) {
-    this.startSortKey = startSortKey;
-    return this;
-  }
-
-  /**
-   * set stopSortKey
-   *
    * @param stopSortKey stop sort key scan to if null or length == 0, means stop to end
    * @return this
    */
-  public Range<Response> withStopSortKey(byte[] stopSortKey) {
+  public Range<Response> withSortKeyRange(byte[] startSortKey, byte[] stopSortKey) {
+    this.startSortKey = startSortKey;
     this.stopSortKey = stopSortKey;
     return this;
   }
