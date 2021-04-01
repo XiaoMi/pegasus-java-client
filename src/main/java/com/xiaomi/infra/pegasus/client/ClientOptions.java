@@ -245,7 +245,6 @@ public class ClientOptions {
     public Builder metaServers(String metaServers) {
       this.metaServers = metaServers;
       return this;
-
     }
 
     /**
