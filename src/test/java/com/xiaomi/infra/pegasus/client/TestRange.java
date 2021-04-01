@@ -16,7 +16,6 @@
 // under the License.
 package com.xiaomi.infra.pegasus.client;
 
-import com.xiaomi.infra.pegasus.client.request.range.DeleteRange;
 import com.xiaomi.infra.pegasus.client.request.range.GetRange;
 import com.xiaomi.infra.pegasus.client.request.range.ScanResult;
 import java.util.concurrent.ExecutionException;
@@ -80,26 +79,6 @@ public class TestRange {
     // it only return valid record
     ScanResult caseC3 = getRange.withSortKeyRange(null, "persistent_7".getBytes()).commitAndWait(2);
     assertScanResult(0, 1, false, caseC3);
-  }
-
-  @Test // test for making sure return "maxFetchCount" if has "maxFetchCount" valid record
-  public void testDeleteRangeWithValueExpired()
-      throws PException, InterruptedException, TimeoutException, ExecutionException {
-    String tableName = "temp";
-    String hashKey = "hashKey";
-    // generate records: sortKeys=[expired_0....expired_999,persistent_0...persistent_9]
-    generateRecordsWithExpired(tableName, hashKey, 1000, 10);
-    PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
-    DeleteRange deleteRange = new DeleteRange(table, hashKey.getBytes(), 0);
-    Boolean res1 = deleteRange.commitAndWait(5);
-    Assertions.assertTrue(res1);
-
-    Boolean res2 = deleteRange.commitAndWait(10);
-    Assertions.assertTrue(res2);
-    GetRange getRange = new GetRange(table, hashKey.getBytes(), 0);
-    ScanResult getRes = getRange.commitAndWait(-1);
-    Assertions.assertTrue(getRes.allFetched);
-    Assertions.assertEquals(0, getRes.results.size());
   }
 
   private void generateRecordsWithExpired(
