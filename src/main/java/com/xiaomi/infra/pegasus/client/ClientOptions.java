@@ -255,7 +255,7 @@ public class ClientOptions {
      * @return {@code this}
      */
     public Builder operationTimeout(Duration operationTimeout) {
-      validatePositive(operationTimeout.toMillis());
+      validatePositiveNum(operationTimeout.toMillis());
       this.operationTimeout = operationTimeout;
       return this;
     }
@@ -269,7 +269,7 @@ public class ClientOptions {
      * @return {@code this}
      */
     public Builder asyncWorkers(int asyncWorkers) {
-      validatePositive(asyncWorkers);
+      validatePositiveNum(asyncWorkers);
       this.asyncWorkers = asyncWorkers;
       return this;
     }
@@ -308,7 +308,7 @@ public class ClientOptions {
      * @return {@code this}
      */
     public Builder falconPushInterval(Duration falconPushInterval) {
-      validatePositive(falconPushInterval.toMillis());
+      validatePositiveNum(falconPushInterval.toMillis());
       this.falconPushInterval = falconPushInterval;
       return this;
     }
@@ -334,7 +334,7 @@ public class ClientOptions {
      * @return {@code this}
      */
     public Builder metaQueryTimeout(Duration metaQueryTimeout) {
-      validatePositive(metaQueryTimeout.toMillis());
+      validatePositiveNum(metaQueryTimeout.toMillis());
       this.metaQueryTimeout = metaQueryTimeout;
       return this;
     }
@@ -374,7 +374,7 @@ public class ClientOptions {
       return new ClientOptions(this);
     }
 
-    private void validatePositive(long value) {
+    private static void validatePositiveNum(long value) {
       assert value > 0 : String.format("must pass positive value: %d", value);
     }
   }
