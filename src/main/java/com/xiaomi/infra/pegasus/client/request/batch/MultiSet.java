@@ -14,37 +14,47 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-package com.xiaomi.infra.pegasus.client.request;
+package com.xiaomi.infra.pegasus.client.request.batch;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 
-public class MultiDelete implements Serializable {
+public class MultiSet implements Serializable {
 
-  private static final long serialVersionUID = -9090489322713020570L;
+  private static final long serialVersionUID = -2236077975122224688L;
 
   public final byte[] hashKey;
-  public final List<byte[]> sortKeys;
+  public final List<Pair<byte[], byte[]>> values;
 
-  public MultiDelete(byte[] hashKey) {
+  public int ttlSeconds;
+
+  public MultiSet(byte[] hashKey) {
     this(hashKey, new ArrayList<>());
   }
 
-  public MultiDelete(byte[] hashKey, List<byte[]> sortKeys) {
-    checkArguments(hashKey, sortKeys);
+  public MultiSet(byte[] hashKey, List<Pair<byte[], byte[]>> values) {
+    checkArguments(hashKey, values);
     this.hashKey = hashKey;
-    this.sortKeys = sortKeys;
+    this.values = values;
+    this.ttlSeconds = 0;
   }
 
-  public MultiDelete add(byte[] sortKey) {
-    sortKeys.add(sortKey);
+  public MultiSet add(byte[] sortKey, byte[] value) {
+    values.add(Pair.of(sortKey, value));
     return this;
   }
 
-  private void checkArguments(byte[] hashKey, List<byte[]> sortKeys) {
+  public MultiSet withTTLSeconds(int ttlSeconds) {
+    assert ttlSeconds > 0;
+    this.ttlSeconds = ttlSeconds;
+    return this;
+  }
+
+  private void checkArguments(byte[] hashKey, List<Pair<byte[], byte[]>> values) {
     assert (hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF)
         : "hashKey != null && hashKey.length > 0 && hashKey.length < 0xFFFF";
-    assert sortKeys != null : "sortKeys != null";
+    assert values != null : "values != null";
   }
 }

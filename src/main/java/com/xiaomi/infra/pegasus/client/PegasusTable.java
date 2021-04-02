@@ -7,6 +7,7 @@ import com.xiaomi.infra.pegasus.apps.*;
 import com.xiaomi.infra.pegasus.base.blob;
 import com.xiaomi.infra.pegasus.base.error_code;
 import com.xiaomi.infra.pegasus.base.gpid;
+import com.xiaomi.infra.pegasus.client.request.range.GetRange;
 import com.xiaomi.infra.pegasus.operator.*;
 import com.xiaomi.infra.pegasus.rpc.ReplicationException;
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -41,6 +42,10 @@ public class PegasusTable implements PegasusTableInterface {
     this.defaultTimeout = table.getDefaultTimeout();
     this.writeLimiter = new WriteLimiter(client.isWriteLimitEnabled());
     this.metaList = client.getMetaList();
+  }
+
+  public int getDefaultTimeout() {
+    return defaultTimeout;
   }
 
   @Override
@@ -1173,16 +1178,13 @@ public class PegasusTable implements PegasusTableInterface {
   public MultiGetSortKeysResult multiGetSortKeys(
       byte[] hashKey, int maxFetchCount, int maxFetchSize, int timeout) throws PException {
     if (timeout <= 0) timeout = defaultTimeout;
-    MultiGetSortKeysResult sortKeysResult = new MultiGetSortKeysResult();
-    sortKeysResult.keys = new ArrayList<>();
-    ScanOptions options = new ScanOptions();
-    options.noValue = true;
-    ScanRangeResult result = scanRange(hashKey, null, null, options, maxFetchCount, timeout);
-    for (Pair<Pair<byte[], byte[]>, byte[]> pair : result.results) {
-      sortKeysResult.keys.add(pair.getLeft().getValue());
-    }
-    sortKeysResult.allFetched = result.allFetched;
-    return sortKeysResult;
+    ScanOptions scanOptions = new ScanOptions();
+    scanOptions.noValue = true;
+    GetRange getRange = new GetRange(this, hashKey, timeout);
+    return getRange
+        .withOptions(scanOptions)
+        .commitAndWait(maxFetchCount)
+        .convertMultiGetSortKeysResult();
   }
 
   @Override
@@ -1816,67 +1818,6 @@ public class PegasusTable implements PegasusTableInterface {
       ret.add(scanner);
     }
     return ret;
-  }
-
-  /**
-   * {@linkplain #scanRange(byte[], byte[], byte[], ScanOptions, int, int)} result, if fetch all
-   * data for {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
-   */
-  static class ScanRangeResult {
-    public List<Pair<Pair<byte[], byte[]>, byte[]>> results;
-    public boolean allFetched;
-  }
-
-  /**
-   * get scan result for {startSortKey, stopSortKey} within hashKey
-   *
-   * @param hashKey used to decide which partition to put this k-v,
-   * @param startSortKey start sort key scan from if null or length == 0, means start from begin
-   * @param stopSortKey stop sort key scan to if null or length == 0, means stop to end
-   * @param options scan options like endpoint inclusive/exclusive
-   * @param maxFetchCount max count of k-v pairs to be fetched. if <=0 means fetch all data for
-   *     {startSortKey, stopSortKey}
-   * @param timeout if exceed the timeout will throw timeout exception, if <=0, it is equal with
-   *     "timeout" of config
-   * @return ScanRangeResult result{pair((hashKey, sortKey), value}, if fetch all data for
-   *     {startSortKey, stopSortKey}, ScanRangeResult.allFetched=true
-   * @throws PException
-   */
-  ScanRangeResult scanRange(
-      byte[] hashKey,
-      byte[] startSortKey,
-      byte[] stopSortKey,
-      ScanOptions options,
-      int maxFetchCount,
-      int timeout /*ms*/)
-      throws PException {
-    if (timeout <= 0) timeout = defaultTimeout;
-    long deadlineTime = System.currentTimeMillis() + timeout;
-
-    PegasusScannerInterface pegasusScanner =
-        getScanner(hashKey, startSortKey, stopSortKey, options);
-    ScanRangeResult scanRangeResult = new ScanRangeResult();
-    scanRangeResult.allFetched = false;
-    scanRangeResult.results = new ArrayList<>();
-    if (System.currentTimeMillis() >= deadlineTime) {
-      throw PException.timeout(
-          metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
-    }
-
-    Pair<Pair<byte[], byte[]>, byte[]> pair;
-    while ((pair = pegasusScanner.next()) != null
-        && (maxFetchCount <= 0 || scanRangeResult.results.size() < maxFetchCount)) {
-      if (System.currentTimeMillis() >= deadlineTime) {
-        throw PException.timeout(
-            metaList, table.getTableName(), new Request(hashKey), timeout, new TimeoutException());
-      }
-      scanRangeResult.results.add(pair);
-    }
-
-    if (pegasusScanner.next() == null) {
-      scanRangeResult.allFetched = true;
-    }
-    return scanRangeResult;
   }
 
   public void handleReplicaException(
