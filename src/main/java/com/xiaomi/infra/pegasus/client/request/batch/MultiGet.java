@@ -14,7 +14,7 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-package com.xiaomi.infra.pegasus.client.request;
+package com.xiaomi.infra.pegasus.client.request.batch;
 
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -14,21 +14,21 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-package com.xiaomi.infra.pegasus.client.request;
+package com.xiaomi.infra.pegasus.client.request.batch;
 
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface;
 import io.netty.util.concurrent.Future;
 
-public class SetBatch extends Batch<Set> {
+public class MultiDeleteBatch extends Batch<MultiDelete> {
 
-  private static final long serialVersionUID = 7339081203717442862L;
+  private static final long serialVersionUID = 4692293597610231870L;
 
-  public SetBatch(PegasusTableInterface table, int timeout) {
+  public MultiDeleteBatch(PegasusTableInterface table, int timeout) {
     super(table, timeout);
   }
 
   @Override
-  protected Future<Void> asyncCommit(Set set) {
-    return table.asyncSet(set.hashKey, set.sortKey, set.value, set.ttlSeconds, timeout);
+  protected Future<Void> asyncCommit(MultiDelete multiDelete) {
+    return table.asyncMultiDel(multiDelete.hashKey, multiDelete.sortKeys, timeout);
   }
 }
