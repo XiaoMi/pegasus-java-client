@@ -224,6 +224,7 @@ public class PegasusScanner implements PegasusScannerInterface {
       }
     } else { // rpc failed
       _encounterError = true;
+      _rpcFailed = true;
       _cause = new PException("scan failed with error: " + err.errno);
     }
   }
@@ -234,7 +235,14 @@ public class PegasusScanner implements PegasusScannerInterface {
         p.setFailure(_cause);
       }
       _promises.clear();
-      _encounterError = false;
+      if (_rpcFailed) {
+        // reset _encounterError so that next loop will recall server use new meta config(for read,
+        // the meta config must be updated when encounter rpc failed, see TableHandler#onRpcReply)
+        _encounterError = false;
+        _rpcFailed = false;
+      }
+      // rpc succeed but still encounter unknown error in server side, not reset _encounterError and
+      // abandon the scanner
       return;
     }
     while (!_promises.isEmpty()) {
@@ -310,6 +318,7 @@ public class PegasusScanner implements PegasusScannerInterface {
   private boolean _rpcRunning;
   // mark whether scan operation encounter error
   private boolean _encounterError;
+  private boolean _rpcFailed;
   Throwable _cause;
 
   private boolean _needCheckHash;
