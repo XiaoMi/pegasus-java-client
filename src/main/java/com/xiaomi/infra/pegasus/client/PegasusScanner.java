@@ -116,6 +116,7 @@ public class PegasusScanner implements PegasusScannerInterface {
   }
 
   private void asyncStartScan() {
+    System.out.println("asyncStartScan");
     if (_rpcRunning) {
       logger.error(
           "scan rpc already be running, encounter logic error, we just abandon this scan, "
@@ -165,6 +166,7 @@ public class PegasusScanner implements PegasusScannerInterface {
   }
 
   private void asyncNextBatch() {
+
     if (_rpcRunning) {
       logger.error(
           "scan rpc already be running, encounter logic error, we just abandon this scan, "
@@ -223,23 +225,9 @@ public class PegasusScanner implements PegasusScannerInterface {
         _encounterError = true;
         _cause = new PException("rocksDB error: " + response.error);
       }
-    } else if (err.errno != error_code.error_types.ERR_SESSION_RESET) { // rpc failed
-
-      /*      if (op.rpc_error.errno == error_code.error_types.ERR_SESSION_RESET) {
-        Thread.sleep(2000);
-        System.out.println("retry");
-        _errorRetry = false;
-        return;
-      }*/
-      /*      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }*/
-      _errorAllowRetry = true;
     } else {
       _encounterError = true;
-      _cause = new PException("retry");
+      _cause = new PException("scan failed with error:" + err.errno);
     }
   }
 
@@ -250,7 +238,6 @@ public class PegasusScanner implements PegasusScannerInterface {
       }
       _promises.clear();
       _encounterError = false;
-      // we don't reset the flag, just abandon this scan operation
       return;
     }
     while (!_promises.isEmpty()) {
@@ -281,9 +268,8 @@ public class PegasusScanner implements PegasusScannerInterface {
           _gpid = _partitions[--_partitionIter];
           _hash = _partitionHashes[_partitionIter];
           contextReset();
-        } else if (_contextId == CONTEXT_ID_NOT_EXIST || _errorAllowRetry) {
+        } else if (_contextId == CONTEXT_ID_NOT_EXIST) {
           // no valid context_id found
-          _errorAllowRetry = false;
           asyncStartScan();
           return;
         } else {
@@ -332,7 +318,6 @@ public class PegasusScanner implements PegasusScannerInterface {
   private boolean _needCheckHash;
   // whether scan operation got incomplete error
   private boolean _incomplete;
-  private boolean _errorAllowRetry;
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(PegasusScanner.class);
 }
