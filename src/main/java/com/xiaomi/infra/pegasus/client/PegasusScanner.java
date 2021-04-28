@@ -235,9 +235,12 @@ public class PegasusScanner implements PegasusScannerInterface {
         p.setFailure(_cause);
       }
       _promises.clear();
-      if (_rpcFailed) {
-        // reset _encounterError so that next loop will recall server use new meta config(for read,
-        // the meta config must be updated when encounter rpc failed, see TableHandler#onRpcReply)
+      if (_rpcFailed) { // reset _encounterError so that next loop will recall server
+        // for read, if error is equal with:
+        // - ERR_SESSION_RESET,ERR_OBJECT_NOT_FOUND,ERR_INVALID_STATE: the meta config must be
+        // updated, next loop will use new config and try recover
+        // - ERR_TIMEOUT or other error: meta config not be updated, next loop will only be retry
+        // detail see TableHandler#onRpcReplay
         _encounterError = false;
         _rpcFailed = false;
       }
