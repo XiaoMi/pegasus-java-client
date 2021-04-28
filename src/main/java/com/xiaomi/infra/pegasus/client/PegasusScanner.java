@@ -86,7 +86,6 @@ public class PegasusScanner implements PegasusScannerInterface {
   }
 
   public Future<Pair<Pair<byte[], byte[]>, byte[]>> asyncNext() {
-
     final DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>> promise = _table.newPromise();
     synchronized (_promisesLock) {
       if (_promises.isEmpty()) {
@@ -116,7 +115,6 @@ public class PegasusScanner implements PegasusScannerInterface {
   }
 
   private void asyncStartScan() {
-    System.out.println("asyncStartScan");
     if (_rpcRunning) {
       logger.error(
           "scan rpc already be running, encounter logic error, we just abandon this scan, "
@@ -166,7 +164,6 @@ public class PegasusScanner implements PegasusScannerInterface {
   }
 
   private void asyncNextBatch() {
-
     if (_rpcRunning) {
       logger.error(
           "scan rpc already be running, encounter logic error, we just abandon this scan, "
@@ -225,9 +222,9 @@ public class PegasusScanner implements PegasusScannerInterface {
         _encounterError = true;
         _cause = new PException("rocksDB error: " + response.error);
       }
-    } else {
+    } else {// rpc failed
       _encounterError = true;
-      _cause = new PException("scan failed with error:" + err.errno);
+      _cause = new PException("scan failed with error: " + err.errno);
     }
   }
 
