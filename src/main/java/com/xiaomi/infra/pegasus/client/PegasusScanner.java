@@ -222,7 +222,7 @@ public class PegasusScanner implements PegasusScannerInterface {
         _encounterError = true;
         _cause = new PException("rocksDB error: " + response.error);
       }
-    } else {// rpc failed
+    } else { // rpc failed
       _encounterError = true;
       _cause = new PException("scan failed with error: " + err.errno);
     }
