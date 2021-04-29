@@ -300,6 +300,17 @@ public class PegasusScanner implements PegasusScannerInterface {
     _contextId = CONTEXT_ID_NOT_EXIST;
   }
 
+  protected void mockEncounterErrorForTest() {
+    _encounterError = true;
+    _cause = new PException("encounter unknown error");
+  }
+
+  protected void mockRpcErrorForTest() {
+    _encounterError = true;
+    _rpcFailed = true;
+    _cause = new PException("scan failed with error rpc");
+  }
+
   private Table _table;
   private blob _startKey;
   private blob _stopKey;
@@ -320,8 +331,8 @@ public class PegasusScanner implements PegasusScannerInterface {
   private Deque<DefaultPromise<Pair<Pair<byte[], byte[]>, byte[]>>> _promises;
   private boolean _rpcRunning;
   // mark whether scan operation encounter error
-  private boolean _encounterError;
-  private boolean _rpcFailed;
+  protected boolean _encounterError; // set protect only for test class access
+  protected boolean _rpcFailed; // set protect only for test class access
   Throwable _cause;
 
   private boolean _needCheckHash;

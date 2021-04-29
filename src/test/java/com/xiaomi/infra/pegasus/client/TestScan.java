@@ -11,6 +11,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 public class TestScan {
   static char[] CCH =
@@ -330,6 +331,70 @@ public class TestScan {
     }
     scanner.close();
     compareSortMap(data, base.get(expectedHashKey), expectedHashKey);
+  }
+
+  @Test
+  public void testScanFailRecover() throws PException {
+    PegasusClientInterface client = PegasusClientFactory.getSingletonClient();
+    String tableName = "temp";
+    String hashKey = "scanHashKey";
+    int count = 0;
+    while (count++ < 100) {
+      client.set(tableName, hashKey.getBytes(), String.valueOf(count).getBytes(), "".getBytes());
+    }
+
+    ScanOptions options = new ScanOptions();
+    options.batchSize = 1;
+    PegasusScannerInterface scanner =
+        client.getScanner(tableName, hashKey.getBytes(), "".getBytes(), "".getBytes(), options);
+    Pair<Pair<byte[], byte[]>, byte[]> item;
+    List<Pair<Pair<byte[], byte[]>, byte[]>> items = new ArrayList<>();
+
+    // test encounter error
+    int loop = 0;
+    boolean mockEncounterError = false;
+    while (loop++ < 100) {
+      try {
+        if ((item = scanner.next()) != null) {
+          items.add(item);
+          if (!mockEncounterError) {
+            ((PegasusScanner) scanner)
+                .mockEncounterErrorForTest(); // only mock _encounterError = true, all the follow
+                                              // request will be failed
+            mockEncounterError = true;
+          }
+        }
+      } catch (PException e) {
+        Assertions.assertTrue(e.getMessage().contains("encounter unknown error"));
+      }
+    }
+    Assertions.assertEquals(1, items.size());
+    Assertions.assertTrue(((PegasusScanner) scanner)._encounterError);
+    Assertions.assertFalse(((PegasusScanner) scanner)._rpcFailed);
+    ((PegasusScanner) scanner)._encounterError = false;
+
+    // test encounter rpc error
+    boolean mockRpcError = false;
+    while (true) {
+      try {
+        if ((item = scanner.next()) != null) {
+          items.add(item);
+          if (!mockRpcError) {
+            ((PegasusScanner) scanner)
+                .mockRpcErrorForTest(); // mock _encounterError = true and _rpcFailed = failed,
+                                        // follow request will be recovered automatically
+            mockRpcError = true;
+          }
+        } else {
+          break;
+        }
+      } catch (PException e) {
+        Assertions.assertTrue(e.getMessage().contains("scan failed with error rpc"));
+      }
+    }
+    Assertions.assertEquals(100, items.size());
+    Assertions.assertFalse(((PegasusScanner) scanner)._encounterError);
+    Assertions.assertFalse(((PegasusScanner) scanner)._rpcFailed);
   }
 
   private static void clearDatabase() throws PException {
