@@ -383,7 +383,7 @@ public class TestScan {
           items.add(item);
           if (!mockRpcError) {
             ((PegasusScanner) scanner)
-                .mockRpcErrorForTest(); // mock _encounterError = true and _rpcFailed = failed,
+                .mockRpcErrorForTest(); // mock _encounterError = true and _rpcFailed = true,
                                         // follow request will be recovered automatically
             mockRpcError = true;
           }
