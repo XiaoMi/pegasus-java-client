@@ -372,9 +372,11 @@ public class TestScan {
     Assertions.assertTrue(((PegasusScanner) scanner)._encounterError);
     Assertions.assertFalse(((PegasusScanner) scanner)._rpcFailed);
     ((PegasusScanner) scanner)._encounterError = false;
+    items.clear();
 
     // test encounter rpc error
     boolean mockRpcError = false;
+    scanner = client.getScanner(tableName, hashKey.getBytes(), "".getBytes(), "".getBytes(), options);
     while (true) {
       try {
         if ((item = scanner.next()) != null) {
