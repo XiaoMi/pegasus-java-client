@@ -360,7 +360,7 @@ public class TestScan {
           if (!mockEncounterError) {
             ((PegasusScanner) scanner)
                 .mockEncounterErrorForTest(); // only mock _encounterError = true, all the follow
-                                              // request will be failed
+            // request will be failed
             mockEncounterError = true;
           }
         }
@@ -376,7 +376,8 @@ public class TestScan {
 
     // test encounter rpc error
     boolean mockRpcError = false;
-    scanner = client.getScanner(tableName, hashKey.getBytes(), "".getBytes(), "".getBytes(), options);
+    scanner =
+        client.getScanner(tableName, hashKey.getBytes(), "".getBytes(), "".getBytes(), options);
     while (true) {
       try {
         if ((item = scanner.next()) != null) {
@@ -384,7 +385,7 @@ public class TestScan {
           if (!mockRpcError) {
             ((PegasusScanner) scanner)
                 .mockRpcErrorForTest(); // mock _encounterError = true and _rpcFailed = true,
-                                        // follow request will be recovered automatically
+            // follow request will be recovered automatically
             mockRpcError = true;
           }
         } else {
