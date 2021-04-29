@@ -352,16 +352,15 @@ public class TestScan {
 
     // test encounter error
     int loop = 0;
-    boolean mockEncounterError = false;
+    boolean encounterErrorMocked = false;
     while (loop++ < 100) {
       try {
         if ((item = scanner.next()) != null) {
           items.add(item);
-          if (!mockEncounterError) {
-            ((PegasusScanner) scanner)
-                .mockEncounterErrorForTest(); // only mock _encounterError = true, all the follow
-            // request will be failed
-            mockEncounterError = true;
+          if (!encounterErrorMocked) {
+            // only mock _encounterError = true, all the follow request will be failed
+            ((PegasusScanner) scanner).mockEncounterErrorForTest();
+            encounterErrorMocked = true;
           }
         }
       } catch (PException e) {
@@ -375,18 +374,18 @@ public class TestScan {
     items.clear();
 
     // test encounter rpc error
-    boolean mockRpcError = false;
+    boolean rpcErrorMocked = false;
     scanner =
         client.getScanner(tableName, hashKey.getBytes(), "".getBytes(), "".getBytes(), options);
     while (true) {
       try {
         if ((item = scanner.next()) != null) {
           items.add(item);
-          if (!mockRpcError) {
-            ((PegasusScanner) scanner)
-                .mockRpcErrorForTest(); // mock _encounterError = true and _rpcFailed = true,
-            // follow request will be recovered automatically
-            mockRpcError = true;
+          if (!rpcErrorMocked) {
+            // mock _encounterError = true and _rpcFailed = true, follow request will be recovered
+            // automatically
+            ((PegasusScanner) scanner).mockRpcErrorForTest();
+            rpcErrorMocked = true;
           }
         } else {
           break;
