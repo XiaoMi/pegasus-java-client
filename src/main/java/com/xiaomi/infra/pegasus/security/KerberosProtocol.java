@@ -125,7 +125,8 @@ class KerberosProtocol implements AuthProtocol {
   }
 
   // The default refresh window is 0.8.
-  // e.g. if the lifetime of a tgt is 5min, the refresh window is 5min * 0.8 = 4min
+  // e.g. if the lifetime of a tgt is 5min, the tgt will be refreshed after 4 min(5min * 0.8 = 4min)
+  // passed
   private long getRefreshTime(KerberosTicket tgt) {
     long start = tgt.getStartTime().getTime();
     long end = tgt.getEndTime().getTime();
