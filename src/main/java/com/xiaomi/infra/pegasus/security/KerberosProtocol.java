@@ -130,9 +130,9 @@ class KerberosProtocol implements AuthProtocol {
 
   private KerberosTicket getTGT() {
     Set<KerberosTicket> tickets = this.subject.getPrivateCredentials(KerberosTicket.class);
-    Iterator iter = tickets.iterator();
 
     KerberosTicket ticket;
+    Iterator iter = tickets.iterator();
     do {
       if (!iter.hasNext()) {
         return null;
