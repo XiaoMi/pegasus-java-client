@@ -134,10 +134,10 @@ class KerberosProtocol implements AuthProtocol {
     try {
       // Authenticate the Subject (the source of the request)
       // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
-      // information
+      // information.
       // The LoginContext class provides the basic methods used to authenticate subjects, and
-      // provides a
-      // way to develop an application independent of the underlying authentication technology
+      // provides a way to develop an application independent of the underlying authentication
+      // technology
       LoginContext loginContext =
           new LoginContext(
               "pegasus-client",
