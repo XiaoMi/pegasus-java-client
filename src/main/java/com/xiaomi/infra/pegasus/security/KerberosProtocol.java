@@ -52,7 +52,7 @@ class KerberosProtocol implements AuthProtocol {
   private String serviceFqdn;
   private String keyTab;
   private String principal;
-  final int CHECK_TGT_INTEVAL = 30 * 1000;
+  final int CHECK_TGT_INTEVAL_SECONDS = 10;
 
   KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal)
       throws IllegalArgumentException {
@@ -62,7 +62,7 @@ class KerberosProtocol implements AuthProtocol {
     this.principal = principal;
 
     this.login();
-    scheduleRefreshTGT();
+    scheduleCheckTGTAndRelogin();
     logger.info("login succeed, as user {}", subject.getPrincipals().toString());
   }
 
@@ -105,9 +105,9 @@ class KerberosProtocol implements AuthProtocol {
     };
   }
 
-  private void scheduleRefreshTGT() {
+  private void scheduleCheckTGTAndRelogin() {
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> checkTGTAndRelogin(), CHECK_TGT_INTEVAL, CHECK_TGT_INTEVAL, TimeUnit.SECONDS);
+    service.scheduleAtFixedRate(() -> checkTGTAndRelogin(), CHECK_TGT_INTEVAL_SECONDS, CHECK_TGT_INTEVAL_SECONDS, TimeUnit.SECONDS);
   }
 
   private void checkTGTAndRelogin() {
