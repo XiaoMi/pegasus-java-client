@@ -77,34 +77,6 @@ class KerberosProtocol implements AuthProtocol {
     return entry.op instanceof negotiation_operator;
   }
 
-  private static Configuration getLoginContextConfiguration(String keyTab, String principal) {
-    return new Configuration() {
-      @Override
-      public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-        Map<String, String> options = new HashMap<>();
-        // TGT is obtained from the ticket cache.
-        options.put("useTicketCache", "true");
-        // get the principal's key from the the keytab
-        options.put("useKeyTab", "true");
-        // renew the TGT
-        options.put("renewTGT", "true");
-        // keytab or the principal's key to be stored in the Subject's private credentials.
-        options.put("storeKey", "true");
-        // the file name of the keytab to get principal's secret key.
-        options.put("keyTab", keyTab);
-        // the name of the principal that should be used
-        options.put("principal", principal);
-
-        return new AppConfigurationEntry[] {
-          new AppConfigurationEntry(
-              "com.sun.security.auth.module.Krb5LoginModule",
-              AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-              options)
-        };
-      }
-    };
-  }
-
   private void scheduleCheckTGTAndRelogin() {
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     service.scheduleAtFixedRate(
@@ -124,9 +96,8 @@ class KerberosProtocol implements AuthProtocol {
     this.login();
   }
 
-  // The default refresh window is 0.8.
-  // e.g. if the lifetime of a tgt is 5min, the tgt will be refreshed after 4 min(5min * 0.8 = 4min)
-  // passed
+  // The default refresh window is 0.8. e.g. if the lifetime of a tgt is 5min, the tgt will be
+  // refreshed after 4 min(5min * 0.8 = 4min) passed
   private long getRefreshTime(KerberosTicket tgt) {
     long start = tgt.getStartTime().getTime();
     long end = tgt.getEndTime().getTime();
@@ -178,5 +149,33 @@ class KerberosProtocol implements AuthProtocol {
     } catch (LoginException le) {
       throw new IllegalArgumentException("login failed: ", le);
     }
+  }
+
+  private static Configuration getLoginContextConfiguration(String keyTab, String principal) {
+    return new Configuration() {
+      @Override
+      public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+        Map<String, String> options = new HashMap<>();
+        // TGT is obtained from the ticket cache.
+        options.put("useTicketCache", "true");
+        // get the principal's key from the the keytab
+        options.put("useKeyTab", "true");
+        // renew the TGT
+        options.put("renewTGT", "true");
+        // keytab or the principal's key to be stored in the Subject's private credentials.
+        options.put("storeKey", "true");
+        // the file name of the keytab to get principal's secret key.
+        options.put("keyTab", keyTab);
+        // the name of the principal that should be used
+        options.put("principal", principal);
+
+        return new AppConfigurationEntry[] {
+          new AppConfigurationEntry(
+              "com.sun.security.auth.module.Krb5LoginModule",
+              AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+              options)
+        };
+      }
+    };
   }
 }
