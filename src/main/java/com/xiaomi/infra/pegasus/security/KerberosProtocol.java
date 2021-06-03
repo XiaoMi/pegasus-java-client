@@ -107,7 +107,11 @@ class KerberosProtocol implements AuthProtocol {
 
   private void scheduleCheckTGTAndRelogin() {
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> checkTGTAndRelogin(), CHECK_TGT_INTEVAL_SECONDS, CHECK_TGT_INTEVAL_SECONDS, TimeUnit.SECONDS);
+    service.scheduleAtFixedRate(
+        () -> checkTGTAndRelogin(),
+        CHECK_TGT_INTEVAL_SECONDS,
+        CHECK_TGT_INTEVAL_SECONDS,
+        TimeUnit.SECONDS);
   }
 
   private void checkTGTAndRelogin() {
@@ -125,7 +129,7 @@ class KerberosProtocol implements AuthProtocol {
   private long getRefreshTime(KerberosTicket tgt) {
     long start = tgt.getStartTime().getTime();
     long end = tgt.getEndTime().getTime();
-    return start + (long)((float)(end - start) * 0.8F);
+    return start + (long) ((float) (end - start) * 0.8F);
   }
 
   private KerberosTicket getTGT() {
@@ -138,8 +142,8 @@ class KerberosProtocol implements AuthProtocol {
         return null;
       }
 
-      ticket = (KerberosTicket)iter.next();
-    } while(!isTGSPrincipal(ticket.getServer()));
+      ticket = (KerberosTicket) iter.next();
+    } while (!isTGSPrincipal(ticket.getServer()));
 
     return ticket;
   }
@@ -148,7 +152,9 @@ class KerberosProtocol implements AuthProtocol {
     if (principal == null) {
       return false;
     } else {
-      return principal.getName().equals("krbtgt/" + principal.getRealm() + "@" + principal.getRealm());
+      return principal
+          .getName()
+          .equals("krbtgt/" + principal.getRealm() + "@" + principal.getRealm());
     }
   }
 
@@ -157,9 +163,11 @@ class KerberosProtocol implements AuthProtocol {
       // Authenticate the Subject (the source of the request)
       // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
       // information
-      // The LoginContext class provides the basic methods used to authenticate subjects, and provides a
+      // The LoginContext class provides the basic methods used to authenticate subjects, and
+      // provides a
       // way to develop an application independent of the underlying authentication technology
-      LoginContext loginContext = new LoginContext(
+      LoginContext loginContext =
+          new LoginContext(
               "pegasus-client",
               null,
               new TextCallbackHandler(),
