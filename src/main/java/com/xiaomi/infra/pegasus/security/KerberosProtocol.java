@@ -22,8 +22,15 @@ import com.sun.security.auth.callback.TextCallbackHandler;
 import com.xiaomi.infra.pegasus.operator.negotiation_operator;
 import com.xiaomi.infra.pegasus.rpc.async.ReplicaSession;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.security.auth.Subject;
+import javax.security.auth.kerberos.KerberosPrincipal;
+import javax.security.auth.kerberos.KerberosTicket;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
@@ -41,32 +48,21 @@ class KerberosProtocol implements AuthProtocol {
   // request. The JAAS framework defines the term "subject" to represent the source of a request. A
   // subject may be any entity, such as a person or a service.
   private Subject subject;
-  // The LoginContext class provides the basic methods used to authenticate subjects, and provides a
-  // way to develop an application independent of the underlying authentication technology
-  private LoginContext loginContext;
   private String serviceName;
   private String serviceFqdn;
+  private String keyTab;
+  private String principal;
+  final int CHECK_TGT_INTEVAL = 30 * 1000;
 
   KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal)
       throws IllegalArgumentException {
     this.serviceName = serviceName;
     this.serviceFqdn = serviceFqdn;
-    try {
-      // Authenticate the Subject (the source of the request)
-      // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
-      // information
-      this.subject = new Subject();
-      this.loginContext =
-          new LoginContext(
-              "pegasus-client",
-              subject,
-              new TextCallbackHandler(),
-              getLoginContextConfiguration(keyTab, principal));
-      this.loginContext.login();
-    } catch (LoginException le) {
-      throw new IllegalArgumentException("login failed: ", le);
-    }
+    this.keyTab = keyTab;
+    this.principal = principal;
 
+    this.login();
+    scheduleRefreshTGT();
     logger.info("login succeed, as user {}", subject.getPrincipals().toString());
   }
 
@@ -107,5 +103,71 @@ class KerberosProtocol implements AuthProtocol {
         };
       }
     };
+  }
+
+  private void scheduleRefreshTGT() {
+    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    service.scheduleAtFixedRate(() -> checkTGTAndRelogin(), CHECK_TGT_INTEVAL, CHECK_TGT_INTEVAL, TimeUnit.SECONDS);
+  }
+
+  private void checkTGTAndRelogin() {
+    KerberosTicket tgt = getTGT();
+    if (tgt != null && System.currentTimeMillis() < getRefreshTime(tgt)) {
+      return;
+    }
+
+    // relogin if tgt is null or the tgt is almost expired
+    this.login();
+  }
+
+  // The default refresh window is 0.8.
+  // e.g. if the lifetime of a tgt is 5min, the refresh window is 5min * 0.8 = 4min
+  private long getRefreshTime(KerberosTicket tgt) {
+    long start = tgt.getStartTime().getTime();
+    long end = tgt.getEndTime().getTime();
+    return start + (long)((float)(end - start) * 0.8F);
+  }
+
+  private KerberosTicket getTGT() {
+    Set<KerberosTicket> tickets = this.subject.getPrivateCredentials(KerberosTicket.class);
+    Iterator iter = tickets.iterator();
+
+    KerberosTicket ticket;
+    do {
+      if (!iter.hasNext()) {
+        return null;
+      }
+
+      ticket = (KerberosTicket)iter.next();
+    } while(!isTGSPrincipal(ticket.getServer()));
+
+    return ticket;
+  }
+
+  private boolean isTGSPrincipal(KerberosPrincipal principal) {
+    if (principal == null) {
+      return false;
+    } else {
+      return principal.getName().equals("krbtgt/" + principal.getRealm() + "@" + principal.getRealm());
+    }
+  }
+
+  private void login() throws IllegalArgumentException {
+    try {
+      // Authenticate the Subject (the source of the request)
+      // A LoginModule uses a CallbackHandler to communicate with the user to obtain authentication
+      // information
+      // The LoginContext class provides the basic methods used to authenticate subjects, and provides a
+      // way to develop an application independent of the underlying authentication technology
+      LoginContext loginContext = new LoginContext(
+              "pegasus-client",
+              null,
+              new TextCallbackHandler(),
+              getLoginContextConfiguration(keyTab, principal));
+      loginContext.login();
+      this.subject = loginContext.getSubject();
+    } catch (LoginException le) {
+      throw new IllegalArgumentException("login failed: ", le);
+    }
   }
 }
