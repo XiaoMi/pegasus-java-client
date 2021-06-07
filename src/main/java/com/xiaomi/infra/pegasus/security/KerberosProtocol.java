@@ -53,6 +53,7 @@ class KerberosProtocol implements AuthProtocol {
   private String keyTab;
   private String principal;
   final int CHECK_TGT_INTEVAL_SECONDS = 10;
+  final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
 
   KerberosProtocol(String serviceName, String serviceFqdn, String keyTab, String principal)
       throws IllegalArgumentException {
@@ -78,7 +79,6 @@ class KerberosProtocol implements AuthProtocol {
   }
 
   private void scheduleCheckTGTAndRelogin() {
-    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
     service.scheduleAtFixedRate(
         () -> checkTGTAndRelogin(),
         CHECK_TGT_INTEVAL_SECONDS,
