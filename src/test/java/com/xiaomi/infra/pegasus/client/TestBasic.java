@@ -6,6 +6,8 @@ package com.xiaomi.infra.pegasus.client;
 /** @author qinzuoyan */
 import com.xiaomi.infra.pegasus.client.PegasusTable.ScanRangeResult;
 import com.xiaomi.infra.pegasus.client.PegasusTableInterface.MultiGetSortKeysResult;
+import com.xiaomi.infra.pegasus.tools.Utils;
+
 import io.netty.util.concurrent.Future;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2258,7 +2260,7 @@ public class TestBasic {
   @Test
   public void createClient() throws PException {
     System.out.println("test createClient with clientOptions");
-    ClientOptions clientOptions = ClientOptions.create();
+    ClientOptions clientOptions = Utils.getClientOptions();
     byte[] value = null;
 
     // test createClient(clientOptions)
@@ -2318,7 +2320,7 @@ public class TestBasic {
 
     // test getSingletonClient(ClientOptions options) --> different clientOptions,but values of
     // clientOptions is same
-    ClientOptions clientOptions1 = ClientOptions.create();
+    ClientOptions clientOptions1 = Utils.getClientOptions();
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions1);
       singletonClient1.set(
@@ -2339,11 +2341,9 @@ public class TestBasic {
 
     // test getSingletonClient(ClientOptions options) --> different clientOptions,and values of
     // clientOptions is different
-    ClientOptions clientOptions2 =
-        ClientOptions.builder()
-            .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
-            .asyncWorkers(5) // default value is 4,this set different value
-            .build();
+    ClientOptions clientOptions2 = Utils.getClientOptionsBuilder()
+        .asyncWorkers(5) // default value is 4,this set different value
+        .build();
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions2);
       singletonClient1.set(
@@ -2516,7 +2516,7 @@ public class TestBasic {
     PegasusClientInterface client1 = PegasusClientFactory.getSingletonClient();
     testWriteSizeLimit(client1);
     // Test config from ClientOptions
-    ClientOptions clientOptions = ClientOptions.create();
+    ClientOptions clientOptions = Utils.getClientOptions();
     PegasusClientInterface client2 = PegasusClientFactory.createClient(clientOptions);
     testWriteSizeLimit(client2);
   }
