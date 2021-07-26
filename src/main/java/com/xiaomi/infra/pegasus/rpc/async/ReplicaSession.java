@@ -483,7 +483,7 @@ public class ReplicaSession {
 
   // Timestamp of the first timed out rpc.
   private AtomicLong firstRecentTimedOutMs;
-  private final long sessionResetTimeWindowMs; // 10s
+  private final long sessionResetTimeWindowMs;
 
   private static final Logger logger = org.slf4j.LoggerFactory.getLogger(ReplicaSession.class);
 }
