@@ -48,7 +48,7 @@ public class ClientOptions {
   public static final String PEGASUS_PUSH_COUNTER_INTERVAL_SECS_KEY = "push_counter_interval_secs";
   public static final String PEGASUS_META_QUERY_TIMEOUT_KEY = "meta_query_timeout";
   public static final String PEGASUS_AUTH_PROTOCOL_KEY = "auth_protocol";
-  public static final String PEGASUS_SESSION_RESET_TIME_WINDOW_KEY =
+  public static final String PEGASUS_SESSION_RESET_TIME_WINDOW_SECS_KEY =
       "session_reset_time_window_secs";
 
   public static final String DEFAULT_META_SERVERS =
@@ -61,7 +61,7 @@ public class ClientOptions {
   public static final boolean DEFAULT_ENABLE_WRITE_LIMIT = true;
   public static final Duration DEFAULT_META_QUERY_TIMEOUT = Duration.ofMillis(5000);
   public static final String DEFAULT_AUTH_PROTOCOL = "";
-  public static final long DEFAULT_SESSION_RESET_WINDOW = 30;
+  public static final long DEFAULT_SESSION_RESET_SECS_WINDOW = 30;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -163,7 +163,8 @@ public class ClientOptions {
     String authProtocol = config.getString(PEGASUS_AUTH_PROTOCOL_KEY, DEFAULT_AUTH_PROTOCOL);
     Credential credential = Credential.create(authProtocol, config);
     long sessionResetTimeWindowSecs =
-        config.getLong(PEGASUS_SESSION_RESET_TIME_WINDOW_KEY, DEFAULT_SESSION_RESET_WINDOW);
+        config.getLong(
+            PEGASUS_SESSION_RESET_TIME_WINDOW_SECS_KEY, DEFAULT_SESSION_RESET_SECS_WINDOW);
 
     return ClientOptions.builder()
         .metaServers(metaList)
@@ -245,7 +246,7 @@ public class ClientOptions {
     private Duration metaQueryTimeout = DEFAULT_META_QUERY_TIMEOUT;
     private String authProtocol = DEFAULT_AUTH_PROTOCOL;
     private Credential credential = null;
-    private long sessionResetTimeWindowSecs = DEFAULT_SESSION_RESET_WINDOW;
+    private long sessionResetTimeWindowSecs = DEFAULT_SESSION_RESET_SECS_WINDOW;
 
     protected Builder() {}
 
@@ -383,7 +384,7 @@ public class ClientOptions {
      * reset
      *
      * @param sessionResetTimeWindowSecs sessionResetTimeWindowSecs must >= 10s, Defaults to
-     *     {@linkplain #DEFAULT_SESSION_RESET_WINDOW}
+     *     {@linkplain #DEFAULT_SESSION_RESET_SECS_WINDOW}
      * @return {@code this}
      */
     public Builder sessionResetTimeWindowSecs(long sessionResetTimeWindowSecs) {
