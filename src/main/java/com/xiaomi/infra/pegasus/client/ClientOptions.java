@@ -522,7 +522,7 @@ public class ClientOptions {
   /**
    * credential info. Defaults to {@literal null}
    *
-   * @return credentialhttps://github.com/XiaoMi/rdsn/pull/862
+   * @return credential
    */
   public Credential getCredential() {
     return credential;
