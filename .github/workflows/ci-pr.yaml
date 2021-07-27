@@ -1,0 +1,29 @@
+
+on:
+  pull_request:
+    types: [ synchronize, opened ]
+    branches:
+        - master
+        - 'v[0-9]+.*' # release branch
+        - ci-test # testing branch for github action
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: foramt
+        run: ./scripts/format-all.sh
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: ci
+        run: ./scripts/travis.sh
