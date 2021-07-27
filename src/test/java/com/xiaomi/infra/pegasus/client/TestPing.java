@@ -13,7 +13,6 @@ import org.junit.Test;
 public class TestPing {
   @Test
   public void testPing() throws PException {
-    System.out.println("HHHHHHHHHHHHHHHHHHHHHHH");
     PegasusClientInterface client =
         PegasusClientFactory.createClient("resource:///pegasus.properties");
     String tableName = "temp";
