@@ -20,7 +20,6 @@
 name: CI - Test
 on:
   pull_request:
-    types: [ synchronize, opened ]
     branches:
         - master
         - 'v[0-9]+.*' # release branch
