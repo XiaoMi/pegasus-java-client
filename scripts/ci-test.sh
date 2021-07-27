@@ -40,6 +40,12 @@ shellcheck_must_pass ./scripts/ci-test.sh
 PEGASUS_PKG="pegasus-tools-2.0.0-5d969e8-glibc2.12-release"
 PEGASUS_PKG_URL="https://github.com/apache/incubator-pegasus/releases/download/v2.0.0/pegasus-tools-2.0.0-5d969e8-glibc2.12-release.tar.gz"
 
+# check format
+if ! mvn spotless:check
+then
+    exit 1
+fi
+
 # start pegasus onebox environment
 if [ ! -f $PEGASUS_PKG.tar.gz ]; then
     wget $PEGASUS_PKG_URL
@@ -50,7 +56,7 @@ cd $PEGASUS_PKG
 ./run.sh start_onebox -w
 cd ../
 
-if ! mvn spotless:check clean test
+if ! mvn clean test
 then
     cd $PEGASUS_PKG
     ./run.sh list_onebox
