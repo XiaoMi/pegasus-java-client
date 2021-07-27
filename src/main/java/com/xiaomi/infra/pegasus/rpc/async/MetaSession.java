@@ -129,6 +129,7 @@ public class MetaSession extends HostNameResolver {
   }
 
   private void asyncCall(final MetaRequestRound round) {
+    System.out.println("jiashuo:" + round.lastSession.toString());
     round.lastSession.asyncSend(
         round.op,
         new Runnable() {
@@ -258,6 +259,7 @@ public class MetaSession extends HostNameResolver {
    * Resolves hostname:port into a set of ip addresses.
    */
   void resolveHost(String hostPort) throws IllegalArgumentException {
+    System.out.println("jiashuo-resolve: " + hostPort);
     rpc_address[] addrs = resolve(hostPort);
     if (addrs == null) {
       logger.error("failed to resolve address \"{}\" into ip addresses", hostPort);
