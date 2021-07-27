@@ -37,8 +37,7 @@ jobs:
       matrix:
         java: [ '8', '11']
     steps:
-      - name: CacheMaven
-        uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
