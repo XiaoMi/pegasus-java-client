@@ -27,7 +27,7 @@ public class TestRpcAddress {
   @Test
   public void testResolveFromHostPort() throws Exception {
     HostNameResolver hostNameResolver = new HostNameResolver();
-    rpc_address[] addrs = hostNameResolver.resolve("127.0.0.1:34601");
+    rpc_address[] addrs = hostNameResolver. resolve("127.0.0.1:34601");
 
     Assert.assertNotNull(addrs);
     Assert.assertEquals(addrs.length, 1);
