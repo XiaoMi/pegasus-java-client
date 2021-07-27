@@ -19,6 +19,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: lint
-        run: ./scripts/format.sh
+        run: ./scripts/format-all.sh
       - name: ci
         run: ./scripts/travis.sh
