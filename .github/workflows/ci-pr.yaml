@@ -47,7 +47,5 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: ${{ matrix.java }}
-      - name: lint
-        run: ./scripts/format-all.sh
       - name: ci
         run: ./scripts/ci-test.sh

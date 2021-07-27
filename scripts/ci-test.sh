@@ -34,7 +34,7 @@ function shellcheck_must_pass()
     fi
 }
 shellcheck_must_pass ./scripts/format-all.sh
-shellcheck_must_pass ./scripts/travis.sh
+shellcheck_must_pass ./scripts/ci-test.sh
 
 # ensure source files are well formatted
 ./scripts/format-all.sh
