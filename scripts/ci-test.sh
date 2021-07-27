@@ -33,16 +33,7 @@ function shellcheck_must_pass()
         exit 1
     fi
 }
-shellcheck_must_pass ./scripts/format-all.sh
 shellcheck_must_pass ./scripts/ci-test.sh
-
-# ensure source files are well formatted
-./scripts/format-all.sh
-if [[ $(git status -s) ]]; then
-    git status -s
-    echo "please format the above files before commit"
-    exit 1
-fi
 
 # The new version of pegasus client is not compatible with old version server which contains old rpc protocol,
 # So we use snapshot version of pegasus-tools, because we don`t have a new release version, which contains the new version of rpc protocol,
@@ -59,7 +50,7 @@ cd $PEGASUS_PKG
 ./run.sh start_onebox -w
 cd ../
 
-if ! mvn clean test
+if ! mvn spotless:check clean test
 then
     cd $PEGASUS_PKG
     ./run.sh list_onebox
