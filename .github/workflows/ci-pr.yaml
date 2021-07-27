@@ -24,7 +24,6 @@ on:
     branches:
         - master
         - 'v[0-9]+.*' # release branch
-        - ci-test # testing branch for github action
   workflow_dispatch:
 
 defaults:
