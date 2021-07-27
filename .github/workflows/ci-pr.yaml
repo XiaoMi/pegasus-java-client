@@ -13,17 +13,12 @@ defaults:
     shell: bash
 
 jobs:
-  lint:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: foramt
-        run: ./scripts/format-all.sh
   test:
     name: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: lint
+        run: ./scripts/format.sh
       - name: ci
         run: ./scripts/travis.sh
