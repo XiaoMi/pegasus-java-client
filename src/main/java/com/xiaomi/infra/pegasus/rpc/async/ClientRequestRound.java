@@ -58,7 +58,7 @@ public final class ClientRequestRound {
 
     this.enableCounter = enableCounter;
     this.createNanoTime = System.nanoTime();
-    this.expireNanoTime = createNanoTime + TimeUnit.MILLISECONDS.toNanos(timeoutInMilliseconds);;
+    this.expireNanoTime = createNanoTime + TimeUnit.MILLISECONDS.toNanos(timeoutInMilliseconds);
     this.isCompleted = false;
     this.tryId = 1;
     this.backupRequestTask = null;
