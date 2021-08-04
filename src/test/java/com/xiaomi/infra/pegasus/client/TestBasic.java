@@ -2260,7 +2260,7 @@ public class TestBasic {
   @Test
   public void createClient() throws PException {
     System.out.println("test createClient with clientOptions");
-    ClientOptions clientOptions = Utils.getClientOptions();
+    ClientOptions clientOptions = ClientOptions.create("resource:///pegasus.properties");
     byte[] value = null;
 
     // test createClient(clientOptions)
@@ -2320,7 +2320,7 @@ public class TestBasic {
 
     // test getSingletonClient(ClientOptions options) --> different clientOptions,but values of
     // clientOptions is same
-    ClientOptions clientOptions1 = Utils.getClientOptions();
+    ClientOptions clientOptions1 = ClientOptions.create("resource:///pegasus.properties");
     try {
       singletonClient1 = PegasusClientFactory.getSingletonClient(clientOptions1);
       singletonClient1.set(
@@ -2516,7 +2516,7 @@ public class TestBasic {
     PegasusClientInterface client1 = PegasusClientFactory.getSingletonClient();
     testWriteSizeLimit(client1);
     // Test config from ClientOptions
-    ClientOptions clientOptions = Utils.getClientOptions();
+    ClientOptions clientOptions = ClientOptions.create("resource:///pegasus.properties");
     PegasusClientInterface client2 = PegasusClientFactory.createClient(clientOptions);
     testWriteSizeLimit(client2);
   }

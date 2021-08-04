@@ -26,17 +26,6 @@ import com.xiaomi.infra.pegasus.client.PException;
 import java.util.Properties;
 
 public class Utils {
-  /**
-   * Get {@link ClientOptions} from pegasus.properties
-   *
-   * @return ClientOptions
-   */
-  public static ClientOptions getClientOptions() throws PException {
-    Properties properties = PConfigUtil.loadConfiguration("resource:///pegasus.properties");
-    String metaServers = properties.getProperty(ClientOptions.PEGASUS_META_SERVERS_KEY);
-    return ClientOptions.builder().metaServers(metaServers).build();
-  }
-
     /**
      * Get {@link ClientOptions.Builder} from pegasus.properties
      *
