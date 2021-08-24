@@ -39,7 +39,7 @@ public class PegasusClientFactory {
   /**
    * Create a client instance. After used, should call client.close() to release resource.
    *
-   * @param properties
+   * @param properties properties
    * @return PegasusClientInterface {@link PegasusClientInterface}
    * @throws PException throws exception if any error occurs.
    */
@@ -110,6 +110,7 @@ public class PegasusClientFactory {
    * Get the singleton client instance with properties. After used, should call
    * PegasusClientFactory.closeSingletonClient() to release resource.
    *
+   * @param properties properties
    * @return PegasusClientInterface {@link PegasusClientInterface}
    * @throws PException throws exception if any error occurs.
    */
