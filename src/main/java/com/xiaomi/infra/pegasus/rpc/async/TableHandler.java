@@ -139,6 +139,7 @@ public class TableHandler extends Table {
     if (tableConfig_.get().replicas.get(index).ballot < 0) {
       logger.info(
           "Table[{}] is executing partition split, partition[{}] is not ready, requests will send to parent partition[{}]",
+          tableName_,
           index,
           index - getPartitionCount() / 2);
       index -= getPartitionCount() / 2;
