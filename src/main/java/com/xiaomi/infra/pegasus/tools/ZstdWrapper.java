@@ -6,7 +6,6 @@ import com.xiaomi.infra.pegasus.client.PException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 /** ZstdWrapper wraps the compress/decompress APIs of ZStd algorithm. */
 public class ZstdWrapper {
