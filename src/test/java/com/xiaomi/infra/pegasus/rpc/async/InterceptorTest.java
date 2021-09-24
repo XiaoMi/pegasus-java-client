@@ -58,4 +58,5 @@ public class InterceptorTest {
     byte[] ret = compressTable.get("not-exist".getBytes(), sortKey, 10000);
     Assertions.assertNull(ret);
   }
+
 }
