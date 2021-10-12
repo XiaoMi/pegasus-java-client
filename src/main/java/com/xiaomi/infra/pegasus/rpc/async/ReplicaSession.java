@@ -61,13 +61,13 @@ public class ReplicaSession {
       long sessionResetTimeWindowSec,
       ReplicaSessionInterceptorManager interceptorManager) {
     this.address = address;
-    this.rpcGroup = rpcGroup;
+    this.rpcGroup = rpcGroup.next();
     this.interceptorManager = interceptorManager;
     this.sessionResetTimeWindowMs = sessionResetTimeWindowSec * 1000;
 
     final ReplicaSession this_ = this;
     boot = new Bootstrap();
-    boot.group(rpcGroup)
+    boot.group(this.rpcGroup)
         .channel(ClusterManager.getSocketChannelClass())
         .option(ChannelOption.TCP_NODELAY, true)
         .option(ChannelOption.SO_KEEPALIVE, true)
