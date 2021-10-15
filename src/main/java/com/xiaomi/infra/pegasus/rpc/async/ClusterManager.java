@@ -172,6 +172,7 @@ public class ClusterManager extends Cluster {
     Future metaGroupFuture = metaGroup.shutdownGracefully();
     Future replicaGroupFuture = replicaGroup.shutdownGracefully();
     Future tableGroupFuture = tableGroup.shutdownGracefully();
+    Future timeoutTaskGroupFuture = timeoutTaskGroup.shutdownGracefully();
 
     try {
       metaGroupFuture.sync();
@@ -192,6 +193,13 @@ public class ClusterManager extends Cluster {
       logger.info("table group has closed");
     } catch (Exception ex) {
       logger.warn("close table group failed: ", ex);
+    }
+
+    try {
+      timeoutTaskGroupFuture.sync();
+      logger.info("timeout task group has closed");
+    } catch (Exception ex) {
+      logger.warn("close timeout task group failed: ", ex);
     }
 
     logger.info("cluster manager has closed");
