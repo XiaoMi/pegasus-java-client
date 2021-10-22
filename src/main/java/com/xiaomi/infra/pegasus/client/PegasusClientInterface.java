@@ -70,7 +70,7 @@ public interface PegasusClientInterface {
    * @param tableOptions control the table feature, such as open backup-request, compress and etc,
    *     see {@link TableOptions}
    * @return
-   * @throws PException
+   * @throws PException throws exception if any error occurs.
    */
   public PegasusTableInterface openTable(String tableName, TableOptions tableOptions)
       throws PException;
