@@ -56,7 +56,7 @@ public class PegasusScanner implements PegasusScannerInterface {
       blob stopKey,
       long[] partitionHashes,
       boolean needCheckHash,
-      boolean full_scan) {
+      boolean fullScan) {
     _table = table;
     _partitionHashes = partitionHashes;
     _partitions = partitions == null ? new gpid[0] : partitions;
@@ -72,7 +72,7 @@ public class PegasusScanner implements PegasusScannerInterface {
     _encounterError = false;
     _needCheckHash = needCheckHash;
     _incomplete = false;
-    _fullScan = full_scan;
+    _fullScan = fullScan;
   }
 
   public Pair<Pair<byte[], byte[]>, byte[]> next() throws PException {
