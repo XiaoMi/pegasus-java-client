@@ -40,6 +40,6 @@ jobs:
     name: issue link check
     runs-on: ubuntu-latest
     steps:
-      - uses: Slashgear/action-check-pr-title@2.0.0
+      - uses: Slashgear/action-check-pr-title@3.0.0
         with:
           regex: '.*\[issue#.*\]' # Regex the title should match.
