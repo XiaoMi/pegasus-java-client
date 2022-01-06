@@ -20,7 +20,7 @@
 name: CI - License
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize']
+    types: ['edited', 'reopened']
     branches:
       - master
 
