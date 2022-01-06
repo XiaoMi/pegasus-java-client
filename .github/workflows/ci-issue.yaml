@@ -1,4 +1,4 @@
-name: issue ref check
+name: CI-Issue
 
 on:
   pull_request:
