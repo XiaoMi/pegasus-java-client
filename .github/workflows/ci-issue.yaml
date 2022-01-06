@@ -16,5 +16,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ticketLink: 'https://github.com/apache/incubator-pegasus/issues/%ticketNumber%'
           ticketPrefix: '#'
-          bodyRegex: 'issue#(?<ticketNumber>\d+)'
+          bodyRegex: 'issue #(?<ticketNumber>\d+)'
           bodyURLRegex: 'http(s?):\/\/(github.com)(\/apache)(\/incubator-pegasus)(\/issues)\/(?<ticketNumber>\d+)'
