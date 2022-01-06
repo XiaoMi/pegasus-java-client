@@ -1,4 +1,4 @@
-name: CI-Issue
+name: CI - Issue
 
 on:
   pull_request:
