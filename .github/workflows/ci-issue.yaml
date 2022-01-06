@@ -1,0 +1,14 @@
+name: Check Issue Reference
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  check-reference:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-cool/check-issue-ref@v1
+        id: check
+
+      - run: echo ref ${{ steps.check.outputs.result }}
