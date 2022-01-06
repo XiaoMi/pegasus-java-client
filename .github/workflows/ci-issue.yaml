@@ -25,7 +25,7 @@ on:
 
 jobs:
   title:
-    name: ticket check
+    name: Issue check
     runs-on: ubuntu-latest
 
     steps:
