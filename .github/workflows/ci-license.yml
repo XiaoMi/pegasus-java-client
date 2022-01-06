@@ -45,9 +45,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ticketLink: 'https://github.com/apache/incubator-pegasus/issues/%ticketNumber%'
-          ticketPrefix: ''
-          titleRegex: '(?<ticketNumber>\d+)'
-          branchRegex: '(?<ticketNumber>\d+)'
-          bodyRegex: '(?<ticketNumber>\d+)'
-          bodyURLRegex: 'http(s?):\/\/(:org.atlassian.net)(\/browse)\/(?<ticketNumber>\d+)'
+          ticketPrefix: '#'
+          titleRegex: '^#(?<ticketNumber>\d+)'
+          branchRegex: '^(?<ticketNumber>\d+)'
+          bodyRegex: '#(?<ticketNumber>\d+)'
+          bodyURLRegex: 'http(s?):\/\/(github.com)(\/apache)(\/incubator-pegasus)(\/issues)\/(?<ticketNumber>\d+)'
 
