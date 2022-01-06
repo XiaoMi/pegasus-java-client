@@ -1,4 +1,4 @@
-name: Pull Request Lint
+name: issue ref check
 
 on:
   pull_request:
