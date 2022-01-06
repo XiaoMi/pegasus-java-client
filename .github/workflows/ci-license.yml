@@ -36,3 +36,11 @@ jobs:
           java-version: 1.8
       - name: check license
         run: mvn license:check
+  check-reference:
+    name: issue check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-cool/check-issue-ref@v1
+        id: check
+
+      - run: echo ref ${{ steps.check.outputs.result }}
