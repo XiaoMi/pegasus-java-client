@@ -33,7 +33,6 @@ jobs:
         uses: neofinancial/ticket-check-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ticketLink: 'https://github.com/apache/incubator-pegasus/issues/%ticketNumber%'
           ticketPrefix: '#'
-          bodyRegex: 'jiashuo #(?<ticketNumber>\d+)'
-          bodyURLRegex: 'http(s?):\/\/(github.com)(\/apache)(\/incubator-pegasus)(\/issues)\/(?<ticketNumber>\d+)'
+          bodyRegex: 'issue #(\d+)'
+          bodyURLRegex: 'http(s?):\/\/(github.com)(\/apache)(\/incubator-pegasus)(\/issues)\/\d+'
