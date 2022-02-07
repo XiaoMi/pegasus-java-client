@@ -3,6 +3,8 @@
 // can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.apps.batch_get_request;
+import com.xiaomi.infra.pegasus.apps.full_data;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.List;
@@ -172,6 +174,16 @@ public interface PegasusTableInterface {
     public List<Pair<byte[], byte[]>> values;
   }
 
+  public static class BatchGetResult {
+    /**
+     * @param allFetched true if all data on the server are fetched; false if only partial data are
+     *     fetched.
+     */
+    public boolean allFetched;
+
+    public List<full_data> values;
+  }
+
   public static interface MultiGetListener extends GenericFutureListener<Future<MultiGetResult>> {
     /**
      * This function will be called when listened asyncMultiGet future is done.
@@ -183,6 +195,13 @@ public interface PegasusTableInterface {
     @Override
     public void operationComplete(Future<MultiGetResult> future) throws Exception;
   }
+
+  /**
+   * @param request
+   * @param timeout
+   * @return
+   */
+  public Future<BatchGetResult> asyncBatchGet(batch_get_request request, int timeout);
 
   /**
    * get multiple key-values under the same hashKey, async version
@@ -744,6 +763,10 @@ public interface PegasusTableInterface {
    */
   @Deprecated
   public void batchGet(List<Pair<byte[], byte[]>> keys, List<byte[]> values, int timeout /*ms*/)
+      throws PException;
+
+  public int batchGet3(
+      List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout /*ms*/)
       throws PException;
 
   /**
