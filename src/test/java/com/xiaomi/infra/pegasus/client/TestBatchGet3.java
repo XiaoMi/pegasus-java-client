@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 public class TestBatchGet3 {
@@ -61,7 +62,9 @@ public class TestBatchGet3 {
 
   @Test
   public void testStableQpsForPegasusShellShow() throws Exception {
-    // auxiliary test
+    // only for auxiliary test
+    Assume.assumeTrue(false);
+
     String tableName = "temp";
     PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
 
