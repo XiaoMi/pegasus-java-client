@@ -59,6 +59,10 @@ public abstract class Table {
 
   public abstract int getDefaultTimeout();
 
+  public abstract int getDefaultMaxFetchCount();
+
+  public abstract int getDefaultMaxFetchSize();
+
   public abstract int getPartitionCount();
 
   public abstract void operate(client_operator op, int timeoutMs) throws ReplicationException;

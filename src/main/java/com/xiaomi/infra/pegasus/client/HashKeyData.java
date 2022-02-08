@@ -11,6 +11,7 @@ import org.apache.commons.lang3.tuple.Pair;
  *     <p>Store data under the same hashKey.
  */
 public class HashKeyData {
+  public boolean allFetched = true;
   public byte[] hashKey = null;
   public List<Pair<byte[], byte[]>> values = null; // List{sortKey, value}
 
@@ -23,6 +24,11 @@ public class HashKeyData {
   public HashKeyData(byte[] hashKey, List<Pair<byte[], byte[]>> values) {
     this.hashKey = hashKey;
     this.values = values;
+  }
+
+  public HashKeyData(boolean allFetched, byte[] hashKey, List<Pair<byte[], byte[]>> values) {
+    this(hashKey, values);
+    this.allFetched = allFetched;
   }
 
   public void addData(byte[] sortKey, byte[] value) {
