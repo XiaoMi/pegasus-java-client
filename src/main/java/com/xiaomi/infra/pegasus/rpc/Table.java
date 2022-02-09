@@ -61,7 +61,7 @@ public abstract class Table {
 
   public abstract int getDefaultMaxFetchCount();
 
-  public abstract int getDefaultMaxFetchSize();
+  public abstract int getDefaultMaxFetchBytes();
 
   public abstract int getPartitionCount();
 

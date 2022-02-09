@@ -285,7 +285,7 @@ public class PegasusTable implements PegasusTableInterface {
         hashKey,
         sortKeys,
         table.getDefaultMaxFetchCount(),
-        table.getDefaultMaxFetchSize(),
+        table.getDefaultMaxFetchBytes(),
         false,
         timeout);
   }
@@ -375,7 +375,7 @@ public class PegasusTable implements PegasusTableInterface {
         stopSortKey,
         options,
         table.getDefaultMaxFetchCount(),
-        table.getDefaultMaxFetchSize(),
+        table.getDefaultMaxFetchBytes(),
         timeout);
   }
 
@@ -410,7 +410,7 @@ public class PegasusTable implements PegasusTableInterface {
   @Override
   public Future<MultiGetSortKeysResult> asyncMultiGetSortKeys(byte[] hashKey, int timeout) {
     return asyncMultiGetSortKeys(
-        hashKey, table.getDefaultMaxFetchCount(), table.getDefaultMaxFetchSize(), timeout);
+        hashKey, table.getDefaultMaxFetchCount(), table.getDefaultMaxFetchBytes(), timeout);
   }
 
   @Override

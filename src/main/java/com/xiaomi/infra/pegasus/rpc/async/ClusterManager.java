@@ -43,7 +43,7 @@ public class ClusterManager extends Cluster {
   private int operationTimeout;
   private long sessionResetTimeWindowSecs;
   private int maxFetchCount;
-  private int maxFetchSize;
+  private int maxFetchBytes;
   private int retryDelay;
   private boolean enableCounter;
 
@@ -69,7 +69,7 @@ public class ClusterManager extends Cluster {
     this.enableCounter = opts.isEnablePerfCounter();
     this.sessionResetTimeWindowSecs = opts.getSessionResetTimeWindowSecs();
     this.maxFetchCount = opts.getMaxFetchCount();
-    this.maxFetchSize = opts.getMaxFetchSize();
+    this.maxFetchBytes = opts.getMaxFetchBytes();
     if (enableCounter) {
       MetricsManager.detectHostAndInit(
           opts.getFalconPerfCounterTags(), (int) opts.getFalconPushInterval().getSeconds());
@@ -127,8 +127,8 @@ public class ClusterManager extends Cluster {
     return maxFetchCount;
   }
 
-  public int getMaxFetchSize() {
-    return maxFetchSize;
+  public int getMaxFetchBytes() {
+    return maxFetchBytes;
   }
 
   public long getRetryDelay(long timeoutMs) {

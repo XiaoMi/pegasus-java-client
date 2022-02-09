@@ -21,14 +21,10 @@ public class HashKeyData {
     this.hashKey = hashKey;
   }
 
-  public HashKeyData(byte[] hashKey, List<Pair<byte[], byte[]>> values) {
+  public HashKeyData(boolean allFetched, byte[] hashKey, List<Pair<byte[], byte[]>> values) {
+    this.allFetched = allFetched;
     this.hashKey = hashKey;
     this.values = values;
-  }
-
-  public HashKeyData(boolean allFetched, byte[] hashKey, List<Pair<byte[], byte[]>> values) {
-    this(hashKey, values);
-    this.allFetched = allFetched;
   }
 
   public void addData(byte[] sortKey, byte[] value) {

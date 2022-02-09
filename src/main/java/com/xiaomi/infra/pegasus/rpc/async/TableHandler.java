@@ -504,8 +504,8 @@ public class TableHandler extends Table {
   }
 
   @Override
-  public int getDefaultMaxFetchSize() {
-    return manager_.getMaxFetchSize();
+  public int getDefaultMaxFetchBytes() {
+    return manager_.getMaxFetchBytes();
   }
 
   @Override
