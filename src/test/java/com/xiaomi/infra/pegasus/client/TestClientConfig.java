@@ -1,3 +1,6 @@
+// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
+// This source code is licensed under the Apache License Version 2.0, which
+// can be found in the LICENSE file in the root directory of this source tree.
 package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.rpc.Table;
@@ -17,7 +20,7 @@ public class TestClientConfig {
     Assert.assertEquals(clusterManager.getMaxFetchCount(), 100);
     Assert.assertEquals(clusterManager.getMaxFetchBytes(), 1 * 1024 * 1024);
     PegasusTable table = (PegasusTable) client.openTable("temp");
-    Table innerTable = (Table) FieldUtils.readField(client, "table", true);
+    Table innerTable = (Table) FieldUtils.readField(table, "table", true);
     Assert.assertEquals(innerTable.getDefaultMaxFetchCount(), 100);
     Assert.assertEquals(innerTable.getDefaultMaxFetchBytes(), 1 * 1024 * 1024);
   }
