@@ -12,16 +12,39 @@ import org.junit.Test;
 public class TestClientConfig {
   @Test
   public void testMaxFetchConfig() throws Exception {
+    int testFetchCount = 100;
+    int testFetchBytes = 1 * 1024 * 1024;
+
     PegasusClient client = (PegasusClient) (PegasusClientFactory.getSingletonClient());
     ClientOptions options = (ClientOptions) FieldUtils.readField(client, "clientOptions", true);
-    Assert.assertEquals(options.getMaxFetchCount(), 100);
-    Assert.assertEquals(options.getMaxFetchBytes(), 1 * 1024 * 1024);
+    Assert.assertEquals(options.getMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(options.getMaxFetchBytes(), testFetchBytes);
     ClusterManager clusterManager = (ClusterManager) FieldUtils.readField(client, "cluster", true);
-    Assert.assertEquals(clusterManager.getMaxFetchCount(), 100);
-    Assert.assertEquals(clusterManager.getMaxFetchBytes(), 1 * 1024 * 1024);
+    Assert.assertEquals(clusterManager.getMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(clusterManager.getMaxFetchBytes(), testFetchBytes);
     PegasusTable table = (PegasusTable) client.openTable("temp");
     Table innerTable = (Table) FieldUtils.readField(table, "table", true);
-    Assert.assertEquals(innerTable.getDefaultMaxFetchCount(), 100);
-    Assert.assertEquals(innerTable.getDefaultMaxFetchBytes(), 1 * 1024 * 1024);
+    Assert.assertEquals(innerTable.getDefaultMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(innerTable.getDefaultMaxFetchBytes(), testFetchBytes);
+
+    testFetchCount = 19;
+    testFetchBytes = 19999999;
+    client =
+        (PegasusClient)
+            (PegasusClientFactory.createClient(
+                ClientOptions.builder()
+                    .maxFetchCount(testFetchCount)
+                    .maxFetchBytes(testFetchBytes)
+                    .build()));
+    options = (ClientOptions) FieldUtils.readField(client, "clientOptions", true);
+    Assert.assertEquals(options.getMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(options.getMaxFetchBytes(), testFetchBytes);
+    clusterManager = (ClusterManager) FieldUtils.readField(client, "cluster", true);
+    Assert.assertEquals(clusterManager.getMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(clusterManager.getMaxFetchBytes(), testFetchBytes);
+    table = (PegasusTable) client.openTable("temp");
+    innerTable = (Table) FieldUtils.readField(table, "table", true);
+    Assert.assertEquals(innerTable.getDefaultMaxFetchCount(), testFetchCount);
+    Assert.assertEquals(innerTable.getDefaultMaxFetchBytes(), testFetchBytes);
   }
 }
