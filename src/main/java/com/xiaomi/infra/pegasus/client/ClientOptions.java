@@ -66,7 +66,7 @@ public class ClientOptions {
   public static final String DEFAULT_AUTH_PROTOCOL = "";
   public static final long DEFAULT_SESSION_RESET_SECS_WINDOW = 30;
   public static final int DEFAULT_MAX_FETCH_COUNT = 100;
-  public static final int DEFAULT_MAX_FETCH_BYTES = 1 * 1024 * 1024; // bytes
+  public static final int DEFAULT_MAX_FETCH_BYTES = 1 * 1024 * 1024;
 
   private final String metaServers;
   private final Duration operationTimeout;
