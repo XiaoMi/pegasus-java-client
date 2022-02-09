@@ -64,8 +64,8 @@ public class TestClientConfig {
     String testHashKey = "testHashKey_" + System.currentTimeMillis();
     List<byte[]> sortKeyList = new ArrayList<>();
     for (int i = 0; i < 11; ++i) {
-      String testSortKey = "testSortKey_" + System.currentTimeMillis();
-      String testValue = "testValue_" + System.currentTimeMillis();
+      String testSortKey = "testSortKey_" + i + System.currentTimeMillis();
+      String testValue = "testValue_" + i + System.currentTimeMillis();
       client.set("temp", testHashKey.getBytes(), testSortKey.getBytes(), testValue.getBytes());
       sortKeyList.add(testSortKey.getBytes());
     }
