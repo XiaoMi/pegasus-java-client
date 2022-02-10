@@ -61,11 +61,13 @@ public class TestClientConfig {
                     .maxFetchCount(testFetchCount)
                     .maxFetchBytes(testFetchBytes)
                     .build()));
-    String testHashKey = "testHashKey_" + System.currentTimeMillis();
+
+    long threadId = Thread.currentThread().getId();
+    String testHashKey = "testHashKey_" + threadId + System.currentTimeMillis();
     List<byte[]> sortKeyList = new ArrayList<>();
     for (int i = 0; i < 11; ++i) {
-      String testSortKey = "testSortKey_" + i + System.currentTimeMillis();
-      String testValue = "testValue_" + i + System.currentTimeMillis();
+      String testSortKey = "testSortKey_" + threadId + i + System.currentTimeMillis();
+      String testValue = "testValue_" + threadId + i + System.currentTimeMillis();
       client.set("temp", testHashKey.getBytes(), testSortKey.getBytes(), testValue.getBytes());
       sortKeyList.add(testSortKey.getBytes());
     }
