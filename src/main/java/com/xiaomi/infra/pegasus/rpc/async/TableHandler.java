@@ -499,16 +499,6 @@ public class TableHandler extends Table {
   }
 
   @Override
-  public int getDefaultMaxFetchCount() {
-    return manager_.getMaxFetchCount();
-  }
-
-  @Override
-  public int getDefaultMaxFetchBytes() {
-    return manager_.getMaxFetchBytes();
-  }
-
-  @Override
   public void asyncOperate(client_operator op, ClientOPCallback callback, int timeoutMs) {
     if (timeoutMs <= 0) {
       timeoutMs = manager_.getTimeout();

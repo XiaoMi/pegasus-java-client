@@ -51,8 +51,6 @@ public class ClientOptions {
   public static final String PEGASUS_AUTH_PROTOCOL_KEY = "auth_protocol";
   public static final String PEGASUS_SESSION_RESET_TIME_WINDOW_SECS_KEY =
       "session_reset_time_window_secs";
-  public static final String PEGASUS_MAX_FETCH_COUNT_KEY = "max_fetch_count";
-  public static final String PEGASUS_MAX_FETCH_BYTES_KEY = "max_fetch_bytes";
 
   public static final String DEFAULT_META_SERVERS =
       "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
@@ -65,8 +63,6 @@ public class ClientOptions {
   public static final Duration DEFAULT_META_QUERY_TIMEOUT = Duration.ofMillis(5000);
   public static final String DEFAULT_AUTH_PROTOCOL = "";
   public static final long DEFAULT_SESSION_RESET_SECS_WINDOW = 30;
-  public static final int DEFAULT_MAX_FETCH_COUNT = 100;
-  public static final int DEFAULT_MAX_FETCH_BYTES = 1 * 1024 * 1024;
 
   private final String metaServers;
   private final Duration operationTimeout;
@@ -79,8 +75,6 @@ public class ClientOptions {
   private final String authProtocol;
   private final Credential credential;
   private final long sessionResetTimeWindowSecs;
-  private final int maxFetchCount;
-  private final int maxFetchBytes;
 
   protected ClientOptions(Builder builder) {
     this.metaServers = builder.metaServers;
@@ -94,8 +88,6 @@ public class ClientOptions {
     this.authProtocol = builder.authProtocol;
     this.credential = builder.credential;
     this.sessionResetTimeWindowSecs = builder.sessionResetTimeWindowSecs;
-    this.maxFetchCount = builder.maxFetchCount;
-    this.maxFetchBytes = builder.maxFetchBytes;
   }
 
   protected ClientOptions(ClientOptions original) {
@@ -110,8 +102,6 @@ public class ClientOptions {
     this.authProtocol = original.getAuthProtocol();
     this.credential = original.getCredential();
     this.sessionResetTimeWindowSecs = original.getSessionResetTimeWindowSecs();
-    this.maxFetchCount = original.getMaxFetchCount();
-    this.maxFetchBytes = original.getMaxFetchBytes();
   }
 
   /**
@@ -184,8 +174,6 @@ public class ClientOptions {
     long sessionResetTimeWindowSecs =
         config.getLong(
             PEGASUS_SESSION_RESET_TIME_WINDOW_SECS_KEY, DEFAULT_SESSION_RESET_SECS_WINDOW);
-    int maxFetchCount = config.getInt(PEGASUS_MAX_FETCH_COUNT_KEY, DEFAULT_MAX_FETCH_COUNT);
-    int maxFetchBytes = config.getInt(PEGASUS_MAX_FETCH_BYTES_KEY, DEFAULT_MAX_FETCH_BYTES);
 
     return ClientOptions.builder()
         .metaServers(metaList)
@@ -198,8 +186,6 @@ public class ClientOptions {
         .authProtocol(authProtocol)
         .credential(credential)
         .sessionResetTimeWindowSecs(sessionResetTimeWindowSecs)
-        .maxFetchCount(maxFetchCount)
-        .maxFetchBytes(maxFetchBytes)
         .build();
   }
 
@@ -220,9 +206,7 @@ public class ClientOptions {
           && this.metaQueryTimeout.toMillis() == clientOptions.metaQueryTimeout.toMillis()
           && this.authProtocol.equals(clientOptions.authProtocol)
           && this.credential == clientOptions.credential
-          && this.sessionResetTimeWindowSecs == clientOptions.sessionResetTimeWindowSecs
-          && this.maxFetchCount == clientOptions.maxFetchCount
-          && this.maxFetchBytes == clientOptions.maxFetchBytes;
+          && this.sessionResetTimeWindowSecs == clientOptions.sessionResetTimeWindowSecs;
     }
     return false;
   }
@@ -252,11 +236,7 @@ public class ClientOptions {
             + ", authProtocol="
             + authProtocol
             + ", sessionResetTimeWindowSecs="
-            + sessionResetTimeWindowSecs
-            + ", maxFetchCount="
-            + maxFetchCount
-            + ", maxFetchBytes="
-            + maxFetchBytes;
+            + sessionResetTimeWindowSecs;
     if (credential != null) {
       res += ", credential=" + credential.toString();
     }
@@ -276,8 +256,6 @@ public class ClientOptions {
     private String authProtocol = DEFAULT_AUTH_PROTOCOL;
     private Credential credential = null;
     private long sessionResetTimeWindowSecs = DEFAULT_SESSION_RESET_SECS_WINDOW;
-    private int maxFetchCount = DEFAULT_MAX_FETCH_COUNT;
-    private int maxFetchBytes = DEFAULT_MAX_FETCH_BYTES;
 
     protected Builder() {}
 
@@ -421,16 +399,6 @@ public class ClientOptions {
     public Builder sessionResetTimeWindowSecs(long sessionResetTimeWindowSecs) {
       assert sessionResetTimeWindowSecs >= 10 : "sessionResetTimeWindowSecs must be >= 10s";
       this.sessionResetTimeWindowSecs = sessionResetTimeWindowSecs;
-      return this;
-    }
-
-    public Builder maxFetchCount(int maxFetchCount) {
-      this.maxFetchCount = maxFetchCount;
-      return this;
-    }
-
-    public Builder maxFetchBytes(int maxFetchBytes) {
-      this.maxFetchBytes = maxFetchBytes;
       return this;
     }
 
@@ -578,13 +546,5 @@ public class ClientOptions {
    */
   public long getSessionResetTimeWindowSecs() {
     return sessionResetTimeWindowSecs;
-  }
-
-  public int getMaxFetchCount() {
-    return maxFetchCount;
-  }
-
-  public int getMaxFetchBytes() {
-    return maxFetchBytes;
   }
 }
