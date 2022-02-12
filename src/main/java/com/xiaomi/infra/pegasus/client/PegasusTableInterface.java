@@ -181,7 +181,7 @@ public interface PegasusTableInterface {
      */
     public boolean allFetched;
 
-    public Map<Pair<byte[], byte[]>, byte[]> valueMap;
+    public Map<Pair<String, String>, byte[]> valueMap;
   }
 
   public static interface MultiGetListener extends GenericFutureListener<Future<MultiGetResult>> {
