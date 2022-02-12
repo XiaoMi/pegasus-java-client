@@ -4,10 +4,10 @@
 package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.apps.batch_get_request;
-import com.xiaomi.infra.pegasus.apps.full_data;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -181,7 +181,7 @@ public interface PegasusTableInterface {
      */
     public boolean allFetched;
 
-    public List<full_data> values;
+    public Map<Pair<byte[], byte[]>, byte[]> valueMap;
   }
 
   public static interface MultiGetListener extends GenericFutureListener<Future<MultiGetResult>> {

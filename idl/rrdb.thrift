@@ -168,7 +168,6 @@ struct full_data {
     1:base.blob hash_key;
     2:base.blob sort_key;
     3:base.blob value;
-    4:bool exists //true : means data exists， false otherwise
 }
 
 struct incr_request

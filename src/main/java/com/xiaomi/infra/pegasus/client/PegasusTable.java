@@ -435,8 +435,12 @@ public class PegasusTable implements PegasusTableInterface {
             } else {
               BatchGetResult result = new BatchGetResult();
               result.allFetched = (gop.get_response().error == 0);
-              result.values = new ArrayList<full_data>(gop.get_response().data.size());
-              result.values.addAll(gop.get_response().data);
+              result.valueMap = new HashMap<>();
+              for (full_data oneData : gop.get_response().data) {
+                result.valueMap.put(
+                    Pair.of(oneData.hash_key.data, oneData.sort_key.data), oneData.value.data);
+              }
+
               promise.setSuccess(result);
             }
           }
@@ -1082,17 +1086,17 @@ public class PegasusTable implements PegasusTableInterface {
       futures.add(asyncBatchGet(request, timeout));
     }
 
-    List<List<full_data>> resultList = new ArrayList<>();
+    List<Map<Pair<byte[], byte[]>, byte[]>> resultMapList = new ArrayList<>();
     for (int i = 0; i < this.table.getPartitionCount(); i++) {
       if (emptyResults.get(i)) {
-        List<full_data> emptyRowList = new ArrayList<>();
-        resultList.add(emptyRowList);
+        Map<Pair<byte[], byte[]>, byte[]> emptyMap = new HashMap<>();
+        resultMapList.add(emptyMap);
         continue;
       }
       Future<BatchGetResult> fu = futures.get(i);
       fu.awaitUninterruptibly();
       if (fu.isSuccess()) {
-        resultList.add(fu.getNow().values);
+        resultMapList.add(fu.getNow().valueMap);
       } else {
         Throwable cause = fu.cause();
         partitionToPException.set(
@@ -1100,29 +1104,16 @@ public class PegasusTable implements PegasusTableInterface {
       }
     }
 
-    List<Integer> startPos = new ArrayList<>();
-    for (int i = 0; i < table.getPartitionCount(); i++) {
-      startPos.add(0);
-    }
-
     int count = 0;
-    PException nullEx = null;
-    byte[] nullBytes = null;
-
     for (int i = 0; i < responseIndex.size(); i++) {
       int index = responseIndex.get(i);
       if (null != partitionToPException.get(index)) {
         results.add(Pair.of(partitionToPException.get(index), null));
         continue;
       }
-      int pos = startPos.get(index);
-      full_data r = resultList.get(index).get(pos);
-      startPos.set(index, pos + 1);
-      if (!r.exists) {
-        results.add(Pair.of(nullEx, null));
-      } else {
-        results.add(Pair.of(nullEx, r.value.data));
-      }
+
+      byte[] value = resultMapList.get(index).get(keys.get(i));
+      results.add(Pair.of(null, value));
 
       count++;
     }
