@@ -52,7 +52,8 @@ public class TestBatchGet3 {
     }
 
     List<Pair<PException, byte[]>> getResult = new ArrayList<>();
-    table.batchGet3(pairs, getResult, 0);
+    int resultCount = table.batchGet3(pairs, getResult, 0);
+    Assert.assertEquals(101, resultCount);
 
     for (int i = 0; i < 101; ++i) {
       Assert.assertNull(getResult.get(i).getLeft());
