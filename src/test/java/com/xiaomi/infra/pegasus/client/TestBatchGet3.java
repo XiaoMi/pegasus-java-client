@@ -26,6 +26,7 @@ import org.junit.Test;
 
 public class TestBatchGet3 {
   volatile boolean isRunning = false;
+  static final int totalTestKeyNum = 101;
 
   @Test
   public void testBatchGet3() throws PException {
@@ -35,7 +36,7 @@ public class TestBatchGet3 {
     List<SetItem> batchSetItems = new ArrayList<>();
     List<Pair<byte[], byte[]>> pairs = new ArrayList<>();
     List<byte[]> values = new ArrayList<>();
-    for (int i = 0; i < 101; ++i) {
+    for (int i = 0; i < totalTestKeyNum; ++i) {
       SetItem oneItem = new SetItem();
       oneItem.hashKey = ("hashKey_" + i + "_" + System.currentTimeMillis()).getBytes();
       oneItem.sortKey = ("sortedKey_" + i + "_" + System.currentTimeMillis()).getBytes();
@@ -47,15 +48,15 @@ public class TestBatchGet3 {
 
     List<PException> result = new ArrayList<>();
     table.batchSet2(batchSetItems, result, 0);
-    for (int i = 0; i < 101; ++i) {
+    for (int i = 0; i < totalTestKeyNum; ++i) {
       Assert.assertNull(result.get(i));
     }
 
     List<Pair<PException, byte[]>> getResult = new ArrayList<>();
     int resultCount = table.batchGet3(pairs, getResult, 0);
-    Assert.assertEquals(101, resultCount);
+    Assert.assertEquals(totalTestKeyNum, resultCount);
 
-    for (int i = 0; i < 101; ++i) {
+    for (int i = 0; i < totalTestKeyNum; ++i) {
       Assert.assertNull(getResult.get(i).getLeft());
       Assert.assertArrayEquals(getResult.get(i).getRight(), values.get(i));
     }
@@ -72,7 +73,7 @@ public class TestBatchGet3 {
     List<SetItem> batchSetItems = new ArrayList<>();
     List<Pair<byte[], byte[]>> pairs = new ArrayList<>();
     List<byte[]> values = new ArrayList<>();
-    for (int i = 0; i < 101; ++i) {
+    for (int i = 0; i < totalTestKeyNum; ++i) {
       SetItem oneItem = new SetItem();
       oneItem.hashKey = ("hashKey_" + i + "_" + System.currentTimeMillis()).getBytes();
       oneItem.sortKey = ("sortedKey_" + i + "_" + System.currentTimeMillis()).getBytes();
@@ -84,7 +85,7 @@ public class TestBatchGet3 {
 
     List<PException> result = new ArrayList<>();
     table.batchSet2(batchSetItems, result, 0);
-    for (int i = 0; i < 101; ++i) {
+    for (int i = 0; i < totalTestKeyNum; ++i) {
       Assert.assertNull(result.get(i));
     }
 
