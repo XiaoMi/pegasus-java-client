@@ -436,10 +436,10 @@ public class PegasusTable implements PegasusTableInterface {
               BatchGetResult result = new BatchGetResult();
               result.allFetched = (gop.get_response().error == 0);
               result.valueMap = new HashMap<>();
-              for (full_data oneData : gop.get_response().data) {
+              for (full_data data : gop.get_response().data) {
                 result.valueMap.put(
-                    Pair.of(new String(oneData.hash_key.data), new String(oneData.sort_key.data)),
-                    oneData.value.data);
+                    Pair.of(new String(data.hash_key.data), new String(data.sort_key.data)),
+                    data.value.data);
               }
 
               promise.setSuccess(result);
@@ -1075,21 +1075,18 @@ public class PegasusTable implements PegasusTableInterface {
       r.keys.add(fullKey);
     }
 
-    List<Boolean> emptyResults = new ArrayList<>();
     for (int i = 0; i < requestList.size(); i++) {
       batch_get_request request = requestList.get(i);
       if (request.keys.isEmpty()) {
-        emptyResults.add(true);
         futures.add(null);
         continue;
       }
-      emptyResults.add(false);
       futures.add(asyncBatchGet(request, timeout));
     }
 
     List<Map<Pair<String, String>, byte[]>> resultMapList = new ArrayList<>();
     for (int i = 0; i < this.table.getPartitionCount(); i++) {
-      if (emptyResults.get(i)) {
+      if (requestList.get(i).keys.isEmpty()) {
         Map<Pair<String, String>, byte[]> emptyMap = new HashMap<>();
         resultMapList.add(emptyMap);
         continue;

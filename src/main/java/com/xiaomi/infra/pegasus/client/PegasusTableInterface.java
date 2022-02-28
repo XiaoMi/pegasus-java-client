@@ -197,9 +197,17 @@ public interface PegasusTableInterface {
   }
 
   /**
-   * @param request
-   * @param timeout
-   * @return
+   * @param request it contains a list of <hashKey, sortKey> pair, which is related to one partition
+   * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
+   *     timeout value for current op, else the timeout value in the configuration file will be
+   *     used.
+   * @return the future for current op
+   *     <p>Future return: On success: An object of type BatchGetResult On failure: a throwable,
+   *     which is an instance of PException
+   *     <p>Thread safety: All the listeners for the same table are guaranteed to be dispatched in
+   *     the same thread, so all the listeners for the same future are guaranteed to be executed as
+   *     the same order as the listeners added. But listeners for different tables are not
+   *     guaranteed to be dispatched in the same thread.
    */
   public Future<BatchGetResult> asyncBatchGet(batch_get_request request, int timeout);
 
@@ -765,6 +773,22 @@ public interface PegasusTableInterface {
   public void batchGet(List<Pair<byte[], byte[]>> keys, List<byte[]> values, int timeout /*ms*/)
       throws PException;
 
+  /**
+   * Batch get values of different keys. Will wait for all requests done even if some error occurs.
+   *
+   * @param keys hashKey and sortKey pair list.
+   * @param results output results; should be created by caller; after call done, the size of
+   *     results will be same with keys; the results[i] is a Pair: - if Pair.left != null : means
+   *     query keys[i] failed, Pair.left is the exception. - if Pair.left == null : means query
+   *     keys[i] succeed, Pair.right is the result value.
+   * @param timeout how long will the operation timeout in milliseconds. if timeout > 0, it is a
+   *     timeout value for current op, else the timeout value in the configuration file will be
+   *     used.
+   * @return succeed count.
+   * @throws PException throw exception if any error occurs.
+   *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
+   *     failed.
+   */
   public int batchGet3(
       List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout /*ms*/)
       throws PException;
