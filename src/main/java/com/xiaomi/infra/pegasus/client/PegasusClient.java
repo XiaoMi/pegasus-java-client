@@ -253,7 +253,7 @@ public class PegasusClient implements PegasusClientInterface {
       String tableName, List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> values)
       throws PException {
     PegasusTable tb = getTable(tableName);
-    return tb.batchGet3(keys, values, 0);
+    return tb.batchGetByPartitions(keys, values, 0);
   }
 
   @Override

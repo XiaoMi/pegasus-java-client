@@ -1037,7 +1037,7 @@ public class PegasusTable implements PegasusTableInterface {
   }
 
   @Override
-  public int batchGet3(
+  public int batchGetByPartitions(
       List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout)
       throws PException {
     if (keys == null || keys.size() == 0) {

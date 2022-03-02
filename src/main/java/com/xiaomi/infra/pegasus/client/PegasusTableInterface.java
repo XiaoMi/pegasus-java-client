@@ -789,7 +789,7 @@ public interface PegasusTableInterface {
    *     <p>Notice: the method is not atomic, that means, maybe some keys succeed but some keys
    *     failed.
    */
-  public int batchGet3(
+  public int batchGetByPartitions(
       List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results, int timeout /*ms*/)
       throws PException;
 

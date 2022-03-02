@@ -24,12 +24,12 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
-public class TestBatchGet3 {
+public class TestBatchGetByPartitions {
   volatile boolean isRunning = false;
   static final int totalTestKeyNum = 101;
 
   @Test
-  public void testBatchGet3() throws PException {
+  public void testBatchGetByPartitions() throws PException {
     String tableName = "temp";
     PegasusTableInterface table = PegasusClientFactory.getSingletonClient().openTable(tableName);
 
@@ -53,7 +53,7 @@ public class TestBatchGet3 {
     }
 
     List<Pair<PException, byte[]>> getResult = new ArrayList<>();
-    int resultCount = table.batchGet3(pairs, getResult, 0);
+    int resultCount = table.batchGetByPartitions(pairs, getResult, 0);
     Assert.assertEquals(totalTestKeyNum, resultCount);
 
     for (int i = 0; i < totalTestKeyNum; ++i) {
@@ -96,7 +96,7 @@ public class TestBatchGet3 {
             while (isRunning) {
               List<Pair<PException, byte[]>> getResult = new ArrayList<>();
               try {
-                table.batchGet3(pairs, getResult, 0);
+                table.batchGetByPartitions(pairs, getResult, 0);
               } catch (PException e) {
                 e.printStackTrace();
               }
