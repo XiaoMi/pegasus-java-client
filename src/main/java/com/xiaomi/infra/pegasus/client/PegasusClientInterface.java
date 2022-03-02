@@ -149,7 +149,7 @@ public interface PegasusClientInterface {
       String tableName, List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results)
       throws PException;
 
-  public int batchGet3(
+  public int batchGetByPartitions(
       String tableName, List<Pair<byte[], byte[]>> keys, List<Pair<PException, byte[]>> results)
       throws PException;
 
