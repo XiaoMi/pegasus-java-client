@@ -35,5 +35,7 @@ public abstract class Cluster {
   public abstract Table openTable(String name, InternalTableOptions options)
       throws ReplicationException, TException;
 
+  public abstract Meta getMeta();
+
   public abstract void close();
 }
