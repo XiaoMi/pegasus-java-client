@@ -21,14 +21,14 @@ public class TestToolsClient {
 
     boolean isAppReady = toolsClient.isAppReady(appName, partitionCount, replicaCount);
     int totalTryCount = 1;
-    while(!isAppReady) {
+    while (!isAppReady) {
       if (totalTryCount >= 8) {
         break;
       }
 
       try {
         Thread.sleep(1000);
-      } catch(InterruptedException e) {
+      } catch (InterruptedException e) {
         continue;
       }
 
@@ -40,12 +40,8 @@ public class TestToolsClient {
   }
 
   @Test
-  public void testCreateNewAppTimeout() throws PException {
-
-  }
+  public void testCreateNewAppTimeout() throws PException {}
 
   @Test
-  public void testIsAppReady() throws PException {
-
-  }
+  public void testIsAppReady() throws PException {}
 }

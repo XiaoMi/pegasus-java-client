@@ -106,12 +106,14 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
       throws PException {
     if (partitionCount < 1) {
       throw new PException(
-          new IllegalArgumentException(String.format("Query app:%s Status failed: partitionCount should >= 1!", appName)));
+          new IllegalArgumentException(
+              String.format("Query app:%s Status failed: partitionCount should >= 1!", appName)));
     }
 
     if (replicaCount < 1) {
       throw new PException(
-          new IllegalArgumentException(String.format("Query app:%s Status failed: replicaCount should >= 1!", appName)));
+          new IllegalArgumentException(
+              String.format("Query app:%s Status failed: replicaCount should >= 1!", appName)));
     }
 
     query_cfg_request request = new query_cfg_request();
