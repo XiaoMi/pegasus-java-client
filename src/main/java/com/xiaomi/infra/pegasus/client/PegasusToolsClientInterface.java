@@ -5,7 +5,9 @@ package com.xiaomi.infra.pegasus.client;
 
 public interface PegasusToolsClientInterface {
   /**
-   * Create A new pegasus app which is not stateless
+   * Create A new pegasus app which is not stateless However the successful execution of the
+   * interface does not guarantee the fully healthy of every partition of the newly created app You
+   * can use @isAppHealthy interface to check if the newly created app is fully healthy
    *
    * @param appName App name which will be created by this interface
    * @param partitionCount The partition count of the newly creating app
