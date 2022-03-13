@@ -12,6 +12,7 @@ import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.Meta;
 import java.util.HashMap;
 import java.util.Properties;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,24 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
     this.meta = this.cluster.getMeta();
     LOGGER.info(
         "Create PegasusToolsClient Instance By ClientOptions : {}", this.clientOptions.toString());
+  }
+
+  @Override
+  public void close() {
+    synchronized (this) {
+      if (null != this.cluster) {
+        String metaList = StringUtils.join(cluster.getMetaList(), ",");
+        LOGGER.info("start to close pegasus tools client for [{}]", metaList);
+        cluster.close();
+        cluster = null;
+        LOGGER.info("finish to close pegasus tools client for [{}]", metaList);
+      }
+    }
+  }
+
+  @Override
+  public void finalize() {
+    close();
   }
 
   @Override
@@ -99,16 +118,26 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
               "Create app:%s failed, partitionCount: %d, replicaCount: %s, error:%s.",
               appName, partitionCount, replicaCount, error.toString()));
     }
+
+    long endCreateAppRpcTime = System.currentTimeMillis();
+    long remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
+    if (remainDuration <= 0) {
+      remainDuration = 8;
+    }
+
+    boolean isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
+    while (!isHealthy) {
+      endCreateAppRpcTime = System.currentTimeMillis();
+      remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
+      if (remainDuration <= 0) {
+        break;
+      }
+      isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
+    }
   }
 
   @Override
-  public boolean isAppReady(String appName, int partitionCount, int replicaCount)
-      throws PException {
-    if (partitionCount < 1) {
-      throw new PException(
-          new IllegalArgumentException(
-              String.format("Query app:%s Status failed: partitionCount should >= 1!", appName)));
-    }
+  public boolean isAppHealthy(String appName, int replicaCount, long timeoutMs) throws PException {
 
     if (replicaCount < 1) {
       throw new PException(
@@ -120,32 +149,24 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
     request.setApp_name(appName);
 
     query_cfg_operator query_op = new query_cfg_operator(new gpid(-1, -1), request);
-    error_code.error_types error =
-        this.meta.operate(query_op, this.clientOptions.getMetaQueryTimeout().toMillis());
+    error_code.error_types error = this.meta.operate(query_op, timeoutMs);
     if (error != error_code.error_types.ERR_OK) {
       throw new PException(
           String.format(
-              "Query app status failed, app:%s, partitionCount: %d, replicaCount: %s, error:%s.",
-              appName, partitionCount, replicaCount, error.toString()));
+              "Query app status failed, app:%s, replicaCount: %s, error:%s.",
+              appName, replicaCount, error.toString()));
     }
 
     query_cfg_response response = query_op.get_response();
 
-    if (response.partition_count != partitionCount) {
-      throw new PException(
-          String.format(
-              "Query app status failed, app:%s, partitionCount: %d not equal to the response.partition_count: %d.",
-              appName, partitionCount, response.partition_count));
-    }
-
     int ready_count = 0;
-    for (int i = 0; i < partitionCount; ++i) {
+    for (int i = 0; i < response.partition_count; ++i) {
       partition_configuration pc = response.partitions.get(i);
       if (!pc.primary.isInvalid() && (pc.secondaries.size() + 1 >= replicaCount)) {
         ++ready_count;
       }
     }
 
-    return ready_count == partitionCount;
+    return ready_count == response.partition_count;
   }
 }

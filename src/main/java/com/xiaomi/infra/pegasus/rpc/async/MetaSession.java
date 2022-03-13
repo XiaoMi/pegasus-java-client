@@ -22,6 +22,7 @@ import com.google.common.net.InetAddresses;
 import com.xiaomi.infra.pegasus.base.error_code.error_types;
 import com.xiaomi.infra.pegasus.base.rpc_address;
 import com.xiaomi.infra.pegasus.operator.client_operator;
+import com.xiaomi.infra.pegasus.operator.create_app_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
 import com.xiaomi.infra.pegasus.replication.partition_configuration;
 import io.netty.channel.EventLoopGroup;
@@ -72,18 +73,30 @@ public class MetaSession extends HostNameResolver {
 
   public static error_types getMetaServiceError(client_operator metaQueryOp) {
     if (metaQueryOp.rpc_error.errno != error_types.ERR_OK) return metaQueryOp.rpc_error.errno;
-    query_cfg_operator op = (query_cfg_operator) metaQueryOp;
-    return op.get_response().getErr().errno;
+
+    if (metaQueryOp instanceof query_cfg_operator) {
+      return ((query_cfg_operator) (metaQueryOp)).get_response().getErr().errno;
+    } else if (metaQueryOp instanceof create_app_operator) {
+      return ((create_app_operator) (metaQueryOp)).get_response().getErr().errno;
+    } else {
+      assert (false);
+      return null;
+    }
   }
 
   public static rpc_address getMetaServiceForwardAddress(client_operator metaQueryOp) {
     if (metaQueryOp.rpc_error.errno != error_types.ERR_OK) return null;
-    query_cfg_operator op = (query_cfg_operator) metaQueryOp;
-    if (op.get_response().getErr().errno != error_types.ERR_FORWARD_TO_OTHERS) return null;
-    java.util.List<partition_configuration> partitions = op.get_response().getPartitions();
-    if (partitions == null || partitions.isEmpty()) return null;
-    rpc_address addr = partitions.get(0).getPrimary();
-    if (addr == null || addr.isInvalid()) return null;
+
+    rpc_address addr = null;
+    if (metaQueryOp instanceof query_cfg_operator) {
+      query_cfg_operator op = (query_cfg_operator) metaQueryOp;
+      if (op.get_response().getErr().errno != error_types.ERR_FORWARD_TO_OTHERS) return null;
+      java.util.List<partition_configuration> partitions = op.get_response().getPartitions();
+      if (partitions == null || partitions.isEmpty()) return null;
+      addr = partitions.get(0).getPrimary();
+      if (addr == null || addr.isInvalid()) return null;
+    }
+
     return addr;
   }
 

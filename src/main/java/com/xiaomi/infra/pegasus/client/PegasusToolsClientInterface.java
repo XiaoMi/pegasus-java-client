@@ -10,20 +10,26 @@ public interface PegasusToolsClientInterface {
    * @param appName App name which will be created by this interface
    * @param partitionCount The partition count of the newly creating app
    * @param replicaCount The replica count of the newly creating app
-   * @param timeoutMs The timeout of this function call, milli-seconds
+   * @param timeoutMs The timeout of the interface, milli-seconds
    * @throws PException
    */
   public void createApp(String appName, int partitionCount, int replicaCount, long timeoutMs)
       throws PException;
 
   /**
-   * Judge If An App Is 'ready'(every partition of the app has enough replicas)
+   * Judge If An App Is 'healthy'(every partition of the app has enough replicas specified by the
+   * 'replicaCount' parameter)
    *
-   * @param appName App name which will be judged ready or not by this interface
-   * @param partitionCount partitionCount of the app
+   * @param appName App name which will be judged 'healthy' or not by this interface
    * @param replicaCount replicaCount of the app
-   * @return true if the app has enough healthy replicas, otherwise return false
-   * @throws PException
+   * @param timeoutMs The timeout of the interface, milli-seconds
+   * @return true if the app in the pegasus server side has enough healthy replicas specified by the
+   *     'replicaCount' parameter, otherwise return false
+   * @throws PException If 'appName' not exists or the rpc to pegasus server cause timeout or other
+   *     error happens in the server side, the interface will throw PException
    */
-  public boolean isAppReady(String appName, int partitionCount, int replicaCount) throws PException;
+  public boolean isAppHealthy(String appName, int replicaCount, long timeoutMs) throws PException;
+
+  /** close the client */
+  public void close();
 }

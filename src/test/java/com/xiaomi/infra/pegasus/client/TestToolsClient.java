@@ -1,27 +1,39 @@
 package com.xiaomi.infra.pegasus.client;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 public class TestToolsClient {
-  @Test
-  public void testCreateNewApp() throws PException {
+  PegasusToolsClientInterface toolsClient;
+
+  @Before
+  public void Setup() throws PException {
     ClientOptions clientOptions =
         ClientOptions.builder()
             .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
             .asyncWorkers(6)
+            .enablePerfCounter(false)
             .build();
 
+    toolsClient = PegasusToolsClientFactory.createClient(clientOptions);
+  }
+
+  @After
+  public void after() {
+    toolsClient.close();
+  }
+
+  @Test
+  public void testCreateNewApp() throws PException {
     String appName = "testCreateApp1";
     int partitionCount = 8;
     int replicaCount = 3;
+    int opTimeoutMs = 6000;
 
-    PegasusToolsClientInterface toolsClient = PegasusToolsClientFactory.createClient(clientOptions);
-    toolsClient.createApp(appName, partitionCount, replicaCount, 6000);
+    toolsClient.createApp(appName, partitionCount, replicaCount, opTimeoutMs);
 
-    boolean isAppReady = toolsClient.isAppReady(appName, partitionCount, replicaCount);
+    boolean isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
     int totalTryCount = 1;
-    while (!isAppReady) {
+    while (!isAppHealthy) {
       if (totalTryCount >= 8) {
         break;
       }
@@ -32,16 +44,30 @@ public class TestToolsClient {
         continue;
       }
 
-      isAppReady = toolsClient.isAppReady(appName, partitionCount, replicaCount);
+      isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
       ++totalTryCount;
     }
 
-    Assert.assertTrue(isAppReady);
+    Assert.assertTrue(isAppHealthy);
+
+    replicaCount = 5;
+    isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
+    Assert.assertFalse(isAppHealthy);
   }
 
   @Test
-  public void testCreateNewAppTimeout() throws PException {}
+  public void testIsAppHealthyIfTableNotExists() throws PException {
+    // test a not existed app
+    String appName = "testIsAppHealthyIfNotExists";
+    int replicaCount = 3;
+    int opTimeoutMs = 6000;
 
-  @Test
-  public void testIsAppReady() throws PException {}
+    try {
+      toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
+    } catch (PException e) {
+      return;
+    }
+
+    Assert.fail();
+  }
 }
