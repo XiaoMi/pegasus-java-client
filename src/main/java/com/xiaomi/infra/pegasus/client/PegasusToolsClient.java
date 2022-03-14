@@ -167,7 +167,10 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
       }
     }
 
-    LOGGER.info(String.format("Check app healthy, appName:%s, partitionCount:%d, ready_count:%d.", appName, response.partition_count, readyCount));
+    LOGGER.info(
+        String.format(
+            "Check app healthy, appName:%s, partitionCount:%d, ready_count:%d.",
+            appName, response.partition_count, readyCount));
 
     return readyCount == response.partition_count;
   }
