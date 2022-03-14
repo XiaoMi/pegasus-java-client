@@ -159,14 +159,16 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
 
     query_cfg_response response = query_op.get_response();
 
-    int ready_count = 0;
+    int readyCount = 0;
     for (int i = 0; i < response.partition_count; ++i) {
       partition_configuration pc = response.partitions.get(i);
       if (!pc.primary.isInvalid() && (pc.secondaries.size() + 1 >= replicaCount)) {
-        ++ready_count;
+        ++readyCount;
       }
     }
 
-    return ready_count == response.partition_count;
+    LOGGER.info(String.format("Check app healthy, appName:%s, partitionCount:%d, ready_count:%d.", appName, response.partition_count, readyCount));
+
+    return readyCount == response.partition_count;
   }
 }
