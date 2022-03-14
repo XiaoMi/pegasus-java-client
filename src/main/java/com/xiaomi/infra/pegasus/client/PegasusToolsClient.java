@@ -127,6 +127,12 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
 
     boolean isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
     while (!isHealthy) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        continue;
+      }
+
       endCreateAppRpcTime = System.currentTimeMillis();
       remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
       if (remainDuration <= 0) {
