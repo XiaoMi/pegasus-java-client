@@ -209,10 +209,6 @@ public class MetaSession extends HostNameResolver {
       }
     } else if (op.rpc_error.errno == error_types.ERR_SESSION_RESET
         || op.rpc_error.errno == error_types.ERR_TIMEOUT) {
-      if (round.roundWithTimeout && op.rpc_error.errno == error_types.ERR_TIMEOUT) {
-        round.callbackFunc.run();
-        return;
-      }
       needSwitchLeader = true;
     } else {
       logger.error("unknown error: {}", op.rpc_error.errno.toString());
@@ -265,6 +261,12 @@ public class MetaSession extends HostNameResolver {
     }
 
     if (!round.roundWithTimeout && round.maxQueryCount <= 0) {
+      round.callbackFunc.run();
+      return;
+    }
+
+    if (round.roundWithTimeout
+        && (round.timeoutMs - (System.currentTimeMillis() - round.startRoundTime)) <= 0) {
       round.callbackFunc.run();
       return;
     }

@@ -177,10 +177,6 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
         String.format(
             "Check app healthy, appName:%s, partitionCount:%d, ready_count:%d.",
             appName, response.partition_count, readyCount));
-    System.out.println(
-        String.format(
-            "Check app healthy, appName:%s, partitionCount:%d, ready_count:%d.",
-            appName, response.partition_count, readyCount));
 
     return readyCount == response.partition_count;
   }
