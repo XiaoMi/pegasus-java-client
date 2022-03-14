@@ -28,13 +28,14 @@ public class TestToolsClient {
     int partitionCount = 8;
     int replicaCount = 3;
     int opTimeoutMs = 10000;
+    int checkRemainCount = 66;
 
     toolsClient.createApp(appName, partitionCount, replicaCount, opTimeoutMs);
 
     boolean isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
     int totalTryCount = 1;
     while (!isAppHealthy) {
-      if (totalTryCount >= 16) {
+      if (totalTryCount >= checkRemainCount) {
         break;
       }
 
