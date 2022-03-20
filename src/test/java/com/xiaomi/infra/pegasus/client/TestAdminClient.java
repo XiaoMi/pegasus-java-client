@@ -2,8 +2,8 @@ package com.xiaomi.infra.pegasus.client;
 
 import org.junit.*;
 
-public class TestToolsClient {
-  PegasusToolsClientInterface toolsClient;
+public class TestAdminClient {
+  PegasusAdminClientInterface toolsClient;
 
   @Before
   public void Setup() throws PException {
@@ -14,7 +14,7 @@ public class TestToolsClient {
             .enablePerfCounter(false)
             .build();
 
-    toolsClient = PegasusToolsClientFactory.createClient(clientOptions);
+    toolsClient = PegasusAdminClientFactory.createClient(clientOptions);
   }
 
   @After

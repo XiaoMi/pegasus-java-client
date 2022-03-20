@@ -1,6 +1,22 @@
-// Copyright (c) 2017, Xiaomi, Inc.  All rights reserved.
-// This source code is licensed under the Apache License Version 2.0, which
-// can be found in the LICENSE file in the root directory of this source tree.
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.xiaomi.infra.pegasus.client;
 
 import com.xiaomi.infra.pegasus.base.error_code;
@@ -8,54 +24,37 @@ import com.xiaomi.infra.pegasus.base.gpid;
 import com.xiaomi.infra.pegasus.operator.create_app_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
 import com.xiaomi.infra.pegasus.replication.*;
-import com.xiaomi.infra.pegasus.rpc.Cluster;
 import com.xiaomi.infra.pegasus.rpc.Meta;
 import java.util.HashMap;
 import java.util.Properties;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PegasusToolsClient implements PegasusToolsClientInterface {
+public class PegasusAdminClient extends PegasusAbstractClient
+    implements PegasusAdminClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
   private static final String APP_TYPE = "pegasus";
 
-  private final ClientOptions clientOptions;
-  private Cluster cluster;
   private Meta meta;
 
-  public PegasusToolsClient(Properties properties) throws PException {
+  @Override
+  public String clientType() {
+    return "Admin";
+  }
+
+  public PegasusAdminClient(Properties properties) throws PException {
     this(ClientOptions.create(properties));
   }
 
-  public PegasusToolsClient(String configPath) throws PException {
+  public PegasusAdminClient(String configPath) throws PException {
     this(ClientOptions.create(configPath));
   }
 
-  public PegasusToolsClient(ClientOptions options) throws PException {
-    this.clientOptions = options;
-    this.cluster = Cluster.createCluster(clientOptions);
+  public PegasusAdminClient(ClientOptions options) throws PException {
+    super(options);
     this.meta = this.cluster.getMeta();
     LOGGER.info(
         "Create PegasusToolsClient Instance By ClientOptions : {}", this.clientOptions.toString());
-  }
-
-  @Override
-  public void close() {
-    synchronized (this) {
-      if (null != this.cluster) {
-        String metaList = StringUtils.join(cluster.getMetaList(), ",");
-        LOGGER.info("start to close pegasus tools client for [{}]", metaList);
-        cluster.close();
-        cluster = null;
-        LOGGER.info("finish to close pegasus tools client for [{}]", metaList);
-      }
-    }
-  }
-
-  @Override
-  public void finalize() {
-    close();
   }
 
   @Override
@@ -122,7 +121,7 @@ public class PegasusToolsClient implements PegasusToolsClientInterface {
     long endCreateAppRpcTime = System.currentTimeMillis();
     long remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
     if (remainDuration <= 0) {
-      remainDuration = 8;
+      return;
     }
 
     boolean isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
