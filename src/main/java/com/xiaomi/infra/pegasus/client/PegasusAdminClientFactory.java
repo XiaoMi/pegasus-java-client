@@ -31,7 +31,7 @@ public class PegasusAdminClientFactory {
    * - local file path : file:///path/to/config
    * - java resource   : resource:///path/to/config</pre>
    *
-   * @return PegasusToolsClientInterface {@link PegasusAdminClientInterface}
+   * @return PegasusAdminClientInterface {@link PegasusAdminClientInterface}
    * @throws PException throws exception if any error occurs.
    */
   public static PegasusAdminClientInterface createClient(String configPath) throws PException {
@@ -42,7 +42,7 @@ public class PegasusAdminClientFactory {
    * Create a client instance. After used, should call client.close() to release resource.
    *
    * @param properties properties
-   * @return PegasusToolsClientInterface {@link PegasusAdminClientInterface}
+   * @return PegasusAdminClientInterface {@link PegasusAdminClientInterface}
    * @throws PException throws exception if any error occurs.
    */
   public static PegasusAdminClientInterface createClient(Properties properties) throws PException {
@@ -54,7 +54,7 @@ public class PegasusAdminClientFactory {
    * client.close() to release resource.
    *
    * @param clientOptions The client option
-   * @return PegasusToolsClientInterface {@link PegasusAdminClientInterface}
+   * @return PegasusAdminClientInterface {@link PegasusAdminClientInterface}
    * @throws PException throws exception if any error occurs.
    */
   public static PegasusAdminClientInterface createClient(ClientOptions clientOptions)
