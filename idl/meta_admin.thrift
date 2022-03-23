@@ -32,13 +32,14 @@ struct create_app_options
     6:map<string, string>  envs;
 }
 
+// client => meta_server
 struct configuration_create_app_request
 {
     1:string                   app_name;
     2:create_app_options       options;
 }
 
-// meta server => client
+// client => meta_server
 struct configuration_create_app_response
 {
     1:base.error_code  err;

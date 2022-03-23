@@ -25,7 +25,7 @@ import com.xiaomi.infra.pegasus.operator.create_app_operator;
 import com.xiaomi.infra.pegasus.operator.query_cfg_operator;
 import com.xiaomi.infra.pegasus.replication.*;
 import com.xiaomi.infra.pegasus.rpc.Meta;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,20 +54,25 @@ public class PegasusAdminClient extends PegasusAbstractClient
     super(options);
     this.meta = this.cluster.getMeta();
     LOGGER.info(
-        "Create PegasusToolsClient Instance By ClientOptions : {}", this.clientOptions.toString());
+        "Create PegasusAdminClient Instance By ClientOptions : {}", this.clientOptions.toString());
   }
 
   @Override
-  public void createApp(String appName, int partitionCount, int replicaCount, long timeoutMs)
+  public void createApp(
+      String appName,
+      int partitionCount,
+      int replicaCount,
+      Map<String, String> envs,
+      long timeoutMs)
       throws PException {
     if (partitionCount < 1) {
       throw new PException(
-          new IllegalArgumentException("createApp  failed: partitionCount should >= 1!"));
+          new IllegalArgumentException("createApp failed: partitionCount should >= 1!"));
     }
 
     if (replicaCount < 1) {
       throw new PException(
-          new IllegalArgumentException("createApp  failed: replicaCount should >= 1!"));
+          new IllegalArgumentException("createApp failed: replicaCount should >= 1!"));
     }
 
     int i = 0;
@@ -102,7 +107,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     options.setReplica_count(replicaCount);
     options.setSuccess_if_exist(true);
     options.setApp_type(APP_TYPE);
-    options.setEnvs(new HashMap<>());
+    options.setEnvs(envs);
     options.setIs_stateful(true);
 
     configuration_create_app_request request = new configuration_create_app_request();
@@ -143,14 +148,13 @@ public class PegasusAdminClient extends PegasusAbstractClient
     if (!isHealthy) {
       throw new PException(
           String.format(
-              "The newly created app-%s is not fully healthy now, but the interface duration expires 'timeoutMs', partitionCount: %d, replicaCount: %s.",
+              "The newly created app:%s is not fully healthy now, but the interface duration expires 'timeoutMs', partitionCount: %d, replicaCount: %s.",
               appName, partitionCount, replicaCount));
     }
   }
 
   @Override
   public boolean isAppHealthy(String appName, int replicaCount, long timeoutMs) throws PException {
-
     if (replicaCount < 1) {
       throw new PException(
           new IllegalArgumentException(

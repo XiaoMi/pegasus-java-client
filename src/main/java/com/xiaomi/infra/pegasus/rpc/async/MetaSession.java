@@ -166,7 +166,7 @@ public class MetaSession extends HostNameResolver {
   private void asyncCall(final MetaRequestRound round) {
     long timeoutMs = eachQueryTimeoutInMills;
     if (round.roundWithTimeout) {
-      timeoutMs = round.timeoutMs - (System.currentTimeMillis() - round.startRoundTime);
+      timeoutMs = round.endRoundTime - System.currentTimeMillis();
       if (timeoutMs < 0) {
         timeoutMs = 8;
       }
@@ -265,8 +265,7 @@ public class MetaSession extends HostNameResolver {
       return;
     }
 
-    if (round.roundWithTimeout
-        && (round.timeoutMs - (System.currentTimeMillis() - round.startRoundTime)) <= 0) {
+    if (round.roundWithTimeout && (round.endRoundTime - System.currentTimeMillis()) <= 0) {
       round.callbackFunc.run();
       return;
     }
@@ -280,7 +279,7 @@ public class MetaSession extends HostNameResolver {
 
     if (needDelay) {
       if (round.roundWithTimeout) {
-        long remainMs = round.timeoutMs - (System.currentTimeMillis() - round.startRoundTime);
+        long remainMs = round.endRoundTime - System.currentTimeMillis();
         if (remainMs < 0) {
           remainMs = 8;
         }
@@ -312,7 +311,7 @@ public class MetaSession extends HostNameResolver {
     public ReplicaSession lastSession;
 
     public boolean roundWithTimeout;
-    public long startRoundTime;
+    public long endRoundTime;
     public long timeoutMs;
 
     public MetaRequestRound(
@@ -323,8 +322,8 @@ public class MetaSession extends HostNameResolver {
       lastSession = l;
 
       roundWithTimeout = rt;
-      startRoundTime = System.currentTimeMillis();
       timeoutMs = tm;
+      endRoundTime = System.currentTimeMillis() + tm;
     }
 
     public MetaRequestRound(client_operator o, Runnable r, int q, ReplicaSession l) {

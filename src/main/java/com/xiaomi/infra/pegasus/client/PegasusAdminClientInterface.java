@@ -19,6 +19,8 @@
 
 package com.xiaomi.infra.pegasus.client;
 
+import java.util.Map;
+
 public interface PegasusAdminClientInterface {
   /**
    * Create A new pegasus app which is not stateless However the successful execution of the
@@ -28,12 +30,19 @@ public interface PegasusAdminClientInterface {
    * @param appName App name which will be created by this interface
    * @param partitionCount The partition count of the newly creating app
    * @param replicaCount The replica count of the newly creating app
+   * @param envs Environment variables of pegasus app, you can see the supported envs in the website
+   *     : https://pegasus.apache.org/administration/table-env
    * @param timeoutMs The timeout of the interface, milli-seconds
    * @throws PException if rpc to the pegasus server cause timeout or other error happens in the
    *     server side, or the newly created app is not fully healthy when the 'timeoutMs' has
    *     elapsed, the interface will throw exception
    */
-  public void createApp(String appName, int partitionCount, int replicaCount, long timeoutMs)
+  public void createApp(
+      String appName,
+      int partitionCount,
+      int replicaCount,
+      Map<String, String> envs,
+      long timeoutMs)
       throws PException;
 
   /**
