@@ -29,7 +29,9 @@ public interface PegasusAdminClientInterface {
    * @param partitionCount The partition count of the newly creating app
    * @param replicaCount The replica count of the newly creating app
    * @param timeoutMs The timeout of the interface, milli-seconds
-   * @throws PException
+   * @throws PException if rpc to the pegasus server cause timeout or other error happens in the
+   *     server side, or the newly created app is not fully healthy when the 'timeoutMs' has
+   *     elapsed, the interface will throw exception
    */
   public void createApp(String appName, int partitionCount, int replicaCount, long timeoutMs)
       throws PException;

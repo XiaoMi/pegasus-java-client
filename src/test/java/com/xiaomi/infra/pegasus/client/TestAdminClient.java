@@ -27,27 +27,10 @@ public class TestAdminClient {
     String appName = "testCreateApp1";
     int partitionCount = 8;
     int replicaCount = 3;
-    int opTimeoutMs = 10000;
-    int checkRemainCount = 66;
-
+    int opTimeoutMs = 66000;
     toolsClient.createApp(appName, partitionCount, replicaCount, opTimeoutMs);
 
     boolean isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
-    int totalTryCount = 1;
-    while (!isAppHealthy) {
-      if (totalTryCount >= checkRemainCount) {
-        break;
-      }
-
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        continue;
-      }
-
-      isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
-      ++totalTryCount;
-    }
 
     Assert.assertTrue(isAppHealthy);
 
