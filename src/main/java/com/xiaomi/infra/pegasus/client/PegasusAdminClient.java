@@ -139,6 +139,13 @@ public class PegasusAdminClient extends PegasusAbstractClient
       }
       isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
     }
+
+    if (!isHealthy) {
+      throw new PException(
+          String.format(
+              "The newly created app-%s is not fully healthy now, but the interface duration expires 'timeoutMs', partitionCount: %d, replicaCount: %s.",
+              appName, partitionCount, replicaCount));
+    }
   }
 
   @Override
