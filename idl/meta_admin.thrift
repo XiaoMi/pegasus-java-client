@@ -39,7 +39,7 @@ struct configuration_create_app_request
     2:create_app_options       options;
 }
 
-// client => meta_server
+// meta_server => client
 struct configuration_create_app_response
 {
     1:base.error_code  err;
