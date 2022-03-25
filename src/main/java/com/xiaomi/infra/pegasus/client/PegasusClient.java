@@ -24,8 +24,8 @@ import org.slf4j.LoggerFactory;
 public class PegasusClient extends PegasusAbstractClient implements PegasusClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
 
-  private final ConcurrentHashMap<String, PegasusTable> tableMap;
-  private final Object tableMapLock;
+  private ConcurrentHashMap<String, PegasusTable> tableMap;
+  private Object tableMapLock;
 
   private static class PegasusHasher implements KeyHasher {
     @Override
@@ -64,23 +64,24 @@ public class PegasusClient extends PegasusAbstractClient implements PegasusClien
     return table;
   }
 
-  public PegasusClient(Properties properties) throws PException {
-    this(ClientOptions.create(properties));
+  private void initTableMap() {
+    this.tableMap = new ConcurrentHashMap<String, PegasusTable>();
+    this.tableMapLock = new Object();
   }
 
-  // configPath could be:
-  // - zk path: zk://host1:port1,host2:port2,host3:port3/path/to/config
-  // - local file path: file:///path/to/config
-  // - resource path: resource:///path/to/config
+  public PegasusClient(Properties properties) throws PException {
+    super(properties);
+    initTableMap();
+  }
+
   public PegasusClient(String configPath) throws PException {
-    this(ClientOptions.create(configPath));
+    super(configPath);
+    initTableMap();
   }
 
   public PegasusClient(ClientOptions clientOptions) throws PException {
     super(clientOptions);
-    this.tableMap = new ConcurrentHashMap<String, PegasusTable>();
-    this.tableMapLock = new Object();
-    LOGGER.info(getConfigurationString());
+    initTableMap();
   }
 
   public boolean isWriteLimitEnabled() {

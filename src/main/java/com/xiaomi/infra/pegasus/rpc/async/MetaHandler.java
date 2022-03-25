@@ -31,8 +31,8 @@ public class MetaHandler extends Meta {
   }
 
   @Override
-  public error_code.error_types operate(client_operator op, long timeoutMs) {
-    this.session.executeWithTimeout(op, timeoutMs);
+  public error_code.error_types operate(client_operator op, int retryCount) {
+    this.session.execute(op, retryCount);
     return MetaSession.getMetaServiceError(op);
   }
 }

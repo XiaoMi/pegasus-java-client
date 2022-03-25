@@ -100,23 +100,18 @@ public class MetaSession extends HostNameResolver {
     return addr;
   }
 
-  private void asyncExecute(
-      client_operator op,
-      Runnable callbackFunc,
-      int maxQueryCount,
-      boolean callWithTimeout,
-      long timeoutMs) {
+  public final void asyncExecute(client_operator op, Runnable callbackFunc, int maxQueryCount) {
+    if (maxQueryCount == 0) {
+      maxQueryCount = defaultMaxQueryCount;
+    }
     MetaRequestRound round;
     synchronized (this) {
-      round =
-          new MetaRequestRound(
-              op, callbackFunc, maxQueryCount, metaList.get(curLeader), callWithTimeout, timeoutMs);
+      round = new MetaRequestRound(op, callbackFunc, maxQueryCount, metaList.get(curLeader));
     }
     asyncCall(round);
   }
 
-  private void execute(
-      client_operator op, int maxQueryCount, boolean callWithTimeout, long timeoutMs) {
+  public final void execute(client_operator op, int maxQueryCount) {
     FutureTask<Void> v =
         new FutureTask<Void>(
             new Callable<Void>() {
@@ -125,9 +120,7 @@ public class MetaSession extends HostNameResolver {
                 return null;
               }
             });
-
-    asyncExecute(op, v, maxQueryCount, callWithTimeout, timeoutMs);
-
+    asyncExecute(op, v, maxQueryCount);
     while (true) {
       try {
         v.get();
@@ -142,21 +135,6 @@ public class MetaSession extends HostNameResolver {
     }
   }
 
-  public final void executeWithTimeout(client_operator op, long timeoutMs) {
-    this.execute(op, 0, true, timeoutMs);
-  }
-
-  public final void asyncQuery(client_operator op, Runnable callbackFunc, int maxQueryCount) {
-    if (maxQueryCount == 0) {
-      maxQueryCount = defaultMaxQueryCount;
-    }
-    asyncExecute(op, callbackFunc, maxQueryCount, false, 0);
-  }
-
-  public final void query(client_operator op, int maxQueryCount) {
-    execute(op, maxQueryCount, false, 0);
-  }
-
   public final void closeSession() {
     for (ReplicaSession rs : metaList) {
       rs.closeSession();
@@ -164,14 +142,6 @@ public class MetaSession extends HostNameResolver {
   }
 
   private void asyncCall(final MetaRequestRound round) {
-    long timeoutMs = eachQueryTimeoutInMills;
-    if (round.roundWithTimeout) {
-      timeoutMs = round.endRoundTime - System.currentTimeMillis();
-      if (timeoutMs < 0) {
-        timeoutMs = 8;
-      }
-    }
-
     round.lastSession.asyncSend(
         round.op,
         new Runnable() {
@@ -180,7 +150,7 @@ public class MetaSession extends HostNameResolver {
             onFinishQueryMeta(round);
           }
         },
-        timeoutMs,
+        eachQueryTimeoutInMills,
         false);
   }
 
@@ -191,16 +161,16 @@ public class MetaSession extends HostNameResolver {
     boolean needSwitchLeader = false;
     rpc_address forwardAddress = null;
 
-    if (!round.roundWithTimeout) {
-      --round.maxQueryCount;
-    }
+    --round.maxQueryCount;
 
     error_types metaError = error_types.ERR_UNKNOWN;
     if (op.rpc_error.errno == error_types.ERR_OK) {
       metaError = getMetaServiceError(op);
       if (metaError == error_types.ERR_SERVICE_NOT_ACTIVE) {
         needDelay = true;
+        needSwitchLeader = false;
       } else if (metaError == error_types.ERR_FORWARD_TO_OTHERS) {
+        needDelay = false;
         needSwitchLeader = true;
         forwardAddress = getMetaServiceForwardAddress(op);
       } else {
@@ -209,6 +179,7 @@ public class MetaSession extends HostNameResolver {
       }
     } else if (op.rpc_error.errno == error_types.ERR_SESSION_RESET
         || op.rpc_error.errno == error_types.ERR_TIMEOUT) {
+      needDelay = false;
       needSwitchLeader = true;
     } else {
       logger.error("unknown error: {}", op.rpc_error.errno.toString());
@@ -260,12 +231,7 @@ public class MetaSession extends HostNameResolver {
       round.lastSession = metaList.get(curLeader);
     }
 
-    if (!round.roundWithTimeout && round.maxQueryCount <= 0) {
-      round.callbackFunc.run();
-      return;
-    }
-
-    if (round.roundWithTimeout && (round.endRoundTime - System.currentTimeMillis()) <= 0) {
+    if (round.maxQueryCount == 0) {
       round.callbackFunc.run();
       return;
     }
@@ -274,23 +240,6 @@ public class MetaSession extends HostNameResolver {
   }
 
   void retryQueryMeta(final MetaRequestRound round, boolean needDelay) {
-    long delay = 0;
-    TimeUnit timeUnit = TimeUnit.SECONDS;
-
-    if (needDelay) {
-      if (round.roundWithTimeout) {
-        long remainMs = round.endRoundTime - System.currentTimeMillis();
-        if (remainMs < 0) {
-          remainMs = 8;
-        }
-
-        delay = remainMs / 3;
-        timeUnit = TimeUnit.MILLISECONDS;
-      } else {
-        delay = 1;
-      }
-    }
-
     group.schedule(
         new Runnable() {
           @Override
@@ -298,8 +247,8 @@ public class MetaSession extends HostNameResolver {
             asyncCall(round);
           }
         },
-        delay,
-        timeUnit);
+        needDelay ? 1 : 0,
+        TimeUnit.SECONDS);
   }
 
   static final class MetaRequestRound {
@@ -310,24 +259,11 @@ public class MetaSession extends HostNameResolver {
     public int maxQueryCount;
     public ReplicaSession lastSession;
 
-    public boolean roundWithTimeout;
-    public long endRoundTime;
-    public long timeoutMs;
-
-    public MetaRequestRound(
-        client_operator o, Runnable r, int q, ReplicaSession l, boolean rt, long tm) {
+    public MetaRequestRound(client_operator o, Runnable r, int q, ReplicaSession l) {
       op = o;
       callbackFunc = r;
       maxQueryCount = q;
       lastSession = l;
-
-      roundWithTimeout = rt;
-      timeoutMs = tm;
-      endRoundTime = System.currentTimeMillis() + tm;
-    }
-
-    public MetaRequestRound(client_operator o, Runnable r, int q, ReplicaSession l) {
-      this(o, r, q, l, false, 0);
     }
   }
 

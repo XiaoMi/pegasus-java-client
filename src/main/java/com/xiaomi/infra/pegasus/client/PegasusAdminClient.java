@@ -34,6 +34,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     implements PegasusAdminClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
   private static final String APP_TYPE = "pegasus";
+  private static final int META_RETRY_COUNT = 3;
 
   private Meta meta;
 
@@ -42,19 +43,23 @@ public class PegasusAdminClient extends PegasusAbstractClient
     return "Admin";
   }
 
+  private void initMeta() {
+    this.meta = this.cluster.getMeta();
+  }
+
   public PegasusAdminClient(Properties properties) throws PException {
-    this(ClientOptions.create(properties));
+    super(properties);
+    initMeta();
   }
 
   public PegasusAdminClient(String configPath) throws PException {
-    this(ClientOptions.create(configPath));
+    super(configPath);
+    initMeta();
   }
 
   public PegasusAdminClient(ClientOptions options) throws PException {
     super(options);
-    this.meta = this.cluster.getMeta();
-    LOGGER.info(
-        "Create PegasusAdminClient Instance By ClientOptions : {}", this.clientOptions.toString());
+    initMeta();
   }
 
   @Override
@@ -115,7 +120,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     request.setOptions(options);
 
     create_app_operator app_operator = new create_app_operator(appName, request);
-    error_code.error_types error = this.meta.operate(app_operator, timeoutMs);
+    error_code.error_types error = this.meta.operate(app_operator, META_RETRY_COUNT);
     if (error != error_code.error_types.ERR_OK) {
       throw new PException(
           String.format(
@@ -165,7 +170,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     request.setApp_name(appName);
 
     query_cfg_operator query_op = new query_cfg_operator(new gpid(-1, -1), request);
-    error_code.error_types error = this.meta.operate(query_op, timeoutMs);
+    error_code.error_types error = this.meta.operate(query_op, META_RETRY_COUNT);
     if (error != error_code.error_types.ERR_OK) {
       throw new PException(
           String.format(
