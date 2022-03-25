@@ -50,12 +50,12 @@ public class TestAdminClient {
     int opTimeoutMs = 66000;
     toolsClient.createApp(appName, partitionCount, replicaCount, new HashMap<>(), opTimeoutMs);
 
-    boolean isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
+    boolean isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount);
 
     Assert.assertTrue(isAppHealthy);
 
     replicaCount = 5;
-    isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
+    isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount);
     Assert.assertFalse(isAppHealthy);
   }
 
@@ -64,10 +64,9 @@ public class TestAdminClient {
     // test a not existed app
     String appName = "testIsAppHealthyIfNotExists";
     int replicaCount = 3;
-    int opTimeoutMs = 6000;
 
     try {
-      toolsClient.isAppHealthy(appName, replicaCount, opTimeoutMs);
+      toolsClient.isAppHealthy(appName, replicaCount);
     } catch (PException e) {
       return;
     }

@@ -34,7 +34,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     implements PegasusAdminClientInterface {
   private static final Logger LOGGER = LoggerFactory.getLogger(PegasusClient.class);
   private static final String APP_TYPE = "pegasus";
-  private static final int META_RETRY_COUNT = 3;
+  private static final int META_RETRY_MIN_COUNT = 5;
 
   private Meta meta;
 
@@ -120,7 +120,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     request.setOptions(options);
 
     create_app_operator app_operator = new create_app_operator(appName, request);
-    error_code.error_types error = this.meta.operate(app_operator, META_RETRY_COUNT);
+    error_code.error_types error = this.meta.operate(app_operator, META_RETRY_MIN_COUNT);
     if (error != error_code.error_types.ERR_OK) {
       throw new PException(
           String.format(
@@ -131,11 +131,11 @@ public class PegasusAdminClient extends PegasusAbstractClient
     long endCreateAppRpcTime = System.currentTimeMillis();
     long remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
     if (remainDuration <= 0) {
-      return;
+      remainDuration = 8;
     }
 
-    boolean isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
-    while (!isHealthy) {
+    boolean isHealthy = this.isAppHealthy(appName, replicaCount);
+    while (!isHealthy && remainDuration > 0) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -144,10 +144,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
 
       endCreateAppRpcTime = System.currentTimeMillis();
       remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
-      if (remainDuration <= 0) {
-        break;
-      }
-      isHealthy = this.isAppHealthy(appName, replicaCount, remainDuration);
+      isHealthy = this.isAppHealthy(appName, replicaCount);
     }
 
     if (!isHealthy) {
@@ -159,7 +156,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
   }
 
   @Override
-  public boolean isAppHealthy(String appName, int replicaCount, long timeoutMs) throws PException {
+  public boolean isAppHealthy(String appName, int replicaCount) throws PException {
     if (replicaCount < 1) {
       throw new PException(
           new IllegalArgumentException(
@@ -170,7 +167,7 @@ public class PegasusAdminClient extends PegasusAbstractClient
     request.setApp_name(appName);
 
     query_cfg_operator query_op = new query_cfg_operator(new gpid(-1, -1), request);
-    error_code.error_types error = this.meta.operate(query_op, META_RETRY_COUNT);
+    error_code.error_types error = this.meta.operate(query_op, META_RETRY_MIN_COUNT);
     if (error != error_code.error_types.ERR_OK) {
       throw new PException(
           String.format(

@@ -51,13 +51,12 @@ public interface PegasusAdminClientInterface {
    *
    * @param appName App name which will be judged 'healthy' or not by this interface
    * @param replicaCount replicaCount of the app
-   * @param timeoutMs The timeout of the interface, milli-seconds
    * @return true if the app in the pegasus server side has enough healthy replicas specified by the
    *     'replicaCount' parameter, otherwise return false
-   * @throws PException If 'appName' not exists or the rpc to pegasus server cause timeout or other
-   *     error happens in the server side, the interface will throw PException
+   * @throws PException If 'appName' not exists or other error happens in the server side, the
+   *     interface will throw PException
    */
-  public boolean isAppHealthy(String appName, int replicaCount, long timeoutMs) throws PException;
+  public boolean isAppHealthy(String appName, int replicaCount) throws PException;
 
   /** close the client */
   public void close();
