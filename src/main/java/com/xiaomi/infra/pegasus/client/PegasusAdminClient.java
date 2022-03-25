@@ -128,23 +128,25 @@ public class PegasusAdminClient extends PegasusAbstractClient
               appName, partitionCount, replicaCount, error.toString()));
     }
 
-    long endCreateAppRpcTime = System.currentTimeMillis();
-    long remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
+    long remainDuration = timeoutMs - (System.currentTimeMillis() - startTime);
     if (remainDuration <= 0) {
       remainDuration = 8;
     }
 
-    boolean isHealthy = this.isAppHealthy(appName, replicaCount);
-    while (!isHealthy && remainDuration > 0) {
+    boolean isHealthy = false;
+    while (remainDuration > 0) {
+      isHealthy = this.isAppHealthy(appName, replicaCount);
+      if (isHealthy) {
+        break;
+      }
+
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
         continue;
       }
 
-      endCreateAppRpcTime = System.currentTimeMillis();
-      remainDuration = timeoutMs - (endCreateAppRpcTime - startTime);
-      isHealthy = this.isAppHealthy(appName, replicaCount);
+      remainDuration = timeoutMs - (System.currentTimeMillis() - startTime);
     }
 
     if (!isHealthy) {
