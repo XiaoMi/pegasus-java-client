@@ -19,9 +19,10 @@
 
 package com.xiaomi.infra.pegasus.client;
 
-import com.xiaomi.infra.pegasus.base.rpc_address;
-import com.xiaomi.infra.pegasus.tools.Toollet;
+import com.xiaomi.infra.pegasus.rpc.async.MetaHandler;
+import com.xiaomi.infra.pegasus.rpc.async.MetaSession;
 import java.util.HashMap;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.*;
 
 public class TestAdminClient {
@@ -67,33 +68,17 @@ public class TestAdminClient {
   }
 
   @Test
-  public void testCreateNewAppConsideringMetaForward() throws PException {
+  public void testCreateNewAppConsideringMetaForward() throws PException, IllegalAccessException {
     String[] metaServerArray = this.metaServerList.split(",");
     for (int i = 0; i < metaServerArray.length; ++i) {
-      rpc_address address = new rpc_address();
-      address.fromString(metaServerArray[i]);
-
-      Toollet.closeServer(address);
-
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-
-      if (i > 0) {
-        rpc_address preMetaAddress = new rpc_address();
-        preMetaAddress.fromString(metaServerArray[i - 1]);
-        Toollet.tryStartServer(preMetaAddress);
-      }
+      PegasusAdminClient realToolClient = (PegasusAdminClient) toolsClient;
+      MetaHandler metaHandler = (MetaHandler) FieldUtils.readField(realToolClient, "meta", true);
+      MetaSession metaSession = (MetaSession) FieldUtils.readField(metaHandler, "session", true);
+      FieldUtils.writeField(metaSession, "curLeader", i, true);
 
       String appName = "testMetaForward_" + i;
       testOneCreateApp(appName);
     }
-
-    rpc_address address = new rpc_address();
-    address.fromString(metaServerArray[metaServerArray.length - 1]);
-    Toollet.tryStartServer(address);
   }
 
   @Test
