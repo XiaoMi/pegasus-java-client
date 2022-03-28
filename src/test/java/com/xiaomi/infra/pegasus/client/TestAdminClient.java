@@ -19,17 +19,20 @@
 
 package com.xiaomi.infra.pegasus.client;
 
+import com.xiaomi.infra.pegasus.base.rpc_address;
+import com.xiaomi.infra.pegasus.tools.Toollet;
 import java.util.HashMap;
 import org.junit.*;
 
 public class TestAdminClient {
   PegasusAdminClientInterface toolsClient;
+  final String metaServerList = "127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603";
 
   @Before
   public void Setup() throws PException {
     ClientOptions clientOptions =
         ClientOptions.builder()
-            .metaServers("127.0.0.1:34601,127.0.0.1:34602,127.0.0.1:34603")
+            .metaServers(this.metaServerList)
             .asyncWorkers(6)
             .enablePerfCounter(false)
             .build();
@@ -42,9 +45,7 @@ public class TestAdminClient {
     toolsClient.close();
   }
 
-  @Test
-  public void testCreateNewApp() throws PException {
-    String appName = "testCreateApp1";
+  private void testOneCreateApp(String appName) throws PException {
     int partitionCount = 8;
     int replicaCount = 3;
     int opTimeoutMs = 66000;
@@ -57,6 +58,36 @@ public class TestAdminClient {
     replicaCount = 5;
     isAppHealthy = toolsClient.isAppHealthy(appName, replicaCount);
     Assert.assertFalse(isAppHealthy);
+  }
+
+  @Test
+  public void testCreateNewApp() throws PException {
+    String appName = "testCreateApp1";
+    testOneCreateApp(appName);
+  }
+
+  @Test
+  public void testCreateNewAppConsideringMetaForward() throws PException {
+    String[] metaServerArray = this.metaServerList.split(",");
+    for (int i = 0; i < metaServerArray.length; ++i) {
+      rpc_address address = new rpc_address();
+      address.fromString(metaServerArray[i]);
+
+      Toollet.closeServer(address);
+
+      if (i > 0) {
+        rpc_address preMetaAddress = new rpc_address();
+        preMetaAddress.fromString(metaServerArray[i - 1]);
+        Toollet.tryStartServer(preMetaAddress);
+      }
+
+      String appName = "testMetaForward_" + i;
+      testOneCreateApp(appName);
+    }
+
+    rpc_address address = new rpc_address();
+    address.fromString(metaServerArray[metaServerArray.length - 1]);
+    Toollet.tryStartServer(address);
   }
 
   @Test
