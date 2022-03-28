@@ -75,6 +75,12 @@ public class TestAdminClient {
 
       Toollet.closeServer(address);
 
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
       if (i > 0) {
         rpc_address preMetaAddress = new rpc_address();
         preMetaAddress.fromString(metaServerArray[i - 1]);
