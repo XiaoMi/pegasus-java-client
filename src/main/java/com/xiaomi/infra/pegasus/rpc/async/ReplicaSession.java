@@ -245,6 +245,7 @@ public class ReplicaSession {
 
   void markSessionDisconnect() {
     VolatileFields cache = fields;
+    authSucceed = false;
     synchronized (pendingSend) {
       if (cache.state != ConnState.DISCONNECTED) {
         // NOTICE:
